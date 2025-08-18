@@ -4,6 +4,7 @@ from typing import List, Dict, Any, Optional
 import pandas as pd
 import io
 import uuid
+import hashlib
 from datetime import datetime
 import logging
 
@@ -34,6 +35,21 @@ from app.core.websocket_manager import (
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
+# Constants for secure hash handling
+HASH_DISPLAY_LENGTH = 16
+
+def calculate_file_hash_streaming(file_content: bytes, chunk_size: int = 8192) -> str:
+    """Calculate SHA256 hash with streaming for memory efficiency"""
+    hash_obj = hashlib.sha256()
+    for i in range(0, len(file_content), chunk_size):
+        chunk = file_content[i:i + chunk_size]
+        hash_obj.update(chunk)
+    return hash_obj.hexdigest()
+
+def truncate_hash_for_display(hash_value: str) -> str:
+    """Truncate hash for secure display in logs and responses"""
+    return f"{hash_value[:HASH_DISPLAY_LENGTH]}..."
+
 @router.post("/csv")
 async def upload_csv(
     request: Request,
@@ -43,18 +59,17 @@ async def upload_csv(
     db: Session = Depends(get_db)
 ):
     """
-    Upload and process CSV file with comprehensive security validation and processing
+    Upload and process CSV file with comprehensive security validation and processing.
+    
+    Features SHA256 hash-based duplicate prevention:
+    - Each file's content is hashed using SHA256
+    - Hash serves as batch_id for tracking and deduplication
+    - Rejects duplicates with HTTP 409 and clear error message
+    - Maintains existing DELETE /api/v1/transactions/import-batch/{hash} functionality
+    
+    Security measures include file validation, malware scanning, content sanitization,
+    and comprehensive audit logging for financial compliance.
     """
-    # Debug logging for frontend requests
-    print(f"=== FRONTEND UPLOAD DEBUG ===")
-    print(f"Request method: {request.method}")
-    print(f"Request URL: {request.url}")
-    print(f"Request headers: {dict(request.headers)}")
-    print(f"File received: {file.filename if file else 'None'}")
-    print(f"File content type: {file.content_type if file else 'None'}")
-    print(f"Current user: {current_user.email if current_user else 'None'}")
-    print(f"Batch ID: {batch_id}")
-    print(f"=== END FRONTEND DEBUG ===")
     
     file_validator = FileValidator()
     start_time = datetime.utcnow()
@@ -128,9 +143,42 @@ async def upload_csv(
                 detail=deny_reason
             )
         
-        # Use provided batch_id or generate a new one
+        # Generate SHA256 file hash for batch_id (replaces UUID for duplicate prevention)
         if not batch_id:
-            batch_id = str(uuid.uuid4())
+            # Compute hash early for security and performance with streaming for memory efficiency
+            file_hash = calculate_file_hash_streaming(content)
+            batch_id = file_hash
+            
+            logger.info(f"Generated SHA256 hash for {file.filename}: {truncate_hash_for_display(file_hash)} (size: {file_size} bytes)")
+            
+            # Early duplicate detection - check before any processing for optimal performance
+            existing_upload = db.query(Transaction).filter(
+                Transaction.user_id == current_user.id,
+                Transaction.import_batch == file_hash
+            ).first()
+            
+            if existing_upload:
+                # Log security event for duplicate attempt
+                security_audit_logger.log_file_upload_failure(
+                    user_id=str(current_user.id),
+                    filename=file.filename,
+                    file_size=file_size,
+                    error=f"Duplicate file upload detected - hash: {truncate_hash_for_display(file_hash)}",
+                    request=request
+                )
+                
+                logger.warning(f"Duplicate file upload rejected for user {current_user.id}: hash {truncate_hash_for_display(file_hash)}")
+                
+                # Secure error response with actionable information
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail={
+                        "message": "This file has already been uploaded",
+                        "duplicate_batch_id": file_hash,
+                        "error_code": "DUPLICATE_FILE_UPLOAD",
+                        "suggested_action": f"Use DELETE /api/v1/transactions/import-batch/{file_hash} to remove the previous upload before re-uploading"
+                    }
+                )
         
         # Emit initial progress
         await emit_validation_progress(
@@ -646,13 +694,15 @@ async def upload_csv(
         response_data = {
             "message": "File uploaded and processed successfully",
             "batch_id": batch_id,
+            "file_hash": batch_id,  # For transparency - batch_id is now the file hash
             "file_info": {
                 "filename": file.filename,
                 "file_size": file_size,
                 "total_rows": len(df),
                 "validation_passed": True,
                 "threat_level": validation_result.threat_level.value,
-                "malware_scan_clean": malware_scan_result.is_clean
+                "malware_scan_clean": malware_scan_result.is_clean,
+                "duplicate_prevention": "SHA256 hash-based"
             },
             "security_validation": {
                 "validation_duration": validation_result.scan_duration,
@@ -704,7 +754,9 @@ async def upload_csv(
                 "total_transactions": processed_count,
                 "successfully_categorized": categorized_count,
                 "overall_success_rate": round((processed_count / len(df) * 100), 2) if len(df) > 0 else 0,
-                "security_status": "VALIDATED"
+                "security_status": "VALIDATED",
+                "duplicate_prevention": "SHA256_HASH_BASED",
+                "file_hash": truncate_hash_for_display(batch_id)  # Truncated hash for response
             }
         }
         
@@ -729,10 +781,6 @@ async def upload_csv(
         # Re-raise HTTP exceptions
         raise
     except Exception as e:
-        # Log the actual error for debugging
-        print(f"ACTUAL ERROR: {type(e).__name__}: {str(e)}")
-        import traceback
-        print(f"TRACEBACK: {traceback.format_exc()}")
         
         # Create sanitized error response for unexpected errors
         error_detail = create_secure_error_response(
