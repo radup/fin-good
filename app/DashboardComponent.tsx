@@ -196,7 +196,7 @@ export default function DashboardComponent() {
       const response = await authAPI.me()
       setIsAuthenticated(true)
     } catch (error: any) {
-      console.log('Not authenticated, redirecting to login')
+      // Redirecting to login
       setIsAuthenticated(false)
       window.location.href = '/login'
     }
@@ -214,7 +214,7 @@ export default function DashboardComponent() {
     setIsLoadingTransactions(true)
     try {
       const response = await transactionAPI.getTransactions()
-      console.log('Fetched transactions:', response.data)
+      // Transactions fetched successfully
       setTransactions(response.data)
     } catch (error: any) {
       console.error('Error fetching transactions:', error)
@@ -231,7 +231,7 @@ export default function DashboardComponent() {
     setIsLoadingSummary(true)
     try {
       const response = await analyticsAPI.summary()
-      console.log('Fetched summary:', response.data)
+      // Summary fetched successfully
       setSummary(response.data)
     } catch (error: any) {
       console.error('Error fetching summary:', error)
@@ -246,9 +246,9 @@ export default function DashboardComponent() {
 
   const handleDemoLogin = async () => {
     try {
-      console.log('Demo login clicked')
+      // Demo login initiated
       const response = await authAPI.login('demo@fingood.com', 'demo123')
-      console.log('Login successful:', response.data)
+              // Login successful
       setIsAuthenticated(true)
       // Refresh the page to load authenticated data
       window.location.reload()
@@ -285,7 +285,7 @@ export default function DashboardComponent() {
     setIsCategorizing(true)
     try {
       const response = await transactionAPI.categorize()
-      console.log('Categorization result:', response.data)
+      // Categorization completed successfully
       alert(`Successfully categorized ${response.data.categorized_count} transactions!`)
       
       // Refresh data after categorization
@@ -396,7 +396,7 @@ export default function DashboardComponent() {
             <div className="flex items-center gap-3">
               <button
                 onClick={() => {
-                  console.log('Upload CSV button clicked')
+                  // Upload modal opened
                   setIsUploadModalOpen(true)
                 }}
                 className="btn-primary flex items-center gap-2 therapeutic-hover"
@@ -582,7 +582,7 @@ export default function DashboardComponent() {
                 <h2 className="text-xl font-semibold text-gray-900">Recent Transactions</h2>
                 <div className="flex gap-2">
                   <button 
-                    onClick={() => console.log('Export button clicked')}
+                    onClick={() => {/* Export functionality */}}
                     className="btn-secondary"
                   >
                     Export
