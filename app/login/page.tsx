@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { authAPI, setGlobalCsrfToken } from '@/lib/api'
+import DrSigmundSpendAvatar from '@/components/DrSigmundSpendAvatar'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -36,13 +37,19 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+        <div className="text-center">
+          <DrSigmundSpendAvatar 
+            size="xl" 
+            mood="reassuring"
+            message="Welcome back! Your financial data is safe and secure with us."
+            className="mb-6"
+          />
+          <h2 className="text-3xl font-extrabold text-gray-900">
             Sign in to FinGood
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
+          <p className="mt-2 text-gray-600">
             AI-Powered Financial Intelligence
           </p>
         </div>
@@ -58,7 +65,7 @@ export default function LoginPage() {
                 type="email"
                 autoComplete="email"
                 required
-                className="input-field rounded-t-md"
+                className="input-field rounded-t-md therapeutic-transition"
                 placeholder="Email address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -74,7 +81,7 @@ export default function LoginPage() {
                 type="password"
                 autoComplete="current-password"
                 required
-                className="input-field rounded-b-md"
+                className="input-field rounded-b-md therapeutic-transition"
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -83,7 +90,7 @@ export default function LoginPage() {
           </div>
 
           {error && (
-            <div className="bg-danger-50 border border-danger-200 rounded-md p-4">
+            <div className="bg-danger-50 border border-danger-200 rounded-md p-4 therapeutic-transition">
               <p className="text-sm text-danger-800">{error}</p>
             </div>
           )}
@@ -92,7 +99,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="btn-primary w-full"
+              className="btn-primary w-full therapeutic-hover"
             >
               {isLoading ? 'Signing in...' : 'Sign in'}
             </button>

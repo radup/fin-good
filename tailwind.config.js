@@ -68,6 +68,11 @@ module.exports = {
           800: '#1e293b',
           900: '#0f172a',
         },
+        // Therapeutic colors
+        'trust-blue': '#2563EB',
+        'calm-green': '#059669',
+        'warm-gold': '#F59E0B',
+        'soft-background': '#F8FAFC',
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],

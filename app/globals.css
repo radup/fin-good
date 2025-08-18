@@ -2,6 +2,125 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Therapeutic Color Palette - FinGood UX Enhancement */
+:root {
+  /* Primary therapeutic colors */
+  --color-trust-blue: #2563EB;
+  --color-calm-green: #059669;
+  --color-warm-gold: #F59E0B;
+  --color-soft-background: #F8FAFC;
+  
+  /* Confidence levels */
+  --color-high-confidence: #059669;
+  --color-medium-confidence: #F59E0B;
+  --color-low-confidence: #EF4444;
+  
+  /* Emotional states */
+  --color-anxiety-reduce: #E0F2FE;
+  --color-trust-build: #DBEAFE;
+  --color-empowerment: #D1FAE5;
+  
+  /* Interactive elements */
+  --color-safe-action: #10B981;
+  --color-attention-needed: #F59E0B;
+  --color-urgent-action: #EF4444;
+  
+  /* Therapeutic gradients */
+  --gradient-trust: linear-gradient(135deg, #DBEAFE 0%, #E0F2FE 100%);
+  --gradient-empowerment: linear-gradient(135deg, #D1FAE5 0%, #E0F2FE 100%);
+  --gradient-celebration: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+}
+
+/* Therapeutic utility classes */
+.therapeutic-bg {
+  background-color: var(--color-soft-background);
+}
+
+.therapeutic-trust {
+  background-color: var(--color-trust-blue);
+  color: white;
+}
+
+.therapeutic-calm {
+  background-color: var(--color-calm-green);
+  color: white;
+}
+
+.therapeutic-warm {
+  background-color: var(--color-warm-gold);
+  color: white;
+}
+
+.confidence-high {
+  background-color: var(--color-high-confidence);
+  color: white;
+}
+
+.confidence-medium {
+  background-color: var(--color-medium-confidence);
+  color: white;
+}
+
+.confidence-low {
+  background-color: var(--color-low-confidence);
+  color: white;
+}
+
+.anxiety-reduce {
+  background-color: var(--color-anxiety-reduce);
+}
+
+.trust-build {
+  background-color: var(--color-trust-build);
+}
+
+.empowerment {
+  background-color: var(--color-empowerment);
+}
+
+/* Smooth transitions for therapeutic interactions */
+.therapeutic-transition {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Gentle hover effects */
+.therapeutic-hover:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+}
+
+/* Celebration animation */
+@keyframes therapeutic-celebration {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.celebration-animation {
+  animation: therapeutic-celebration 0.6s ease-in-out;
+}
+
+/* Gentle loading animation */
+@keyframes therapeutic-loading {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+}
+
+.therapeutic-loading {
+  animation: therapeutic-loading 2s ease-in-out infinite;
+}
+
+/* Blinking animation for avatar */
+@keyframes blink {
+  0%, 90%, 100% { opacity: 0; }
+  95% { opacity: 1; }
+}
+
+.animate-blink {
+  animation: blink 4s ease-in-out infinite;
+}
+
 @layer base {
   html {
     font-family: 'Inter', system-ui, sans-serif;

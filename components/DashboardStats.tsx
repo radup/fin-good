@@ -18,7 +18,7 @@ export function DashboardStats({ summary, isLoading }: DashboardStatsProps) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         {[...Array(4)].map((_, i) => (
-          <div key={i} className="card animate-pulse">
+          <div key={i} className="card animate-pulse therapeutic-transition">
             <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
             <div className="h-8 bg-gray-200 rounded w-1/2"></div>
           </div>
@@ -30,7 +30,7 @@ export function DashboardStats({ summary, isLoading }: DashboardStatsProps) {
   if (!summary || typeof summary !== 'object') {
     return (
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div className="card text-center">
+        <div className="card text-center therapeutic-transition">
           <p className="text-gray-500">No data available</p>
         </div>
       </div>
@@ -38,11 +38,14 @@ export function DashboardStats({ summary, isLoading }: DashboardStatsProps) {
   }
 
   const netIncome = summary.total_income - summary.total_expenses
+  const categorizationRate = summary.total_transactions > 0 
+    ? (summary.categorized_count / summary.total_transactions) * 100 
+    : 0
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
       {/* Total Income */}
-      <div className="card">
+      <div className="card therapeutic-hover therapeutic-transition">
         <div className="flex items-center">
           <div className="p-2 bg-success-100 rounded-lg">
             <TrendingUp className="w-6 h-6 text-success-600" />
@@ -57,7 +60,7 @@ export function DashboardStats({ summary, isLoading }: DashboardStatsProps) {
       </div>
 
       {/* Total Expenses */}
-      <div className="card">
+      <div className="card therapeutic-hover therapeutic-transition">
         <div className="flex items-center">
           <div className="p-2 bg-danger-100 rounded-lg">
             <TrendingDown className="w-6 h-6 text-danger-600" />
@@ -72,7 +75,7 @@ export function DashboardStats({ summary, isLoading }: DashboardStatsProps) {
       </div>
 
       {/* Net Income */}
-      <div className="card">
+      <div className="card therapeutic-hover therapeutic-transition">
         <div className="flex items-center">
           <div className="p-2 bg-primary-100 rounded-lg">
             <DollarSign className="w-6 h-6 text-primary-600" />
@@ -87,7 +90,7 @@ export function DashboardStats({ summary, isLoading }: DashboardStatsProps) {
       </div>
 
       {/* Transactions */}
-      <div className="card">
+      <div className="card therapeutic-hover therapeutic-transition">
         <div className="flex items-center">
           <div className="p-2 bg-gray-100 rounded-lg">
             <FileText className="w-6 h-6 text-gray-600" />
@@ -98,7 +101,7 @@ export function DashboardStats({ summary, isLoading }: DashboardStatsProps) {
               {summary.total_transactions}
             </p>
             <p className="text-xs text-gray-500">
-              {summary.categorized_count} categorized
+              {categorizationRate.toFixed(0)}% categorized
             </p>
           </div>
         </div>

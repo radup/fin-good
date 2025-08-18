@@ -3,10 +3,11 @@
 import { useState, useEffect } from 'react'
 import { Upload, BarChart3, DollarSign, TrendingUp, FileText, Trash2 } from 'lucide-react'
 import { TransactionTable } from '@/components/TransactionTable'
-import { UploadModal } from '@/components/UploadModal'
+import { TherapeuticUploadModal } from '@/components/TherapeuticUploadModal'
 import { DashboardStats } from '@/components/DashboardStats'
 import { ImportBatchManager } from '@/components/ImportBatchManager'
 import { ErrorBoundary, ErrorFallback } from '@/components/ErrorBoundary'
+import DrSigmundSpendAvatar from '@/components/DrSigmundSpendAvatar'
 import { authAPI, transactionAPI, analyticsAPI } from '@/lib/api'
 
 export default function DashboardComponent() {
@@ -156,22 +157,28 @@ export default function DashboardComponent() {
   // Show login page if not authenticated
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Welcome to FinGood</h1>
-          <p className="text-gray-600 mb-6">Please log in to access your financial dashboard</p>
-          <div className="space-y-3">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-8">
+          <DrSigmundSpendAvatar 
+            size="xl" 
+            mood="encouraging"
+            message="Welcome to FinGood! I'm here to help you understand your finances better."
+            className="mb-6"
+          />
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">Welcome to FinGood</h1>
+          <p className="text-gray-600 mb-8">Your AI-powered financial companion is ready to help you achieve financial wellness</p>
+          <div className="space-y-4">
             <a 
               href="/login" 
-              className="btn-primary block"
+              className="btn-primary block w-full"
             >
               Login
             </a>
             <button 
               onClick={handleDemoLogin}
-              className="btn-secondary block"
+              className="btn-secondary block w-full"
             >
-              Demo Login (demo@fingood.com)
+              Try Demo (demo@fingood.com)
             </button>
           </div>
         </div>
@@ -181,14 +188,21 @@ export default function DashboardComponent() {
 
   // Show dashboard if authenticated
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
+      <header className="bg-white/80 backdrop-blur-sm shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">FinGood</h1>
-              <p className="text-gray-600">AI-Powered Financial Intelligence</p>
+            <div className="flex items-center gap-4">
+              <DrSigmundSpendAvatar 
+                size="md" 
+                mood="analytical"
+                showMessage={false}
+              />
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">FinGood</h1>
+                <p className="text-gray-600">AI-Powered Financial Intelligence</p>
+              </div>
             </div>
             <div className="flex items-center gap-3">
               <button
@@ -196,14 +210,14 @@ export default function DashboardComponent() {
                   console.log('Upload CSV button clicked')
                   setIsUploadModalOpen(true)
                 }}
-                className="btn-primary flex items-center gap-2"
+                className="btn-primary flex items-center gap-2 therapeutic-hover"
               >
                 <Upload className="w-4 h-4" />
                 Upload CSV
               </button>
               <button
                 onClick={handleLogout}
-                className="btn-secondary"
+                className="btn-secondary therapeutic-hover"
               >
                 Logout
               </button>
@@ -329,7 +343,7 @@ export default function DashboardComponent() {
       </main>
 
       {/* Upload Modal */}
-      <UploadModal 
+      <TherapeuticUploadModal 
         isOpen={isUploadModalOpen}
         onClose={() => setIsUploadModalOpen(false)}
         onUploadSuccess={handleUploadSuccess}

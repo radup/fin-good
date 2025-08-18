@@ -9,6 +9,7 @@ import { Pagination } from './Pagination'
 import { useCategoryOptions } from '@/hooks/useCategories'
 import { transactionAPI } from '@/lib/api'
 import { useQueryClient } from '@tanstack/react-query'
+import AIConfidenceDisplay from './AIConfidenceDisplay'
 
 interface Transaction {
   id: number
@@ -229,7 +230,7 @@ export function TransactionTable({ transactions: initialTransactions, isLoading,
 
   if (isLoading) {
     return (
-      <div className="animate-pulse">
+      <div className="animate-pulse therapeutic-transition">
         <div className="h-4 bg-gray-200 rounded w-1/4 mb-4"></div>
         <div className="space-y-3">
           {[...Array(5)].map((_, i) => (
@@ -242,7 +243,7 @@ export function TransactionTable({ transactions: initialTransactions, isLoading,
 
   if (!transactions || !Array.isArray(transactions) || transactions.length === 0) {
     return (
-      <div className="text-center py-8">
+      <div className="text-center py-8 therapeutic-transition">
         <p className="text-gray-500 mb-4">No transactions found</p>
         <p className="text-sm text-gray-400">
           Upload a CSV file to get started
@@ -252,7 +253,7 @@ export function TransactionTable({ transactions: initialTransactions, isLoading,
   }
 
   return (
-    <div className="bg-white rounded-lg shadow">
+    <div className="bg-white rounded-lg shadow therapeutic-transition">
       {/* Filters */}
       <TransactionFilters
         onFiltersChange={handleFiltersChange}
@@ -266,7 +267,7 @@ export function TransactionTable({ transactions: initialTransactions, isLoading,
           <thead className="bg-gray-50">
             <tr>
               <th 
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 therapeutic-transition"
                 onClick={() => handleSort('date')}
               >
                 <div className="flex items-center space-x-1">
@@ -275,7 +276,7 @@ export function TransactionTable({ transactions: initialTransactions, isLoading,
                 </div>
               </th>
               <th 
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 therapeutic-transition"
                 onClick={() => handleSort('description')}
               >
                 <div className="flex items-center space-x-1">
@@ -284,7 +285,7 @@ export function TransactionTable({ transactions: initialTransactions, isLoading,
                 </div>
               </th>
               <th 
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 therapeutic-transition"
                 onClick={() => handleSort('vendor')}
               >
                 <div className="flex items-center space-x-1">
@@ -293,7 +294,7 @@ export function TransactionTable({ transactions: initialTransactions, isLoading,
                 </div>
               </th>
               <th 
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 therapeutic-transition"
                 onClick={() => handleSort('amount')}
               >
                 <div className="flex items-center space-x-1">
@@ -302,7 +303,7 @@ export function TransactionTable({ transactions: initialTransactions, isLoading,
                 </div>
               </th>
               <th 
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 therapeutic-transition"
                 onClick={() => handleSort('category')}
               >
                 <div className="flex items-center space-x-1">
@@ -311,7 +312,7 @@ export function TransactionTable({ transactions: initialTransactions, isLoading,
                 </div>
               </th>
               <th 
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 therapeutic-transition"
                 onClick={() => handleSort('subcategory')}
               >
                 <div className="flex items-center space-x-1">
@@ -438,7 +439,7 @@ export function TransactionTable({ transactions: initialTransactions, isLoading,
 
       {/* Save Message */}
       {saveMessage && (
-        <div className="px-6 py-3 bg-blue-50 border-t border-blue-200">
+        <div className="px-6 py-3 bg-blue-50 border-t border-blue-200 therapeutic-transition">
           <p className="text-sm text-blue-800">{saveMessage}</p>
         </div>
       )}
