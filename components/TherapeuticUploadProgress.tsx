@@ -9,6 +9,7 @@ interface TherapeuticUploadProgressProps {
   filename: string;
   onComplete?: () => void;
   className?: string;
+  isMobile?: boolean;
 }
 
 const TherapeuticUploadProgress: React.FC<TherapeuticUploadProgressProps> = ({
@@ -16,7 +17,8 @@ const TherapeuticUploadProgress: React.FC<TherapeuticUploadProgressProps> = ({
   stage,
   filename,
   onComplete,
-  className = ''
+  className = '',
+  isMobile = false
 }) => {
   const stageMessages = {
     uploading: {
@@ -51,14 +53,26 @@ const TherapeuticUploadProgress: React.FC<TherapeuticUploadProgressProps> = ({
   }, [stage, onComplete]);
 
   return (
-    <div className={`bg-blue-50 rounded-lg p-6 border border-blue-200 therapeutic-transition ${className}`}>
-      <div className="flex items-center gap-3 mb-4">
-        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-          <span className="text-blue-600 text-lg">{currentStage.icon}</span>
+    <div className={`bg-blue-50 rounded-lg border border-blue-200 therapeutic-transition ${className} ${
+      isMobile ? 'p-4' : 'p-6'
+    }`}>
+      <div className={`flex items-center gap-3 mb-4 ${
+        isMobile ? 'flex-col text-center' : ''
+      }`}>
+        <div className={`bg-blue-100 rounded-full flex items-center justify-center ${
+          isMobile ? 'w-12 h-12' : 'w-10 h-10'
+        }`}>
+          <span className={`text-blue-600 ${
+            isMobile ? 'text-xl' : 'text-lg'
+          }`}>{currentStage.icon}</span>
         </div>
-        <div className="flex-1">
-          <h3 className="font-medium text-blue-900">Processing {filename}</h3>
-          <p className="text-sm text-blue-700">{currentStage.message}</p>
+        <div className={`flex-1 ${isMobile ? 'w-full' : ''}`}>
+          <h3 className={`font-medium text-blue-900 ${
+            isMobile ? 'text-center' : ''
+          }`}>Processing {filename}</h3>
+          <p className={`text-sm text-blue-700 ${
+            isMobile ? 'text-center' : ''
+          }`}>{currentStage.message}</p>
         </div>
       </div>
       
@@ -69,7 +83,7 @@ const TherapeuticUploadProgress: React.FC<TherapeuticUploadProgressProps> = ({
         />
       </div>
       
-      <div className="mb-4">
+      <div className={`mb-4 ${isMobile ? 'flex justify-center' : ''}`}>
         <DrSigmundSpendAvatar 
           size="sm" 
           mood={currentStage.mood}
@@ -78,7 +92,9 @@ const TherapeuticUploadProgress: React.FC<TherapeuticUploadProgressProps> = ({
         />
       </div>
       
-      <div className="text-xs text-blue-600 text-center space-y-1">
+      <div className={`text-xs text-blue-600 space-y-1 ${
+        isMobile ? 'text-center' : 'text-center'
+      }`}>
         <p>Your data is encrypted and secure throughout this process</p>
         {stage === 'complete' && (
           <p className="font-medium celebration-animation">

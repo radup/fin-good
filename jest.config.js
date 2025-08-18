@@ -39,7 +39,7 @@ const customJestConfig = {
   },
   
   // Module name mapping for absolute imports and assets
-  moduleNameMapping: {
+  moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
     '^@/components/(.*)$': '<rootDir>/components/$1',
     '^@/hooks/(.*)$': '<rootDir>/hooks/$1',
