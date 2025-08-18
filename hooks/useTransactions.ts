@@ -13,7 +13,7 @@ export function useTransactions(params?: {
     queryKey: ['transactions', params],
     queryFn: async () => {
       try {
-        const response = await transactionAPI.getAll(params)
+        const response = await transactionAPI.getTransactions(params)
         return response.data
       } catch (error) {
         console.error('Error fetching transactions:', error)

@@ -271,8 +271,8 @@ export function FinancialAppLayout({ children }: { children: React.ReactNode }) 
 // Example usage in a page component
 export function ExampleFinancialDashboard() {
   const [transactions] = useState([
-    { id: 1, date: '2024-01-15', description: 'Sample Transaction', amount: 100, is_income: false },
-    { id: 2, date: '2024-01-16', description: 'Another Transaction', amount: 50, is_income: true }
+    { id: 1, date: '2024-01-15', description: 'Sample Transaction', amount: 100, is_income: false, is_categorized: true },
+    { id: 2, date: '2024-01-16', description: 'Another Transaction', amount: 50, is_income: true, is_categorized: false }
   ])
 
   return (

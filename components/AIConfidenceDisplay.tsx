@@ -21,7 +21,7 @@ const AIConfidenceDisplay: React.FC<AIConfidenceDisplayProps> = ({
   showFeedback = true,
   className = ''
 }) => {
-  const getConfidenceLevel = (score: number) => {
+  const getConfidenceLevel = (score: number): { level: 'high' | 'medium' | 'low'; color: string; text: string } => {
     if (score >= 80) return { level: 'high', color: 'green', text: 'Very Confident' };
     if (score >= 60) return { level: 'medium', color: 'yellow', text: 'Somewhat Confident' };
     return { level: 'low', color: 'orange', text: 'Less Confident' };

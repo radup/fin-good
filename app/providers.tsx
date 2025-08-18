@@ -45,15 +45,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
           queries: {
             staleTime: 60 * 1000, // 1 minute
             retry: 1,
-            // Enhanced error handling for financial queries
-            onError: (error: any) => {
-              console.error('Query error:', error)
-              // Preserve any relevant financial data on query errors
-              if (error?.response?.status === 401) {
-                // Auth error - will be handled by AuthErrorBoundary
-                return
-              }
-            },
           },
         },
       })
