@@ -1,0 +1,697 @@
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status, Request
+from sqlalchemy.orm import Session
+from typing import List, Dict, Any
+import pandas as pd
+import io
+import uuid
+from datetime import datetime
+import logging
+
+from app.core.database import get_db
+from app.core.config import settings
+from app.core.audit_logger import security_audit_logger
+from app.core.error_sanitizer import error_sanitizer, create_secure_error_response
+from app.schemas.error import ErrorCategory, ErrorSeverity
+from app.core.exceptions import ValidationException, SystemException
+from app.models.user import User
+from app.models.transaction import Transaction
+from app.core.cookie_auth import get_current_user_from_cookie
+from app.services.categorization import CategorizationService
+from app.services.csv_parser import CSVParser, ParsingResult
+from app.services.file_validator import FileValidator, ValidationResult, ThreatLevel
+from app.services.malware_scanner import scan_file_for_malware
+from app.services.upload_monitor import check_upload_allowed, record_upload
+from app.services.content_sanitizer import sanitize_csv_content, SanitizationLevel
+from app.services.sandbox_analyzer import analyze_file_in_sandbox, AnalysisType
+
+router = APIRouter()
+logger = logging.getLogger(__name__)
+
+@router.post("/csv")
+async def upload_csv(
+    request: Request,
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user_from_cookie),
+    db: Session = Depends(get_db)
+):
+    """
+    Upload and process CSV file with comprehensive security validation and processing
+    """
+    file_validator = FileValidator()
+    start_time = datetime.utcnow()
+    
+    # Basic file validation
+    if not file.filename:
+        security_audit_logger.log_file_upload_failure(
+            user_id=str(current_user.id),
+            filename="<no filename>",
+            file_size=0,
+            error="No filename provided",
+            request=request
+        )
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Filename is required"
+        )
+    
+    try:
+        # Read file content
+        content = await file.read()
+        file_size = len(content)
+        
+        # Log upload attempt
+        security_audit_logger.log_file_upload_attempt(
+            user_id=str(current_user.id),
+            filename=file.filename,
+            file_size=file_size,
+            timestamp=start_time,
+            request=request
+        )
+        
+        logger.info(f"Processing file upload: {file.filename}, size: {file_size} bytes, user: {current_user.id}")
+        
+        # Get client info for monitoring
+        client_ip = request.client.host if request.client else None
+        user_agent = request.headers.get("User-Agent")
+        
+        # Step 1: Check upload permissions and rate limits
+        upload_allowed, deny_reason = await check_upload_allowed(
+            user_id=str(current_user.id),
+            filename=file.filename,
+            file_size=file_size,
+            file_content=content,
+            ip_address=client_ip,
+            user_agent=user_agent
+        )
+        
+        if not upload_allowed:
+            await record_upload(
+                user_id=str(current_user.id),
+                filename=file.filename,
+                file_size=file_size,
+                file_content=content,
+                success=False,
+                ip_address=client_ip,
+                user_agent=user_agent,
+                error=deny_reason
+            )
+            
+            security_audit_logger.log_file_upload_failure(
+                user_id=str(current_user.id),
+                filename=file.filename,
+                file_size=file_size,
+                error=f"Upload denied: {deny_reason}",
+                request=request
+            )
+            
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail=deny_reason
+            )
+        
+        # Step 2: Comprehensive file validation
+        validation_result = await file_validator.validate_file(
+            file_content=content,
+            filename=file.filename,
+            user_id=str(current_user.id)
+        )
+        
+        # Handle validation results
+        if validation_result.validation_result == ValidationResult.REJECTED:
+            security_audit_logger.log_file_rejected(
+                user_id=str(current_user.id),
+                filename=file.filename,
+                reason="Failed security validation",
+                threat_indicators=validation_result.errors,
+                request=request
+            )
+            
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail={
+                    "message": "File failed security validation",
+                    "errors": validation_result.errors,
+                    "threat_level": validation_result.threat_level.value
+                }
+            )
+        
+        elif validation_result.validation_result == ValidationResult.QUARANTINED:
+            security_audit_logger.log_file_quarantined(
+                user_id=str(current_user.id),
+                filename=file.filename,
+                quarantine_id=validation_result.quarantine_id,
+                reason="Suspicious content detected",
+                request=request
+            )
+            
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail={
+                    "message": "File quarantined due to suspicious content",
+                    "quarantine_id": validation_result.quarantine_id,
+                    "warnings": validation_result.warnings,
+                    "threat_level": validation_result.threat_level.value
+                }
+            )
+        
+        # Step 2: Malware scanning
+        malware_scan_result = await scan_file_for_malware(
+            file_content=content,
+            filename=file.filename,
+            user_id=str(current_user.id)
+        )
+        
+        if not malware_scan_result.is_clean:
+            security_audit_logger.log_malware_detected(
+                user_id=str(current_user.id),
+                filename=file.filename,
+                malware_type="multiple_engines",
+                signature=f"{len(malware_scan_result.threats_detected)} threats detected",
+                request=request
+            )
+            
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail={
+                    "message": "Malware detected in file",
+                    "threats": [
+                        {
+                            "engine": threat.engine.value,
+                            "threat_type": threat.threat_type.value if threat.threat_type else None,
+                            "threat_name": threat.threat_name,
+                            "confidence": threat.confidence_score
+                        }
+                        for threat in malware_scan_result.threats_detected
+                    ],
+                    "scan_engines": malware_scan_result.total_engines,
+                    "highest_confidence": malware_scan_result.highest_confidence
+                }
+            )
+        
+        # Step 2a: Sandbox analysis for suspicious files
+        if validation_result.threat_level in [ThreatLevel.MEDIUM, ThreatLevel.HIGH, ThreatLevel.CRITICAL]:
+            sandbox_result = await analyze_file_in_sandbox(
+                file_content=content,
+                filename=file.filename,
+                user_id=str(current_user.id),
+                analysis_type=AnalysisType.BEHAVIORAL
+            )
+            
+            if not sandbox_result.is_safe:
+                security_audit_logger.log_sandbox_analysis_threat(
+                    user_id=str(current_user.id),
+                    filename=file.filename,
+                    risk_level=sandbox_result.risk_level.value,
+                    threats=sandbox_result.threats_detected,
+                    request=request
+                )
+                
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail={
+                        "message": "File failed sandbox analysis",
+                        "risk_level": sandbox_result.risk_level.value,
+                        "threats_detected": sandbox_result.threats_detected,
+                        "behavioral_indicators": sandbox_result.behavioral_indicators
+                    }
+                )
+        else:
+            # Quick static analysis for safe files
+            sandbox_result = await analyze_file_in_sandbox(
+                file_content=content,
+                filename=file.filename,
+                user_id=str(current_user.id),
+                analysis_type=AnalysisType.STATIC
+            )
+        
+        # Step 3: File type specific validation
+        if not file.filename.lower().endswith('.csv'):
+            security_audit_logger.log_file_upload_failure(
+                user_id=str(current_user.id),
+                filename=file.filename,
+                file_size=file_size,
+                error="Invalid file extension",
+                request=request
+            )
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Only CSV files are supported"
+            )
+        
+        # Step 4: Size validation with enhanced limits
+        max_size = settings.MAX_FILE_SIZE
+        if file_size > max_size:
+            security_audit_logger.log_file_size_violation(
+                user_id=str(current_user.id),
+                filename=file.filename,
+                file_size=file_size,
+                max_allowed=max_size,
+                request=request
+            )
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"File too large. Maximum size: {max_size / (1024*1024):.1f} MB"
+            )
+        
+        # Step 5: Content sanitization and CSV parsing
+        try:
+            # Decode content with encoding validation
+            try:
+                content_str = content.decode('utf-8')
+            except UnicodeDecodeError:
+                try:
+                    content_str = content.decode('latin-1')
+                    logger.warning(f"File {file.filename} uses non-UTF-8 encoding")
+                except UnicodeDecodeError as e:
+                    # Log original error for developers
+                    error_detail = create_secure_error_response(
+                        exception=e,
+                        error_code="FILE_ENCODING_ERROR",
+                        error_category=ErrorCategory.VALIDATION,
+                        correlation_id=str(uuid.uuid4()),
+                        user_message="File encoding error. Please ensure the file is UTF-8 encoded.",
+                        suggested_action="Save the file as UTF-8 encoded and try uploading again."
+                    )
+                    
+                    security_audit_logger.log_file_upload_failure(
+                        user_id=str(current_user.id),
+                        filename=file.filename,
+                        file_size=file_size,
+                        error=f"Encoding error: {error_detail.correlation_id}",
+                        request=request
+                    )
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail=error_detail.user_message
+                    )
+            
+            # Step 5a: Sanitize content for security
+            sanitization_result = await sanitize_csv_content(
+                content=content_str,
+                filename=file.filename,
+                user_id=str(current_user.id),
+                level=SanitizationLevel.STRICT
+            )
+            
+            if not sanitization_result.is_safe:
+                security_audit_logger.log_content_sanitization_failure(
+                    user_id=str(current_user.id),
+                    filename=file.filename,
+                    security_issues=sanitization_result.security_issues,
+                    request=request
+                )
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail={
+                        "message": "Content sanitization failed - file contains unsafe content",
+                        "security_issues": sanitization_result.security_issues,
+                        "modifications_attempted": len(sanitization_result.modifications_made)
+                    }
+                )
+            
+            # Use sanitized content for processing
+            content_str = sanitization_result.sanitized_content
+            
+            logger.info(f"Content sanitization completed: {len(sanitization_result.modifications_made)} modifications made")
+            
+            # Parse CSV with enhanced security
+            try:
+                df = pd.read_csv(io.StringIO(content_str))
+            except pd.errors.ParserError as e:
+                logger.warning(f"Standard CSV parsing failed: {e}. Trying flexible parsing...")
+                try:
+                    df = pd.read_csv(
+                        io.StringIO(content_str),
+                        sep=None,
+                        engine='python',
+                        quoting=3,
+                        on_bad_lines='warn'
+                    )
+                except Exception as e2:
+                    # Create sanitized error response
+                    error_detail = create_secure_error_response(
+                        exception=e2,
+                        error_code="CSV_PARSING_ERROR",
+                        error_category=ErrorCategory.VALIDATION,
+                        correlation_id=str(uuid.uuid4()),
+                        user_message="Could not parse CSV file. Please check the file format and try again.",
+                        suggested_action="Ensure the file is a valid CSV with proper formatting."
+                    )
+                    
+                    security_audit_logger.log_file_upload_failure(
+                        user_id=str(current_user.id),
+                        filename=file.filename,
+                        file_size=file_size,
+                        error=f"CSV parsing failed: {error_detail.correlation_id}",
+                        request=request
+                    )
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail=error_detail.user_message
+                    )
+            
+            if df.empty:
+                security_audit_logger.log_file_upload_failure(
+                    user_id=str(current_user.id),
+                    filename=file.filename,
+                    file_size=file_size,
+                    error="Empty CSV file",
+                    request=request
+                )
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="CSV file is empty"
+                )
+            
+            logger.info(f"CSV loaded successfully: {len(df)} rows, {len(df.columns)} columns")
+            
+        except pd.errors.EmptyDataError:
+            security_audit_logger.log_file_upload_failure(
+                user_id=str(current_user.id),
+                filename=file.filename,
+                file_size=file_size,
+                error="Empty CSV data",
+                request=request
+            )
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="CSV file contains no data"
+            )
+        
+        # Step 6: Parse and validate CSV structure
+        parser = CSVParser()
+        parsing_result: ParsingResult = parser.parse_dataframe(df)
+        
+        # Check for security violations in parsing
+        security_errors = [error for error in parsing_result.errors if error.get('type') == 'security_violation']
+        if security_errors:
+            security_audit_logger.log_suspicious_file_content(
+                user_id=str(current_user.id),
+                filename=file.filename,
+                content_indicators=[error['message'] for error in security_errors],
+                request=request
+            )
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail={
+                    "message": "CSV contains suspicious content",
+                    "security_violations": security_errors
+                }
+            )
+        
+        logger.info(f"CSV parsing completed: {parsing_result.statistics}")
+        
+        # Step 7: Process transactions
+        batch_id = str(uuid.uuid4())
+        processed_count = 0
+        db_errors = []
+        
+        for transaction_data in parsing_result.transactions:
+            try:
+                transaction = Transaction(
+                    user_id=current_user.id,
+                    date=transaction_data['date'],
+                    amount=transaction_data['amount'],
+                    description=transaction_data['description'],
+                    vendor=transaction_data.get('vendor'),
+                    source='csv',
+                    import_batch=batch_id,
+                    raw_data=transaction_data.get('raw_data', {}),
+                    meta_data={
+                        'filename': file.filename,
+                        'import_date': datetime.utcnow().isoformat(),
+                        'validation_passed': True,
+                        'malware_scan_clean': True
+                    },
+                    is_income=transaction_data.get('is_income', False)
+                )
+                
+                db.add(transaction)
+                processed_count += 1
+                
+            except Exception as e:
+                # Sanitize database error before storing
+                sanitized_message = error_sanitizer.sanitize_error_message(str(e))
+                db_error = {
+                    'row_number': transaction_data.get('row_number'),
+                    'error_type': 'database_error',
+                    'message': 'Transaction processing failed',
+                    'correlation_id': str(uuid.uuid4())
+                }
+                db_errors.append(db_error)
+                
+                # Log original error for developers with correlation ID
+                error_sanitizer.log_original_error(
+                    exception=e,
+                    correlation_id=db_error['correlation_id'],
+                    request_context={
+                        'user_id': current_user.id,
+                        'filename': file.filename,
+                        'row_number': transaction_data.get('row_number')
+                    }
+                )
+                logger.error(f"Database error for row {transaction_data.get('row_number')}: {db_error['correlation_id']}")
+        
+        # Step 8: Commit to database
+        try:
+            db.commit()
+            logger.info(f"Successfully committed {processed_count} transactions")
+        except Exception as e:
+            db.rollback()
+            
+            # Create sanitized error response
+            error_detail = create_secure_error_response(
+                exception=e,
+                error_code="DATABASE_COMMIT_ERROR",
+                error_category=ErrorCategory.SYSTEM_ERROR,
+                correlation_id=str(uuid.uuid4()),
+                user_message="Failed to save transactions. Please try again.",
+                suggested_action="If the problem persists, please contact support."
+            )
+            
+            security_audit_logger.log_file_upload_failure(
+                user_id=str(current_user.id),
+                filename=file.filename,
+                file_size=file_size,
+                error=f"Database commit failed: {error_detail.correlation_id}",
+                request=request
+            )
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=error_detail.user_message
+            )
+        
+        # Step 9: Apply categorization
+        categorization_service = CategorizationService(db)
+        categorized_count = await categorization_service.categorize_user_transactions(
+            current_user.id, batch_id
+        )
+        
+        # Step 10: Log successful upload
+        security_audit_logger.log_file_upload_success(
+            user_id=str(current_user.id),
+            filename=file.filename,
+            file_size=file_size,
+            batch_id=batch_id,
+            processed_count=processed_count,
+            request=request
+        )
+        
+        # Prepare comprehensive response
+        all_errors = parsing_result.errors + db_errors
+        processing_time = (datetime.utcnow() - start_time).total_seconds()
+        
+        response_data = {
+            "message": "File uploaded and processed successfully",
+            "batch_id": batch_id,
+            "file_info": {
+                "filename": file.filename,
+                "file_size": file_size,
+                "total_rows": len(df),
+                "validation_passed": True,
+                "threat_level": validation_result.threat_level.value,
+                "malware_scan_clean": malware_scan_result.is_clean
+            },
+            "security_validation": {
+                "validation_duration": validation_result.scan_duration,
+                "malware_scan_duration": malware_scan_result.scan_duration,
+                "scan_engines_used": malware_scan_result.total_engines,
+                "validation_checks": validation_result.validation_checks,
+                "warnings": validation_result.warnings
+            },
+            "content_sanitization": {
+                "sanitization_level": sanitization_result.sanitization_level.value,
+                "modifications_made": len(sanitization_result.modifications_made),
+                "security_issues_resolved": len(sanitization_result.security_issues),
+                "size_reduction": sanitization_result.original_size - sanitization_result.sanitized_size,
+                "is_content_safe": sanitization_result.is_safe
+            },
+            "sandbox_analysis": {
+                "analysis_type": sandbox_result.analysis_type.value,
+                "risk_level": sandbox_result.risk_level.value,
+                "is_safe": sandbox_result.is_safe,
+                "threats_detected": len(sandbox_result.threats_detected),
+                "behavioral_indicators": len(sandbox_result.behavioral_indicators),
+                "analysis_duration": sandbox_result.analysis_duration,
+                "static_analysis_findings": len(sandbox_result.static_analysis),
+                "errors": len(sandbox_result.errors)
+            },
+            "parsing_results": {
+                "successful_parsing": len(parsing_result.transactions),
+                "failed_parsing": len(parsing_result.errors),
+                "success_rate": parsing_result.statistics['success_rate'],
+                "warning_count": len(parsing_result.warnings)
+            },
+            "database_results": {
+                "processed_count": processed_count,
+                "database_errors": len(db_errors)
+            },
+            "categorization_results": {
+                "categorized_count": categorized_count,
+                "categorization_rate": round((categorized_count / processed_count * 100), 2) if processed_count > 0 else 0
+            },
+            "statistics": parsing_result.statistics,
+            "errors": all_errors,
+            "warnings": parsing_result.warnings,
+            "performance": {
+                "total_processing_time": processing_time,
+                "validation_time": validation_result.scan_duration,
+                "malware_scan_time": malware_scan_result.scan_duration
+            },
+            "summary": {
+                "total_transactions": processed_count,
+                "successfully_categorized": categorized_count,
+                "overall_success_rate": round((processed_count / len(df) * 100), 2) if len(df) > 0 else 0,
+                "security_status": "VALIDATED"
+            }
+        }
+        
+        logger.info(f"Upload completed successfully for user {current_user.id}: {response_data['summary']}")
+        
+        return response_data
+        
+    except HTTPException:
+        # Re-raise HTTP exceptions
+        raise
+    except Exception as e:
+        # Create sanitized error response for unexpected errors
+        error_detail = create_secure_error_response(
+            exception=e,
+            error_code="FILE_PROCESSING_ERROR",
+            error_category=ErrorCategory.SYSTEM_ERROR,
+            correlation_id=str(uuid.uuid4()),
+            user_message="An unexpected error occurred while processing your file.",
+            suggested_action="Please try again. If the problem persists, contact support."
+        )
+        
+        # Log unexpected errors with correlation ID
+        security_audit_logger.log_file_upload_failure(
+            user_id=str(current_user.id),
+            filename=file.filename,
+            file_size=len(content) if 'content' in locals() else 0,
+            error=f"Unexpected error: {error_detail.correlation_id}",
+            request=request
+        )
+        logger.error(f"Unexpected error processing file {file.filename}: {error_detail.correlation_id}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=error_detail.user_message
+        )
+
+@router.get("/status/{batch_id}")
+async def get_upload_status(
+    batch_id: str,
+    current_user: User = Depends(get_current_user_from_cookie),
+    db: Session = Depends(get_db)
+):
+    """
+    Get detailed status of uploaded batch
+    """
+    transactions = db.query(Transaction).filter(
+        Transaction.user_id == current_user.id,
+        Transaction.import_batch == batch_id
+    ).all()
+    
+    if not transactions:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Batch not found"
+        )
+    
+    total_count = len(transactions)
+    categorized_count = sum(1 for t in transactions if t.is_categorized)
+    processed_count = sum(1 for t in transactions if t.is_processed)
+    
+    # Calculate additional statistics
+    income_count = sum(1 for t in transactions if t.is_income)
+    expense_count = total_count - income_count
+    
+    total_income = sum(t.amount for t in transactions if t.is_income)
+    total_expenses = sum(abs(t.amount) for t in transactions if not t.is_income)
+    
+    # Category breakdown
+    categories = {}
+    for transaction in transactions:
+        if transaction.category and not transaction.is_income:
+            category = transaction.category
+            amount = abs(transaction.amount)
+            categories[category] = categories.get(category, 0) + amount
+    
+    return {
+        "batch_id": batch_id,
+        "total_count": total_count,
+        "categorized_count": categorized_count,
+        "processed_count": processed_count,
+        "categorization_rate": round((categorized_count / total_count * 100), 2) if total_count > 0 else 0,
+        "status": "completed" if processed_count == total_count else "processing",
+        "transaction_summary": {
+            "income_count": income_count,
+            "expense_count": expense_count,
+            "total_income": total_income,
+            "total_expenses": total_expenses,
+            "net_amount": total_income - total_expenses
+        },
+        "categories": categories,
+        "date_range": {
+            "earliest": min(t.date for t in transactions).isoformat() if transactions else None,
+            "latest": max(t.date for t in transactions).isoformat() if transactions else None
+        }
+    }
+
+@router.get("/validation-rules")
+async def get_validation_rules():
+    """
+    Get information about supported CSV formats and validation rules
+    """
+    return {
+        "supported_formats": {
+            "file_types": ["CSV"],
+            "encoding": ["UTF-8"],
+            "max_file_size": f"{settings.MAX_FILE_SIZE / (1024*1024):.1f} MB"
+        },
+        "required_columns": ["date", "amount", "description"],
+        "optional_columns": ["vendor", "reference"],
+        "supported_date_formats": [
+            "YYYY-MM-DD", "MM/DD/YYYY", "DD/MM/YYYY", "YYYY/MM/DD",
+            "MM-DD-YYYY", "DD-MM-YYYY", "MMM DD, YYYY", "MMMM DD, YYYY",
+            "YYYY-MM-DD HH:MM:SS", "MM/DD/YYYY HH:MM:SS",
+            "YYYYMMDD", "MMDDYYYY", "DDMMYYYY"
+        ],
+        "supported_amount_formats": [
+            "1234.56", "1,234.56", "1234,56", "$1234.56", "€1234.56",
+            "1234.56 USD", "USD 1234.56", "+1234.56", "-1234.56"
+        ],
+        "validation_rules": {
+            "date_validation": "Dates must be between 2000-01-01 and current date",
+            "amount_validation": "Amounts must be numeric and non-zero",
+            "description_validation": "Descriptions must be non-empty and at least 3 characters",
+            "vendor_validation": "Vendor is optional but must be non-empty if provided"
+        },
+        "warnings": {
+            "large_amount": "Amounts over $1,000,000 will trigger a warning",
+            "future_date": "Future dates will trigger a warning",
+            "old_date": "Dates before 2000 will trigger a warning",
+            "short_description": "Descriptions under 3 characters will trigger a warning",
+            "zero_amount": "Zero amounts will trigger a warning"
+        }
+    }
