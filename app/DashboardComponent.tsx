@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Upload, BarChart3, DollarSign, TrendingUp, TrendingDown, FileText, Trash2, ChevronDown, ChevronRight, HelpCircle, Info, Lightbulb, Target, AlertCircle } from 'lucide-react'
 import { TransactionTable } from '@/components/TransactionTable'
+import { DESIGN_TOKENS, getBadgeColorClasses } from '@/lib/design-system'
 import { TherapeuticUploadModal } from '@/components/TherapeuticUploadModal'
 import { DashboardStats } from '@/components/DashboardStats'
 import { ImportBatchManager } from '@/components/ImportBatchManager'
@@ -36,12 +37,8 @@ function ProgressiveSection({
 }: ProgressiveSectionProps) {
   const [showHelp, setShowHelp] = useState(false)
 
-  const badgeColors = {
-    success: 'bg-success-100 text-success-800',
-    warning: 'bg-warning-100 text-warning-800',
-    danger: 'bg-danger-100 text-danger-800',
-    info: 'bg-primary-100 text-primary-800'
-  }
+  // Use design system badge colors
+  const getBadgeColorClass = (color: 'success' | 'warning' | 'danger' | 'info') => getBadgeColorClasses(color)
 
   return (
     <div className="card therapeutic-transition">
@@ -54,11 +51,11 @@ function ProgressiveSection({
           <div>
             <div className="flex items-center gap-2">
               <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
-              {badge && (
-                <span className={`px-2 py-1 text-xs font-medium rounded-full ${badgeColors[badgeColor]}`}>
-                  {badge}
-                </span>
-              )}
+                             {badge && (
+                 <span className={`px-2 py-1 text-xs font-medium rounded-full ${getBadgeColorClass(badgeColor)}`}>
+                   {badge}
+                 </span>
+               )}
             </div>
             {description && (
               <p className="text-sm text-gray-600 mt-1">{description}</p>
@@ -309,16 +306,19 @@ export default function DashboardComponent() {
     }))
   }
 
-  // Calculate financial wellness metrics
-  const getWellnessMetrics = () => {
+    // Use design system thresholds
+  const WELLNESS_THRESHOLDS = DESIGN_TOKENS.WELLNESS_THRESHOLDS
+
+  // Calculate financial wellness metrics with memoization
+  const wellnessMetrics = useMemo(() => {
     if (!summary) return null
 
     const netIncome = summary.total_income - summary.total_expenses
-    const categorizationRate = summary.total_transactions > 0 
-      ? (summary.categorized_count / summary.total_transactions) * 100 
+    const categorizationRate = summary.total_transactions > 0
+      ? (summary.categorized_count / summary.total_transactions) * 100
       : 0
-    const expenseRatio = summary.total_income > 0 
-      ? (summary.total_expenses / summary.total_income) * 100 
+    const expenseRatio = summary.total_income > 0
+      ? (summary.total_expenses / summary.total_income) * 100
       : 0
 
     return {
@@ -327,7 +327,7 @@ export default function DashboardComponent() {
       expenseRatio,
       savingsRate: Math.max(0, 100 - expenseRatio)
     }
-  }
+  }, [summary])
 
   // Show loading state until component is mounted
   if (!mounted) {
@@ -373,7 +373,7 @@ export default function DashboardComponent() {
     )
   }
 
-  const wellnessMetrics = getWellnessMetrics()
+  // wellnessMetrics is now calculated with useMemo above
 
   // Show dashboard if authenticated
   return (
@@ -457,27 +457,27 @@ export default function DashboardComponent() {
                 value={`${wellnessMetrics.categorizationRate.toFixed(0)}%`}
                 description="Transactions categorized"
                 icon={<FileText className="w-5 h-5" />}
-                color={wellnessMetrics.categorizationRate >= 90 ? "success" : wellnessMetrics.categorizationRate >= 70 ? "warning" : "danger"}
-                trend={wellnessMetrics.categorizationRate >= 90 ? "up" : "stable"}
-                trendValue={wellnessMetrics.categorizationRate >= 90 ? "Excellent" : "Good"}
+                                 color={wellnessMetrics.categorizationRate >= WELLNESS_THRESHOLDS.CATEGORIZATION_EXCELLENT ? "success" : wellnessMetrics.categorizationRate >= WELLNESS_THRESHOLDS.CATEGORIZATION_GOOD ? "warning" : "danger"}
+                 trend={wellnessMetrics.categorizationRate >= WELLNESS_THRESHOLDS.CATEGORIZATION_EXCELLENT ? "up" : "stable"}
+                 trendValue={wellnessMetrics.categorizationRate >= WELLNESS_THRESHOLDS.CATEGORIZATION_EXCELLENT ? "Excellent" : "Good"}
               />
               <WellnessCard
                 title="Expense Ratio"
                 value={`${wellnessMetrics.expenseRatio.toFixed(0)}%`}
                 description="Expenses as % of income"
                 icon={<TrendingDown className="w-5 h-5" />}
-                color={wellnessMetrics.expenseRatio <= 70 ? "success" : wellnessMetrics.expenseRatio <= 90 ? "warning" : "danger"}
-                trend={wellnessMetrics.expenseRatio <= 70 ? "up" : "down"}
-                trendValue={wellnessMetrics.expenseRatio <= 70 ? "Healthy" : "High"}
+                                 color={wellnessMetrics.expenseRatio <= WELLNESS_THRESHOLDS.EXPENSE_RATIO_HEALTHY ? "success" : wellnessMetrics.expenseRatio <= WELLNESS_THRESHOLDS.EXPENSE_RATIO_WARNING ? "warning" : "danger"}
+                 trend={wellnessMetrics.expenseRatio <= WELLNESS_THRESHOLDS.EXPENSE_RATIO_HEALTHY ? "up" : "down"}
+                 trendValue={wellnessMetrics.expenseRatio <= WELLNESS_THRESHOLDS.EXPENSE_RATIO_HEALTHY ? "Healthy" : "High"}
               />
               <WellnessCard
                 title="Savings Rate"
                 value={`${wellnessMetrics.savingsRate.toFixed(0)}%`}
                 description="Potential savings rate"
                 icon={<TrendingUp className="w-5 h-5" />}
-                color={wellnessMetrics.savingsRate >= 20 ? "success" : wellnessMetrics.savingsRate >= 10 ? "warning" : "danger"}
-                trend={wellnessMetrics.savingsRate >= 20 ? "up" : "stable"}
-                trendValue={wellnessMetrics.savingsRate >= 20 ? "Great" : "Good"}
+                                 color={wellnessMetrics.savingsRate >= WELLNESS_THRESHOLDS.SAVINGS_RATE_GREAT ? "success" : wellnessMetrics.savingsRate >= WELLNESS_THRESHOLDS.SAVINGS_RATE_GOOD ? "warning" : "danger"}
+                 trend={wellnessMetrics.savingsRate >= WELLNESS_THRESHOLDS.SAVINGS_RATE_GREAT ? "up" : "stable"}
+                 trendValue={wellnessMetrics.savingsRate >= WELLNESS_THRESHOLDS.SAVINGS_RATE_GREAT ? "Great" : "Good"}
               />
             </div>
           )}
@@ -539,8 +539,8 @@ export default function DashboardComponent() {
           onToggle={() => toggleSection('transactions')}
           icon={<FileText className="w-5 h-5" />}
           helpText="Manage your transactions, categorize them automatically, and export your data. Use the filters to find specific transactions."
-          badge={summary?.uncategorized_count > 0 ? `${summary.uncategorized_count} uncategorized` : "All categorized"}
-          badgeColor={summary?.uncategorized_count > 0 ? "warning" : "success"}
+                     badge={summary?.uncategorized_count && summary.uncategorized_count > 0 ? `${summary.uncategorized_count} uncategorized` : "All categorized"}
+           badgeColor={summary?.uncategorized_count && summary.uncategorized_count > 0 ? "warning" : "success"}
         >
           {/* View Toggle */}
           <div className="flex items-center justify-between mb-6">
