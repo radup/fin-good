@@ -7,6 +7,7 @@ import { UploadModal } from '@/components/UploadModal'
 import { DashboardStats } from '@/components/DashboardStats'
 import { ImportBatchManager } from '@/components/ImportBatchManager'
 import { ErrorBoundary, ErrorFallback } from '@/components/ErrorBoundary'
+import { authAPI, transactionAPI, analyticsAPI } from '@/lib/api'
 
 export default function DashboardComponent() {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
@@ -30,10 +31,20 @@ export default function DashboardComponent() {
     // Mark component as mounted
     setMounted(true)
     
-    // Check authentication status
-    const token = localStorage.getItem('access_token')
-    setIsAuthenticated(!!token)
+    // Check authentication status using the /me endpoint
+    checkAuthentication()
   }, [])
+
+  const checkAuthentication = async () => {
+    try {
+      const response = await authAPI.me()
+      setIsAuthenticated(true)
+    } catch (error: any) {
+      console.log('Not authenticated, redirecting to login')
+      setIsAuthenticated(false)
+      window.location.href = '/login'
+    }
+  }
 
   // Fetch data when authenticated
   useEffect(() => {
@@ -46,22 +57,15 @@ export default function DashboardComponent() {
   const fetchTransactions = async () => {
     setIsLoadingTransactions(true)
     try {
-      const token = localStorage.getItem('access_token')
-      const response = await fetch('http://localhost:8000/api/v1/transactions/', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      })
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch transactions')
-      }
-      
-      const data = await response.json()
-      console.log('Fetched transactions:', data)
-      setTransactions(data)
-    } catch (error) {
+      const response = await transactionAPI.getTransactions()
+      console.log('Fetched transactions:', response.data)
+      setTransactions(response.data)
+    } catch (error: any) {
       console.error('Error fetching transactions:', error)
+      if (error.response?.status === 401) {
+        setIsAuthenticated(false)
+        window.location.href = '/login'
+      }
     } finally {
       setIsLoadingTransactions(false)
     }
@@ -70,22 +74,15 @@ export default function DashboardComponent() {
   const fetchSummary = async () => {
     setIsLoadingSummary(true)
     try {
-      const token = localStorage.getItem('access_token')
-      const response = await fetch('http://localhost:8000/api/v1/analytics/summary', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      })
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch summary')
-      }
-      
-      const data = await response.json()
-      console.log('Fetched summary:', data)
-      setSummary(data)
-    } catch (error) {
+      const response = await analyticsAPI.summary()
+      console.log('Fetched summary:', response.data)
+      setSummary(response.data)
+    } catch (error: any) {
       console.error('Error fetching summary:', error)
+      if (error.response?.status === 401) {
+        setIsAuthenticated(false)
+        window.location.href = '/login'
+      }
     } finally {
       setIsLoadingSummary(false)
     }
@@ -94,25 +91,10 @@ export default function DashboardComponent() {
   const handleDemoLogin = async () => {
     try {
       console.log('Demo login clicked')
-      const response = await fetch('http://localhost:8000/api/v1/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: new URLSearchParams({
-          username: 'demo@fingood.com',
-          password: 'demo123',
-        }),
-      })
-      
-      if (!response.ok) {
-        throw new Error('Login failed')
-      }
-      
-      const data = await response.json()
-      console.log('Login successful:', data)
-      localStorage.setItem('access_token', data.access_token)
+      const response = await authAPI.login('demo@fingood.com', 'demo123')
+      console.log('Login successful:', response.data)
       setIsAuthenticated(true)
+      // Refresh the page to load authenticated data
       window.location.reload()
     } catch (error) {
       console.error('Demo login failed:', error)
@@ -120,10 +102,15 @@ export default function DashboardComponent() {
     }
   }
 
-  const handleLogout = () => {
-    localStorage.removeItem('access_token')
-    setIsAuthenticated(false)
-    window.location.reload()
+  const handleLogout = async () => {
+    try {
+      await authAPI.logout()
+    } catch (error) {
+      console.error('Logout error:', error)
+    } finally {
+      setIsAuthenticated(false)
+      window.location.href = '/login'
+    }
   }
 
   const handleUploadSuccess = () => {
@@ -131,31 +118,22 @@ export default function DashboardComponent() {
     fetchTransactions()
     fetchSummary()
     setRefreshKey(prevKey => prevKey + 1)
+    // Ensure modal closes and table view is active so user sees updates
+    setIsUploadModalOpen(false)
+    setActiveView('transactions')
   }
 
   const handleCategorizeAll = async () => {
     setIsCategorizing(true)
     try {
-      const token = localStorage.getItem('access_token')
-      const response = await fetch('http://localhost:8000/api/v1/transactions/categorize', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      })
-      
-      if (!response.ok) {
-        throw new Error('Categorization failed')
-      }
-      
-      const data = await response.json()
-      console.log('Categorization result:', data)
-      alert(`Successfully categorized ${data.categorized_count} transactions!`)
+      const response = await transactionAPI.categorize()
+      console.log('Categorization result:', response.data)
+      alert(`Successfully categorized ${response.data.categorized_count} transactions!`)
       
       // Refresh data after categorization
       await fetchTransactions()
       await fetchSummary()
-    } catch (error) {
+    } catch (error: any) {
       console.error('Categorization failed:', error)
       alert('Failed to categorize transactions. Please try again.')
     } finally {

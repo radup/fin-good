@@ -4,12 +4,18 @@ Implements secure file upload validation including magic number detection,
 malware scanning, and content validation for financial data security.
 """
 
-import magic
+try:
+    import magic
+    MAGIC_AVAILABLE = True
+except ImportError:
+    MAGIC_AVAILABLE = False
+    magic = None
 import hashlib
 import os
 import tempfile
 import subprocess
 import time
+import math
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Any, BinaryIO
 from dataclasses import dataclass
@@ -21,7 +27,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 
 from app.core.config import settings
-from app.core.audit_logger import AuditLogger
+from app.core.audit_logger import SecurityAuditLogger as AuditLogger
 
 logger = logging.getLogger(__name__)
 
@@ -154,8 +160,12 @@ class FileValidator:
         
         # Initialize libmagic
         try:
-            self.magic = magic.Magic(mime=True)
-            self.magic_enabled = True
+            if MAGIC_AVAILABLE and magic:
+                self.magic = magic.Magic(mime=True)
+                self.magic_enabled = True
+            else:
+                self.magic = None
+                self.magic_enabled = False
         except Exception as e:
             logger.warning(f"libmagic not available: {e}. Falling back to basic validation.")
             self.magic_enabled = False
@@ -730,7 +740,7 @@ class FileValidator:
         for count in byte_counts:
             if count > 0:
                 probability = count / data_len
-                entropy -= probability * (probability.bit_length() - 1)
+                entropy -= probability * math.log2(probability)
         
         return entropy
     

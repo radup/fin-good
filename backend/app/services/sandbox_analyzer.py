@@ -18,6 +18,10 @@ from datetime import datetime, timedelta
 import docker
 import zipfile
 import tarfile
+import math
+import mimetypes
+import io
+import pandas as pd
 
 from app.core.config import settings
 from app.core.audit_logger import security_audit_logger
@@ -414,7 +418,7 @@ class LightweightSandbox:
         for count in byte_counts:
             if count > 0:
                 probability = count / data_len
-                entropy -= probability * (probability.bit_length() - 1)
+                entropy -= probability * math.log2(probability)
         
         return entropy
     

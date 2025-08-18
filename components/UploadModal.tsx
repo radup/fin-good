@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { Upload, X, FileText, CheckCircle, AlertCircle, Info, AlertTriangle } from 'lucide-react'
 import { useDropzone } from 'react-dropzone'
 import { uploadAPI } from '@/lib/api'
@@ -71,6 +71,15 @@ export function UploadModal({ isOpen, onClose, onUploadSuccess }: UploadModalPro
   const [uploadStatus, setUploadStatus] = useState<UploadStatus | null>(null)
   const [showDetails, setShowDetails] = useState(false)
 
+  // Reset state whenever the modal opens so previous results don't persist
+  useEffect(() => {
+    if (isOpen) {
+      setUploading(false)
+      setUploadStatus(null)
+      setShowDetails(false)
+    }
+  }, [isOpen])
+
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     if (acceptedFiles.length === 0) return
 
@@ -81,19 +90,34 @@ export function UploadModal({ isOpen, onClose, onUploadSuccess }: UploadModalPro
 
     try {
       const response = await uploadAPI.csv(file)
+
       setUploadStatus({
         success: true,
         message: 'File uploaded successfully!',
         ...response.data
       })
+      
       // Notify parent component that upload was successful
       if (onUploadSuccess) {
         onUploadSuccess()
       }
     } catch (error: any) {
+      let errorMessage = 'Upload failed'
+      
+      if (error.response?.data?.detail) {
+        // Handle different error response structures
+        if (typeof error.response.data.detail === 'string') {
+          errorMessage = error.response.data.detail
+        } else if (error.response.data.detail.message) {
+          errorMessage = String(error.response.data.detail.message)
+        } else {
+          errorMessage = 'Upload validation failed'
+        }
+      }
+      
       setUploadStatus({
         success: false,
-        message: error.response?.data?.detail || 'Upload failed',
+        message: String(errorMessage),
       })
     } finally {
       setUploading(false)
@@ -116,24 +140,25 @@ export function UploadModal({ isOpen, onClose, onUploadSuccess }: UploadModalPro
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
   }
 
-  const getErrorIcon = (errorType: string) => {
-    switch (errorType) {
+  const getErrorIcon = (errorType: any) => {
+    const type = String(errorType || 'unknown')
+    switch (type) {
       case 'ValueError':
         return <AlertTriangle className="w-4 h-4 text-warning-500" />
-      case 'database_error':
+      case 'ValidationError':
         return <AlertCircle className="w-4 h-4 text-danger-500" />
       default:
-        return <Info className="w-4 h-4 text-gray-500" />
+        return <Info className="w-4 h-4 text-info-500" />
     }
   }
 
-  const getWarningIcon = (warningType: string) => {
-    switch (warningType) {
-      case 'large_amount':
-      case 'future_date':
+  const getWarningIcon = (warningType: any) => {
+    const type = String(warningType || 'unknown')
+    switch (type) {
+      case 'DataQualityWarning':
         return <AlertTriangle className="w-4 h-4 text-warning-500" />
       default:
-        return <Info className="w-4 h-4 text-blue-500" />
+        return <Info className="w-4 h-4 text-info-500" />
     }
   }
 
@@ -141,59 +166,74 @@ export function UploadModal({ isOpen, onClose, onUploadSuccess }: UploadModalPro
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold text-gray-900">Upload CSV File</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        {!uploadStatus ? (
-          <div
-            {...getRootProps()}
-            className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
-              isDragActive
-                ? 'border-primary-400 bg-primary-50'
-                : 'border-gray-300 hover:border-primary-400'
-            }`}
-          >
-            <input {...getInputProps()} />
-            <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            {isDragActive ? (
-              <p className="text-primary-600">Drop the CSV file here...</p>
-            ) : (
-              <div>
-                <p className="text-gray-600 mb-2">
-                  Drag and drop a CSV file here, or click to select
-                </p>
-                <p className="text-sm text-gray-500">
-                  Supported format: CSV with date, amount, and description columns
-                </p>
-              </div>
-            )}
+      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div className="p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">Upload CSV File</h2>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <X className="w-6 h-6" />
+            </button>
           </div>
-        ) : (
-          <div className="space-y-6">
-            {uploadStatus.success ? (
-              <>
-                {/* Success Header */}
-                <div className="text-center">
-                  <CheckCircle className="w-12 h-12 text-success-500 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">
-                    Upload Successful!
-                  </h3>
-                  <p className="text-gray-600">{uploadStatus.message}</p>
+
+          {!uploadStatus && (
+            <div
+              {...getRootProps()}
+              className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
+                isDragActive
+                  ? 'border-primary-500 bg-primary-50'
+                  : 'border-gray-300 hover:border-primary-400'
+              }`}
+            >
+              <input {...getInputProps()} />
+              <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-lg font-medium text-gray-900 mb-2">
+                {isDragActive ? 'Drop the file here' : 'Drag & drop a CSV file here'}
+              </p>
+              <p className="text-gray-600 mb-4">
+                or click to select a file
+              </p>
+              <p className="text-sm text-gray-500">
+                Supported format: CSV files only
+              </p>
+            </div>
+          )}
+
+          {uploading && (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">Uploading and processing file...</p>
+            </div>
+          )}
+
+          {uploadStatus && (
+            <>
+              <div className={`p-4 rounded-lg mb-6 ${
+                uploadStatus.success 
+                  ? 'bg-success-50 border border-success-200' 
+                  : 'bg-danger-50 border border-danger-200'
+              }`}>
+                <div className="flex items-center">
+                  {uploadStatus.success ? (
+                    <CheckCircle className="w-6 h-6 text-success-600 mr-3" />
+                  ) : (
+                    <AlertCircle className="w-6 h-6 text-danger-600 mr-3" />
+                  )}
+                  <div>
+                    <h3 className="font-medium text-gray-900">
+                      {uploadStatus.success ? 'Upload Successful!' : 'Upload Failed'}
+                    </h3>
+                    <p className="text-gray-600">{uploadStatus.message}</p>
+                  </div>
                 </div>
 
                 {/* File Info */}
                 {uploadStatus.file_info && (
-                  <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="mt-4 p-4 bg-gray-50 rounded-lg">
                     <h4 className="font-medium text-gray-900 mb-3">File Information</h4>
-                    <div className="grid grid-cols-3 gap-4 text-sm">
+                    <div className="grid grid-cols-3 gap-4">
                       <div>
                         <p className="text-gray-500">Filename</p>
                         <p className="font-medium">{uploadStatus.file_info.filename}</p>
@@ -210,11 +250,11 @@ export function UploadModal({ isOpen, onClose, onUploadSuccess }: UploadModalPro
                   </div>
                 )}
 
-                {/* Summary Statistics */}
+                {/* Summary */}
                 {uploadStatus.summary && (
-                  <div className="bg-success-50 border border-success-200 rounded-lg p-4">
-                    <h4 className="font-medium text-success-900 mb-3">Summary</h4>
-                    <div className="grid grid-cols-3 gap-4 text-sm">
+                  <div className="mt-4 p-4 bg-success-50 rounded-lg">
+                    <h4 className="font-medium text-success-900 mb-3">Upload Summary</h4>
+                    <div className="grid grid-cols-3 gap-4">
                       <div>
                         <p className="text-success-700">Total Transactions</p>
                         <p className="font-medium text-success-900">{uploadStatus.summary.total_transactions}</p>
@@ -231,184 +271,158 @@ export function UploadModal({ isOpen, onClose, onUploadSuccess }: UploadModalPro
                   </div>
                 )}
 
-                {/* Detailed Results */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {/* Parsing Results */}
-                  {uploadStatus.parsing_results && (
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                      <h4 className="font-medium text-blue-900 mb-3">Parsing Results</h4>
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-blue-700">Successful:</span>
-                          <span className="font-medium text-blue-900">{uploadStatus.parsing_results.successful_parsing}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-blue-700">Failed:</span>
-                          <span className="font-medium text-blue-900">{uploadStatus.parsing_results.failed_parsing}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-blue-700">Success Rate:</span>
-                          <span className="font-medium text-blue-900">{uploadStatus.parsing_results.success_rate}%</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-blue-700">Warnings:</span>
-                          <span className="font-medium text-blue-900">{uploadStatus.parsing_results.warning_count}</span>
-                        </div>
+                {/* Parsing Results */}
+                {uploadStatus.parsing_results && (
+                  <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+                    <h4 className="font-medium text-blue-900 mb-3">Parsing Results</h4>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-blue-700">Successful:</span>
+                        <span className="font-medium text-blue-900">{uploadStatus.parsing_results.successful_parsing}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-blue-700">Failed:</span>
+                        <span className="font-medium text-blue-900">{uploadStatus.parsing_results.failed_parsing}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-blue-700">Success Rate:</span>
+                        <span className="font-medium text-blue-900">{uploadStatus.parsing_results.success_rate}%</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-blue-700">Warnings:</span>
+                        <span className="font-medium text-blue-900">{uploadStatus.parsing_results.warning_count}</span>
                       </div>
                     </div>
-                  )}
-
-                  {/* Database Results */}
-                  {uploadStatus.database_results && (
-                    <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                      <h4 className="font-medium text-green-900 mb-3">Database Results</h4>
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-green-700">Processed:</span>
-                          <span className="font-medium text-green-900">{uploadStatus.database_results.processed_count}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-green-700">Database Errors:</span>
-                          <span className="font-medium text-green-900">{uploadStatus.database_results.database_errors}</span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Categorization Results */}
-                  {uploadStatus.categorization_results && (
-                    <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                      <h4 className="font-medium text-purple-900 mb-3">Categorization Results</h4>
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-purple-700">Categorized:</span>
-                          <span className="font-medium text-purple-900">{uploadStatus.categorization_results.categorized_count}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-purple-700">Categorization Rate:</span>
-                          <span className="font-medium text-purple-900">{uploadStatus.categorization_results.categorization_rate}%</span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Toggle Details */}
-                {(uploadStatus.errors?.length || uploadStatus.warnings?.length) && (
-                  <div className="text-center">
-                    <button
-                      onClick={() => setShowDetails(!showDetails)}
-                      className="btn-secondary"
-                    >
-                      {showDetails ? 'Hide' : 'Show'} Details
-                    </button>
                   </div>
                 )}
 
-                {/* Detailed Errors and Warnings */}
-                {showDetails && (
-                  <div className="space-y-4">
-                    {/* Errors */}
-                    {uploadStatus.errors && uploadStatus.errors.length > 0 && (
-                      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                        <h4 className="font-medium text-red-900 mb-3 flex items-center gap-2">
-                          <AlertCircle className="w-5 h-5" />
-                          Errors ({uploadStatus.errors.length})
-                        </h4>
-                        <div className="space-y-2 max-h-40 overflow-y-auto">
-                          {uploadStatus.errors.slice(0, 10).map((error, index) => (
-                            <div key={index} className="flex items-start gap-2 text-sm">
-                              {getErrorIcon(error.error_type)}
-                              <div className="flex-1">
-                                <p className="text-red-800 font-medium">
-                                  Row {error.row_number || 'Unknown'}: {error.message}
-                                </p>
-                                {error.raw_data && (
-                                  <p className="text-red-600 text-xs">
-                                    Data: {JSON.stringify(error.raw_data)}
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                          ))}
-                          {uploadStatus.errors.length > 10 && (
-                            <p className="text-red-600 text-xs">
-                              ... and {uploadStatus.errors.length - 10} more errors
-                            </p>
-                          )}
-                        </div>
+                {/* Database Results */}
+                {uploadStatus.database_results && (
+                  <div className="mt-4 p-4 bg-green-50 rounded-lg">
+                    <h4 className="font-medium text-green-900 mb-3">Database Results</h4>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-green-700">Processed:</span>
+                        <span className="font-medium text-green-900">{uploadStatus.database_results.processed_count}</span>
                       </div>
-                    )}
-
-                    {/* Warnings */}
-                    {uploadStatus.warnings && uploadStatus.warnings.length > 0 && (
-                      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                        <h4 className="font-medium text-yellow-900 mb-3 flex items-center gap-2">
-                          <AlertTriangle className="w-5 h-5" />
-                          Warnings ({uploadStatus.warnings.length})
-                        </h4>
-                        <div className="space-y-2 max-h-40 overflow-y-auto">
-                          {uploadStatus.warnings.slice(0, 10).map((warning, index) => (
-                            <div key={index} className="flex items-start gap-2 text-sm">
-                              {getWarningIcon(warning.warning_type)}
-                              <div className="flex-1">
-                                <p className="text-yellow-800 font-medium">
-                                  Row {warning.row_number}: {warning.message}
-                                </p>
-                                {warning.details && (
-                                  <p className="text-yellow-600 text-xs">
-                                    Details: {JSON.stringify(warning.details)}
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                          ))}
-                          {uploadStatus.warnings.length > 10 && (
-                            <p className="text-yellow-600 text-xs">
-                              ... and {uploadStatus.warnings.length - 10} more warnings
-                            </p>
-                          )}
-                        </div>
+                      <div className="flex justify-between">
+                        <span className="text-green-700">Database Errors:</span>
+                        <span className="font-medium text-green-900">{uploadStatus.database_results.database_errors}</span>
                       </div>
-                    )}
+                    </div>
                   </div>
                 )}
-              </>
-            ) : (
-              <div className="text-center">
-                <AlertCircle className="w-12 h-12 text-danger-500 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  Upload Failed
-                </h3>
-                <p className="text-gray-600 mb-4">{uploadStatus.message}</p>
+
+                {/* Categorization Results */}
+                {uploadStatus.categorization_results && (
+                  <div className="mt-4 p-4 bg-purple-50 rounded-lg">
+                    <h4 className="font-medium text-purple-900 mb-3">Categorization Results</h4>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-purple-700">Categorized:</span>
+                        <span className="font-medium text-purple-900">{uploadStatus.categorization_results.categorized_count}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-purple-700">Categorization Rate:</span>
+                        <span className="font-medium text-purple-900">{uploadStatus.categorization_results.categorization_rate}%</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
+
+              {/* Toggle Details */}
+              {(uploadStatus.errors?.length || uploadStatus.warnings?.length) && (
+                <div className="text-center">
+                  <button
+                    onClick={() => setShowDetails(!showDetails)}
+                    className="btn-secondary"
+                  >
+                    {showDetails ? 'Hide' : 'Show'} Details
+                  </button>
+                </div>
+              )}
+
+              {/* Error Details */}
+              {showDetails && uploadStatus.errors && uploadStatus.errors.length > 0 && (
+                <div className="mt-4 p-4 bg-danger-50 rounded-lg">
+                  <h4 className="font-medium text-danger-900 mb-3">
+                    Errors ({uploadStatus.errors.length})
+                  </h4>
+                  <div className="space-y-3 max-h-60 overflow-y-auto">
+                    {uploadStatus.errors.slice(0, 10).map((error: any, index) => (
+                      <div key={index} className="flex items-start space-x-2">
+                        {getErrorIcon(error.error_type)}
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-danger-900">
+                            {String(error.error_type || 'Error')}
+                            {error.row_number && ` (Row ${error.row_number})`}
+                          </p>
+                          <p className="text-sm text-danger-700">{String(error.message || 'Unknown error')}</p>
+                        </div>
+                      </div>
+                    ))}
+                    {uploadStatus.errors.length > 10 && (
+                      <p className="text-sm text-danger-600">
+                        ... and {uploadStatus.errors.length - 10} more errors
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Warning Details */}
+              {showDetails && uploadStatus.warnings && uploadStatus.warnings.length > 0 && (
+                <div className="mt-4 p-4 bg-warning-50 rounded-lg">
+                  <h4 className="font-medium text-warning-900 mb-3">
+                    Warnings ({uploadStatus.warnings.length})
+                  </h4>
+                  <div className="space-y-3 max-h-60 overflow-y-auto">
+                    {uploadStatus.warnings.slice(0, 10).map((warning: any, index) => (
+                      <div key={index} className="flex items-start space-x-2">
+                        {getWarningIcon(warning.warning_type)}
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-warning-900">
+                            {String(warning.warning_type || 'Warning')} (Row {warning.row_number})
+                          </p>
+                          <p className="text-sm text-warning-700">{String(warning.message || 'Unknown warning')}</p>
+                        </div>
+                      </div>
+                    ))}
+                    {uploadStatus.warnings.length > 10 && (
+                      <p className="text-sm text-warning-600">
+                        ... and {uploadStatus.warnings.length - 10} more warnings
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+
+          <div className="flex justify-end gap-3 mt-6">
+            <button
+              onClick={onClose}
+              className="btn-secondary"
+              disabled={uploading}
+            >
+              {uploadStatus ? 'Close' : 'Cancel'}
+            </button>
+            {uploadStatus?.success && (
+              <button
+                onClick={() => {
+                  onClose()
+                  // Notify parent component to refresh data
+                  if (onUploadSuccess) {
+                    onUploadSuccess()
+                  }
+                }}
+                className="btn-primary"
+              >
+                View Transactions
+              </button>
             )}
           </div>
-        )}
-
-        <div className="flex justify-end gap-3 mt-6">
-          <button
-            onClick={onClose}
-            className="btn-secondary"
-            disabled={uploading}
-          >
-            {uploadStatus ? 'Close' : 'Cancel'}
-          </button>
-          {uploadStatus?.success && (
-            <button
-              onClick={() => {
-                setUploadStatus(null)
-                onClose()
-                // Notify parent component to refresh data
-                if (onUploadSuccess) {
-                  onUploadSuccess()
-                }
-              }}
-              className="btn-primary"
-            >
-              View Transactions
-            </button>
-          )}
         </div>
       </div>
     </div>

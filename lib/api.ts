@@ -25,9 +25,6 @@ const getCsrfTokenFromCookie = (): string | null => {
 export const api = axios.create({
   baseURL: API_BASE_URL,
   withCredentials: true, // Include cookies for authentication
-  headers: {
-    'Content-Type': 'application/json',
-  },
 })
 
 // Request interceptor to add CSRF token for state-changing operations
@@ -83,6 +80,8 @@ export const authAPI = {
   logout: () => api.post('/api/v1/auth/logout'),
   
   refreshCsrf: () => api.post('/api/v1/auth/refresh-csrf'),
+  
+  getWebSocketToken: () => api.post('/api/v1/auth/websocket-token'),
 }
 
 // Transaction endpoints
@@ -148,14 +147,13 @@ export const transactionAPI = {
 
 // Upload endpoints
 export const uploadAPI = {
-  csv: (file: File) => {
+  csv: (file: File, batchId?: string) => {
     const formData = new FormData()
     formData.append('file', file)
-    return api.post('/api/v1/upload/csv', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    })
+    if (batchId) {
+      formData.append('batch_id', batchId)
+    }
+    return api.post('/api/v1/upload/csv', formData)
   },
   
   getStatus: (batchId: string) => api.get(`/api/v1/upload/status/${batchId}`),
