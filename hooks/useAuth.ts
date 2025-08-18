@@ -51,16 +51,31 @@ export function useAuth() {
           const token = csrfCookie.split('=')[1]
           setCsrfToken(token)
         }
+      } else if (response.status === 401) {
+        // 401 is expected when user is not authenticated - this is normal behavior
+        setUser(null)
+        setIsAuthenticated(false)
+        setCsrfToken(null)
       } else {
+        // Only log warnings for unexpected error statuses
+        console.warn('Auth check failed with unexpected status:', response.status)
         setUser(null)
         setIsAuthenticated(false)
         setCsrfToken(null)
       }
     } catch (error) {
-      console.error('Auth check error:', error)
-      setUser(null)
-      setIsAuthenticated(false)
-      setCsrfToken(null)
+      // Don't log network errors for auth checks - they're expected when not authenticated
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        // This is expected when the backend is not reachable or CORS issues
+        setUser(null)
+        setIsAuthenticated(false)
+        setCsrfToken(null)
+      } else {
+        console.error('Unexpected auth check error:', error)
+        setUser(null)
+        setIsAuthenticated(false)
+        setCsrfToken(null)
+      }
     } finally {
       setIsLoading(false)
     }

@@ -13,7 +13,12 @@ import secrets
 from typing import Any, Dict, List, Optional, Union, Pattern
 from urllib.parse import quote, unquote
 from datetime import datetime, timedelta
-import bleach
+try:
+    import bleach
+    BLEACH_AVAILABLE = True
+except ImportError:
+    BLEACH_AVAILABLE = False
+    bleach = None
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -306,14 +311,18 @@ class XSSPrevention:
         allowed_tags = ['b', 'i', 'u', 'strong', 'em'] if allow_basic_formatting else []
         allowed_attributes = {'*': ['title']} if allow_basic_formatting else {}
         
-        # Clean HTML using bleach
-        cleaned = bleach.clean(
-            value,
-            tags=allowed_tags,
-            attributes=allowed_attributes,
-            protocols=self.allowed_protocols,
-            strip=True
-        )
+        # Clean HTML using bleach if available, otherwise use html.escape
+        if BLEACH_AVAILABLE and bleach:
+            cleaned = bleach.clean(
+                value,
+                tags=allowed_tags,
+                attributes=allowed_attributes,
+                protocols=self.allowed_protocols,
+                strip=True
+            )
+        else:
+            # Fallback to basic HTML escaping if bleach is not available
+            cleaned = html.escape(value, quote=True)
         
         # Additional XSS check
         if self.is_xss_attempt(cleaned):

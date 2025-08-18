@@ -15,7 +15,7 @@ import logging
 from pydantic import BaseModel
 
 from app.core.config import settings
-from app.core.error_monitoring import security_logger
+from app.core.audit_logger import security_audit_logger as security_logger
 
 logger = logging.getLogger(__name__)
 

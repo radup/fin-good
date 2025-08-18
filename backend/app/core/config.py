@@ -136,9 +136,25 @@ class Settings(BaseSettings):
     ENABLE_AUTOMATIC_SECURITY_BLOCKS: bool = True
     MAX_SECURITY_BLOCK_DURATION_HOURS: int = 24
     
+    # WebSocket Configuration
+    ENABLE_WEBSOCKETS: bool = True
+    MAX_WEBSOCKET_CONNECTIONS_PER_USER: int = 5
+    WEBSOCKET_HEARTBEAT_INTERVAL: int = 30  # seconds
+    WEBSOCKET_CONNECTION_TIMEOUT: int = 300  # seconds (5 minutes)
+    WEBSOCKET_MESSAGE_RATE_LIMIT: int = 10  # messages per second
+    WEBSOCKET_MAX_MESSAGE_SIZE: int = 1024  # bytes
+    
     # AI/ML settings
     OLLAMA_BASE_URL: str = "http://localhost:11434"
     OLLAMA_MODEL: str = "llama2"
+    
+    # Password Reset Security Settings
+    PASSWORD_RESET_TOKEN_EXPIRE_HOURS: int = 1
+    MAX_PASSWORD_RESET_ATTEMPTS_PER_HOUR: int = 3
+    MAX_PASSWORD_RESET_ATTEMPTS_PER_DAY: int = 10
+    
+    # Email Configuration
+    FRONTEND_URL: str = "http://localhost:3000"  # Frontend URL for reset links
     
     # External APIs
     QUICKBOOKS_CLIENT_ID: Optional[str] = None
@@ -389,7 +405,10 @@ class Settings(BaseSettings):
             "redis://:password@localhost:6379",
             "redis://admin:admin@localhost:6379",
             "redis://root:root@localhost:6379",
-            "redis://test:test@localhost:6379"
+            "redis://test:test@localhost:6379",
+            "redis://:admin@localhost:6379",
+            "redis://:root@localhost:6379",
+            "redis://:test@localhost:6379"
         ]
         
         if v.lower() in [d.lower() for d in dangerous_defaults]:
@@ -452,7 +471,7 @@ if "pytest" not in sys.modules:
         print("🔐 For development, create a .env file with:", file=sys.stderr)
         print(f"SECRET_KEY={secrets.token_urlsafe(32)}", file=sys.stderr)
         print("DATABASE_URL=postgresql://username:password@localhost:5432/fingood", file=sys.stderr)
-        print("REDIS_URL=redis://localhost:6379", file=sys.stderr)
+        print("REDIS_URL=redis://:secure_dev_password_2024@localhost:6379/0", file=sys.stderr)
         print("", file=sys.stderr)
         print("🚀 For production, use securely generated environment variables.", file=sys.stderr)
         print("📖 See .env.example for complete configuration examples.\n", file=sys.stderr)

@@ -20,7 +20,7 @@ from app.core.rate_limiter import (
     get_rate_limiter
 )
 from app.core.rate_limit_monitoring import record_rate_limit_metric
-from app.core.error_monitoring import security_logger
+from app.core.audit_logger import security_audit_logger as security_logger
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -57,7 +57,9 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         self.sensitive_endpoints = {
             r"/api/v1/auth/login",
             r"/api/v1/auth/register", 
+            r"/api/v1/auth/forgot-password",
             r"/api/v1/auth/reset-password",
+            r"/api/v1/auth/verify-reset-token",
             r"/api/v1/auth/change-password"
         }
         

@@ -67,6 +67,7 @@ class PerformanceMetric:
     cache_misses: Optional[int] = None
     memory_usage_mb: Optional[float] = None
     cpu_usage_percent: Optional[float] = None
+    client_ip: Optional[str] = None
     error_message: Optional[str] = None
     additional_data: Optional[Dict[str, Any]] = None
     

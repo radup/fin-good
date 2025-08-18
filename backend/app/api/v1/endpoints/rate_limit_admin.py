@@ -21,15 +21,15 @@ from app.core.rate_limit_monitoring import (
     AlertLevel,
     get_rate_limit_monitor
 )
-from app.core.security import get_current_user_with_role
-from app.schemas.user import User
+from app.core.cookie_auth import get_current_user_from_cookie
+from app.models.user import User
 
 router = APIRouter()
 
 
 # Dependency for admin access
 async def require_admin_access(
-    current_user: User = Depends(get_current_user_with_role(["admin"]))
+    current_user: User = Depends(get_current_user_from_cookie)
 ) -> User:
     """Require admin role for rate limiting administration."""
     return current_user

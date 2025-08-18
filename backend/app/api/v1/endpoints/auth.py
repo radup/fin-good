@@ -16,7 +16,7 @@ from app.core.exceptions import AuthenticationException, SystemException
 from app.core.csrf import generate_csrf_token, set_csrf_cookie, clear_csrf_cookie, verify_csrf_protection
 from app.core.security import jwt_manager
 from app.models.user import User
-from app.schemas.user import UserCreate, UserResponse, AuthResponse
+from app.schemas.user import UserCreate, UserResponse, AuthResponse, PasswordResetRequest, PasswordResetVerify, PasswordResetConfirm, PasswordResetResponse
 
 router = APIRouter()
 
@@ -101,13 +101,7 @@ async def login(
         
         return {
             "message": "Login successful",
-            "user": {
-                "id": user.id,
-                "email": user.email,
-                "full_name": user.full_name,
-                "company_name": user.company_name,
-                "business_type": user.business_type
-            },
+            "user": UserResponse.model_validate(user),
             "csrf_token": csrf_token
         }
         
@@ -132,13 +126,203 @@ async def login(
             detail=error_detail.user_message
         )
 
+
+# Password Reset Endpoints
+
+def _get_client_ip(request: Request) -> str:
+    """Extract client IP address with proxy support."""
+    forwarded_ips = request.headers.get("X-Forwarded-For")
+    if forwarded_ips:
+        return forwarded_ips.split(",")[0].strip()
+    return (
+        request.headers.get("X-Real-IP") or
+        request.headers.get("X-Client-IP") or
+        request.client.host if request.client else "unknown"
+    )
+
+
+@router.post("/forgot-password", response_model=PasswordResetResponse)
+async def forgot_password(
+    request: Request,
+    reset_request: PasswordResetRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Request password reset for a user account.
+    
+    Security features:
+    - Rate limiting (3 attempts per hour, 10 per day)
+    - Email enumeration protection
+    - Audit logging
+    - Secure token generation
+    """
+    try:
+        from app.services.password_reset_service import get_password_reset_service
+        
+        # Get client information
+        client_ip = _get_client_ip(request)
+        user_agent = request.headers.get("User-Agent")
+        
+        # Get password reset service
+        reset_service = get_password_reset_service()
+        
+        # Request password reset
+        result = await reset_service.request_password_reset(
+            db=db,
+            email=reset_request.email,
+            client_ip=client_ip,
+            user_agent=user_agent
+        )
+        
+        # Always return success message for security (prevent email enumeration)
+        return PasswordResetResponse(
+            message=result.message,
+            success=True  # Always return success to prevent enumeration
+        )
+        
+    except Exception as e:
+        # Create sanitized error response
+        error_detail = create_secure_error_response(
+            exception=e,
+            error_code="PASSWORD_RESET_REQUEST_ERROR",
+            error_category=ErrorCategory.SYSTEM_ERROR,
+            correlation_id=str(uuid.uuid4()),
+            user_message="An error occurred while processing your password reset request. Please try again.",
+            suggested_action="If the problem persists, please contact support."
+        )
+        
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=error_detail.user_message
+        )
+
+
+@router.get("/verify-reset-token", response_model=PasswordResetResponse)
+async def verify_reset_token(
+    request: Request,
+    token: str,
+    db: Session = Depends(get_db)
+):
+    """
+    Verify that a password reset token is valid.
+    
+    Security features:
+    - Token validation without revealing sensitive information
+    - Audit logging of verification attempts
+    - Rate limiting protection
+    """
+    try:
+        from app.services.password_reset_service import get_password_reset_service
+        
+        # Get client information
+        client_ip = _get_client_ip(request)
+        
+        # Get password reset service
+        reset_service = get_password_reset_service()
+        
+        # Verify token
+        is_valid, user_id, error_message = reset_service.verify_reset_token(
+            db=db,
+            token=token,
+            client_ip=client_ip
+        )
+        
+        if is_valid:
+            return PasswordResetResponse(
+                message="Token is valid",
+                success=True
+            )
+        else:
+            return PasswordResetResponse(
+                message=error_message or "Invalid or expired token",
+                success=False
+            )
+            
+    except Exception as e:
+        # Create sanitized error response
+        error_detail = create_secure_error_response(
+            exception=e,
+            error_code="TOKEN_VERIFICATION_ERROR",
+            error_category=ErrorCategory.SYSTEM_ERROR,
+            correlation_id=str(uuid.uuid4()),
+            user_message="An error occurred while verifying the token. Please try again.",
+            suggested_action="If the problem persists, please request a new password reset."
+        )
+        
+        return PasswordResetResponse(
+            message=error_detail.user_message,
+            success=False
+        )
+
+
+@router.post("/reset-password", response_model=PasswordResetResponse)
+async def reset_password(
+    request: Request,
+    reset_data: PasswordResetConfirm,
+    db: Session = Depends(get_db)
+):
+    """
+    Reset user password using a valid reset token.
+    
+    Security features:
+    - Secure token validation
+    - Password strength validation
+    - Token invalidation after use
+    - Audit logging
+    - Rate limiting protection
+    """
+    try:
+        from app.services.password_reset_service import get_password_reset_service
+        
+        # Get client information
+        client_ip = _get_client_ip(request)
+        user_agent = request.headers.get("User-Agent")
+        
+        # Get password reset service
+        reset_service = get_password_reset_service()
+        
+        # Reset password
+        result = reset_service.reset_password(
+            db=db,
+            token=reset_data.token,
+            new_password=reset_data.new_password,
+            client_ip=client_ip,
+            user_agent=user_agent
+        )
+        
+        return PasswordResetResponse(
+            message=result.message,
+            success=result.success
+        )
+        
+    except Exception as e:
+        # Create sanitized error response
+        error_detail = create_secure_error_response(
+            exception=e,
+            error_code="PASSWORD_RESET_ERROR",
+            error_category=ErrorCategory.SYSTEM_ERROR,
+            correlation_id=str(uuid.uuid4()),
+            user_message="An error occurred while resetting your password. Please try again.",
+            suggested_action="If the problem persists, please request a new password reset."
+        )
+        
+        return PasswordResetResponse(
+            message=error_detail.user_message,
+            success=False
+        )
+
 @router.get("/me", response_model=UserResponse)
 async def read_users_me(
     request: Request,
     current_user: User = Depends(get_current_user_from_cookie)
 ):
     """Get current authenticated user information."""
-    return current_user
+    return UserResponse.model_validate(current_user)
+
+@router.get("/test-auth")
+async def test_auth():
+    """Test endpoint that doesn't require authentication."""
+    return {"message": "Test endpoint working"}
 
 @router.post("/logout")
 async def logout(
@@ -201,6 +385,240 @@ async def refresh_csrf_token(
             correlation_id=str(uuid.uuid4()),
             user_message="Failed to refresh security token. Please try again.",
             suggested_action="If the problem persists, please refresh the page."
+        )
+        
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=error_detail.user_message
+        )
+
+
+# Password Reset Endpoints
+
+def _get_client_ip(request: Request) -> str:
+    """Extract client IP address with proxy support."""
+    forwarded_ips = request.headers.get("X-Forwarded-For")
+    if forwarded_ips:
+        return forwarded_ips.split(",")[0].strip()
+    return (
+        request.headers.get("X-Real-IP") or
+        request.headers.get("X-Client-IP") or
+        request.client.host if request.client else "unknown"
+    )
+
+
+@router.post("/forgot-password", response_model=PasswordResetResponse)
+async def forgot_password(
+    request: Request,
+    reset_request: PasswordResetRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Request password reset for a user account.
+    
+    Security features:
+    - Rate limiting (3 attempts per hour, 10 per day)
+    - Email enumeration protection
+    - Audit logging
+    - Secure token generation
+    """
+    try:
+        from app.services.password_reset_service import get_password_reset_service
+        
+        # Get client information
+        client_ip = _get_client_ip(request)
+        user_agent = request.headers.get("User-Agent")
+        
+        # Get password reset service
+        reset_service = get_password_reset_service()
+        
+        # Request password reset
+        result = await reset_service.request_password_reset(
+            db=db,
+            email=reset_request.email,
+            client_ip=client_ip,
+            user_agent=user_agent
+        )
+        
+        # Always return success message for security (prevent email enumeration)
+        return PasswordResetResponse(
+            message=result.message,
+            success=True  # Always return success to prevent enumeration
+        )
+        
+    except Exception as e:
+        # Create sanitized error response
+        error_detail = create_secure_error_response(
+            exception=e,
+            error_code="PASSWORD_RESET_REQUEST_ERROR",
+            error_category=ErrorCategory.SYSTEM_ERROR,
+            correlation_id=str(uuid.uuid4()),
+            user_message="An error occurred while processing your password reset request. Please try again.",
+            suggested_action="If the problem persists, please contact support."
+        )
+        
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=error_detail.user_message
+        )
+
+
+@router.get("/verify-reset-token", response_model=PasswordResetResponse)
+async def verify_reset_token(
+    request: Request,
+    token: str,
+    db: Session = Depends(get_db)
+):
+    """
+    Verify that a password reset token is valid.
+    
+    Security features:
+    - Token validation without revealing sensitive information
+    - Audit logging of verification attempts
+    - Rate limiting protection
+    """
+    try:
+        from app.services.password_reset_service import get_password_reset_service
+        
+        # Get client information
+        client_ip = _get_client_ip(request)
+        
+        # Get password reset service
+        reset_service = get_password_reset_service()
+        
+        # Verify token
+        is_valid, user_id, error_message = reset_service.verify_reset_token(
+            db=db,
+            token=token,
+            client_ip=client_ip
+        )
+        
+        if is_valid:
+            return PasswordResetResponse(
+                message="Token is valid",
+                success=True
+            )
+        else:
+            return PasswordResetResponse(
+                message=error_message or "Invalid or expired token",
+                success=False
+            )
+            
+    except Exception as e:
+        # Create sanitized error response
+        error_detail = create_secure_error_response(
+            exception=e,
+            error_code="TOKEN_VERIFICATION_ERROR",
+            error_category=ErrorCategory.SYSTEM_ERROR,
+            correlation_id=str(uuid.uuid4()),
+            user_message="An error occurred while verifying the token. Please try again.",
+            suggested_action="If the problem persists, please request a new password reset."
+        )
+        
+        return PasswordResetResponse(
+            message=error_detail.user_message,
+            success=False
+        )
+
+
+@router.post("/reset-password", response_model=PasswordResetResponse)
+async def reset_password(
+    request: Request,
+    reset_data: PasswordResetConfirm,
+    db: Session = Depends(get_db)
+):
+    """
+    Reset user password using a valid reset token.
+    
+    Security features:
+    - Secure token validation
+    - Password strength validation
+    - Token invalidation after use
+    - Audit logging
+    - Rate limiting protection
+    """
+    try:
+        from app.services.password_reset_service import get_password_reset_service
+        
+        # Get client information
+        client_ip = _get_client_ip(request)
+        user_agent = request.headers.get("User-Agent")
+        
+        # Get password reset service
+        reset_service = get_password_reset_service()
+        
+        # Reset password
+        result = reset_service.reset_password(
+            db=db,
+            token=reset_data.token,
+            new_password=reset_data.new_password,
+            client_ip=client_ip,
+            user_agent=user_agent
+        )
+        
+        return PasswordResetResponse(
+            message=result.message,
+            success=result.success
+        )
+        
+    except Exception as e:
+        # Create sanitized error response
+        error_detail = create_secure_error_response(
+            exception=e,
+            error_code="PASSWORD_RESET_ERROR",
+            error_category=ErrorCategory.SYSTEM_ERROR,
+            correlation_id=str(uuid.uuid4()),
+            user_message="An error occurred while resetting your password. Please try again.",
+            suggested_action="If the problem persists, please request a new password reset."
+        )
+        
+        return PasswordResetResponse(
+            message=error_detail.user_message,
+            success=False
+        )
+
+@router.post("/websocket-token")
+async def get_websocket_token(
+    request: Request,
+    current_user: User = Depends(get_current_user_from_cookie)
+):
+    """
+    Generate a temporary WebSocket authentication token.
+    This token is needed because WebSocket connections cannot access HttpOnly cookies.
+    The token is valid for 5 minutes and is single-use for WebSocket connections.
+    """
+    try:
+        # Create a temporary token with limited lifetime
+        token_data = {
+            "sub": str(current_user.id),
+            "type": "websocket",
+            "iat": datetime.utcnow().timestamp(),
+            "exp": (datetime.utcnow() + timedelta(minutes=5)).timestamp(),
+            "jti": str(uuid.uuid4())  # Unique token ID
+        }
+        
+        # Use the same JWT encoding as regular auth
+        websocket_token = jwt.encode(
+            token_data,
+            settings.SECRET_KEY,
+            algorithm=settings.ALGORITHM
+        )
+        
+        return {
+            "websocket_token": websocket_token,
+            "expires_in": 300,  # 5 minutes in seconds
+            "token_type": "websocket"
+        }
+        
+    except Exception as e:
+        # Create sanitized error response
+        error_detail = create_secure_error_response(
+            exception=e,
+            error_code="WEBSOCKET_TOKEN_ERROR",
+            error_category=ErrorCategory.AUTHENTICATION,
+            correlation_id=str(uuid.uuid4()),
+            user_message="Failed to generate WebSocket token",
+            suggested_action="Please try again or refresh the page"
         )
         
         raise HTTPException(

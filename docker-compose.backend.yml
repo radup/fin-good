@@ -41,6 +41,7 @@ services:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD environment variable is required}@postgres:5432/${POSTGRES_DB:-fingood}
       - REDIS_URL=redis://redis:6379
       - SECRET_KEY=${SECRET_KEY:?SECRET_KEY environment variable is required}
+      - COMPLIANCE_SECRET_KEY=${COMPLIANCE_SECRET_KEY:?COMPLIANCE_SECRET_KEY environment variable is required}
       - DEBUG=${DEBUG:-true}
     ports:
       - "8000:8000"

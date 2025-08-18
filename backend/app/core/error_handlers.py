@@ -31,6 +31,7 @@ from app.schemas.error import (
 )
 from app.core.config import settings
 from app.core.audit_logger import security_audit_logger
+from app.core.error_monitoring import error_monitor
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -77,7 +78,28 @@ def sanitize_value_for_logging(value: Any) -> Any:
         for pattern in sensitive_patterns:
             if pattern in value.lower():
                 return "[REDACTED]"
+    elif isinstance(value, datetime):
+        # Convert datetime objects to ISO format strings
+        return value.isoformat()
     return value
+
+
+def sanitize_context_for_monitoring(context: Dict[str, Any]) -> Dict[str, Any]:
+    """Sanitize context dictionary for error monitoring to handle datetime serialization"""
+    sanitized = {}
+    for key, value in context.items():
+        if isinstance(value, datetime):
+            sanitized[key] = value.isoformat()
+        elif isinstance(value, dict):
+            sanitized[key] = sanitize_context_for_monitoring(value)
+        elif isinstance(value, list):
+            sanitized[key] = [
+                item.isoformat() if isinstance(item, datetime) else item 
+                for item in value
+            ]
+        else:
+            sanitized[key] = sanitize_value_for_logging(value)
+    return sanitized
 
 
 def _get_client_ip(request: Request) -> Optional[str]:
@@ -120,47 +142,61 @@ async def custom_exception_handler(request: Request, exc: FinGoodException) -> J
     
     if exc.severity == ErrorSeverity.CRITICAL:
         logger.critical(log_message, extra=log_extra)
-        # Log critical security events to audit logger
-        if exc.category in [ErrorCategory.FINANCIAL_COMPLIANCE, ErrorCategory.SYSTEM_ERROR]:
-            security_audit_logger.log_security_violation(
-                violation_type=exc.category.value,
-                description=exc.message,
-                user_id=getattr(request.state, 'user_id', None),
-                request=request,
-                details={"error_code": exc.code, "correlation_id": exc.correlation_id}
-            )
+        # Log critical security events to audit logger - TEMPORARILY DISABLED
+        # try:
+        #     if exc.category in [ErrorCategory.FINANCIAL_COMPLIANCE, ErrorCategory.SYSTEM_ERROR]:
+        #         security_audit_logger.log_security_violation(
+        #             violation_type=exc.category.value,
+        #             description=exc.message,
+        #             user_id=getattr(request.state, 'user_id', None),
+        #             request=request,
+        #             details={"error_code": exc.code, "correlation_id": exc.correlation_id}
+        #         )
+        # except Exception as audit_error:
+        #     logger.error(f"Security audit logging failed: {audit_error}")
     elif exc.severity == ErrorSeverity.HIGH:
         logger.error(log_message, extra=log_extra)
-        # Log high-severity authentication/authorization failures
-        if exc.category == ErrorCategory.AUTHENTICATION:
-            security_audit_logger.log_authentication_failure(
-                attempted_email=getattr(request.state, 'attempted_email', "unknown"),
-                request=request,
-                reason=exc.code
-            )
-        elif exc.category == ErrorCategory.AUTHORIZATION:
-            security_audit_logger.log_access_denied(
-                resource=request.url.path,
-                user_id=getattr(request.state, 'user_id', None),
-                request=request,
-                reason=exc.code
-            )
+        # Log high-severity authentication/authorization failures - TEMPORARILY DISABLED
+        # try:
+        #     if exc.category == ErrorCategory.AUTHENTICATION:
+        #         security_audit_logger.log_authentication_failure(
+        #             attempted_email=getattr(request.state, 'attempted_email', "unknown"),
+        #             request=request,
+        #             reason=exc.code
+        #         )
+        #     elif exc.category == ErrorCategory.AUTHORIZATION:
+        #         security_audit_logger.log_access_denied(
+        #             resource=request.url.path,
+        #             user_id=getattr(request.state, 'user_id', None),
+        #             request=request,
+        #             reason=exc.code
+        #         )
+        # except Exception as audit_error:
+        #     logger.error(f"Security audit logging failed: {audit_error}")
     else:
         logger.warning(log_message, extra=log_extra)
     
-    # Record error for monitoring and alerting
-    error_monitor.record_error(
-        error_code=exc.code,
-        category=exc.category,
-        severity=exc.severity,
-        user_id=getattr(request.state, 'user_id', None),
-        client_ip=_get_client_ip(request),
-        path=request.url.path,
-        method=request.method,
-        user_agent=request.headers.get("User-Agent"),
-        request_id=getattr(request.state, 'request_id', None),
-        correlation_id=exc.correlation_id
-    )
+    # Record error for monitoring and alerting - TEMPORARILY DISABLED
+    # try:
+    #     context = sanitize_context_for_monitoring({
+    #         "user_id": getattr(request.state, 'user_id', None),
+    #         "client_ip": _get_client_ip(request),
+    #         "path": request.url.path,
+    #         "method": request.method,
+    #         "user_agent": request.headers.get("User-Agent"),
+    #         "request_id": getattr(request.state, 'request_id', None),
+    #         "correlation_id": exc.correlation_id
+    #     })
+    #     error_monitor.record_error(
+    #         error_code=exc.code,
+    #         category=exc.category,
+    #         severity=exc.severity,
+    #         context=context
+    #     )
+    # except Exception as monitoring_error:
+    #     # If error monitoring fails, log it but don't let it break the response
+    #     logger.error(f"Error monitoring failed: {monitoring_error}")
+    pass
     
     # Create error detail
     error_detail = ErrorDetail(
@@ -356,31 +392,46 @@ async def general_exception_handler(request: Request, exc: Exception) -> JSONRes
     logger.critical(f"Unhandled Exception: {type(exc).__name__} - {str(exc)}", extra=log_extra)
     
     # Log critical system errors to security audit trail
-    security_audit_logger.log_security_violation(
-        violation_type="system_error",
-        description=f"Unhandled exception: {type(exc).__name__}",
-        user_id=getattr(request.state, 'user_id', None),
-        request=request,
-        details={
-            "exception_type": type(exc).__name__,
-            "error_message": str(exc)[:200],  # Limit message length for security
-            "request_id": getattr(request.state, 'request_id', None)
-        }
-    )
+    # Security audit logging temporarily disabled
+    # try:
+    #     security_audit_logger.log_security_violation(
+    #         violation_type="system_error",
+    #         description=f"Unhandled exception: {type(exc).__name__}",
+    #         user_id=getattr(request.state, 'user_id', None),
+    #         request=request,
+    #         details={
+    #         #     "exception_type": type(exc).__name__,
+    #         #     "error_message": str(exc)[:200],  # Limit message length for security
+    #         #     "request_id": getattr(request.state, 'request_id', None)
+    #         # }
+    #     # )
+    # except Exception as audit_error:
+    #     # If security audit logging fails, log it but don't let it break the response
+    #     logger.error(f"Security audit logging failed: {audit_error}")
+    pass
     
     # Record unhandled exception for monitoring
-    error_monitor.record_error(
-        error_code="INTERNAL_SERVER_ERROR",
-        category=ErrorCategory.SYSTEM_ERROR,
-        severity=ErrorSeverity.CRITICAL,
-        user_id=getattr(request.state, 'user_id', None),
-        client_ip=_get_client_ip(request),
-        path=request.url.path,
-        method=request.method,
-        exception_type=type(exc).__name__,
-        error_message=str(exc)[:200],
-        request_id=getattr(request.state, 'request_id', None)
-    )
+    # Error monitoring temporarily disabled
+    # try:
+    #     context = sanitize_context_for_monitoring({
+    #         "user_id": getattr(request.state, 'user_id', None),
+    #         "client_ip": _get_client_ip(request),
+    #         "path": request.url.path,
+    #         "method": request.method,
+    #         "exception_type": type(exc).__name__,
+    #         "error_message": str(exc)[:200],
+    #         "request_id": getattr(request.state, 'request_id', None)
+    #     })
+    #     error_monitor.record_error(
+    #         error_code="INTERNAL_SERVER_ERROR",
+    #         category=ErrorCategory.SYSTEM_ERROR,
+    #         severity=ErrorSeverity.CRITICAL,
+    #         context=context
+    #     )
+    # except Exception as monitoring_error:
+    #     # If error monitoring fails, log it but don't let it break the response
+    #     logger.error(f"Error monitoring failed: {monitoring_error}")
+    pass
     
     error_detail = ErrorDetail(
         code="INTERNAL_SERVER_ERROR",

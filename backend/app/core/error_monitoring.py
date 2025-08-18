@@ -357,6 +357,19 @@ class ErrorMonitor:
         self.alert_handlers[AlertChannel.WEBHOOK] = self._handle_webhook_alert
         self.alert_handlers[AlertChannel.PAGERDUTY] = self._handle_pagerduty_alert
     
+    def _serialize_datetime_objects(self, obj: Any) -> Any:
+        """Recursively convert datetime objects to ISO format strings for JSON serialization"""
+        if isinstance(obj, datetime):
+            return obj.isoformat()
+        elif isinstance(obj, dict):
+            return {key: self._serialize_datetime_objects(value) for key, value in obj.items()}
+        elif isinstance(obj, list):
+            return [self._serialize_datetime_objects(item) for item in obj]
+        elif isinstance(obj, set):
+            return [self._serialize_datetime_objects(item) for item in obj]
+        else:
+            return obj
+    
     def record_error(
         self,
         error_code: str,
@@ -431,29 +444,53 @@ class ErrorMonitor:
     def _handle_email_alert(self, alert: Alert) -> None:
         """Handle email alerts (placeholder implementation)"""
         # In production, this would integrate with email service
+        alert_dict = asdict(alert)
+        # Convert datetime objects to ISO strings for JSON serialization
+        if 'timestamp' in alert_dict and hasattr(alert_dict['timestamp'], 'isoformat'):
+            alert_dict['timestamp'] = alert_dict['timestamp'].isoformat()
+        # Ensure all datetime objects are converted to strings
+        alert_dict = self._serialize_datetime_objects(alert_dict)
         logger.info(f"EMAIL ALERT: {alert.title}", extra={
-            "alert_details": asdict(alert)
+            "alert_details": alert_dict
         })
     
     def _handle_slack_alert(self, alert: Alert) -> None:
         """Handle Slack alerts (placeholder implementation)"""
         # In production, this would integrate with Slack API
+        alert_dict = asdict(alert)
+        # Convert datetime objects to ISO strings for JSON serialization
+        if 'timestamp' in alert_dict and hasattr(alert_dict['timestamp'], 'isoformat'):
+            alert_dict['timestamp'] = alert_dict['timestamp'].isoformat()
+        # Ensure all datetime objects are converted to strings
+        alert_dict = self._serialize_datetime_objects(alert_dict)
         logger.info(f"SLACK ALERT: {alert.title}", extra={
-            "alert_details": asdict(alert)
+            "alert_details": alert_dict
         })
     
     def _handle_webhook_alert(self, alert: Alert) -> None:
         """Handle webhook alerts (placeholder implementation)"""
         # In production, this would send HTTP POST to webhook URL
+        alert_dict = asdict(alert)
+        # Convert datetime objects to ISO strings for JSON serialization
+        if 'timestamp' in alert_dict and hasattr(alert_dict['timestamp'], 'isoformat'):
+            alert_dict['timestamp'] = alert_dict['timestamp'].isoformat()
+        # Ensure all datetime objects are converted to strings
+        alert_dict = self._serialize_datetime_objects(alert_dict)
         logger.info(f"WEBHOOK ALERT: {alert.title}", extra={
-            "alert_details": asdict(alert)
+            "alert_details": alert_dict
         })
     
     def _handle_pagerduty_alert(self, alert: Alert) -> None:
         """Handle PagerDuty alerts (placeholder implementation)"""
         # In production, this would integrate with PagerDuty API
+        alert_dict = asdict(alert)
+        # Convert datetime objects to ISO strings for JSON serialization
+        if 'timestamp' in alert_dict and hasattr(alert_dict['timestamp'], 'isoformat'):
+            alert_dict['timestamp'] = alert_dict['timestamp'].isoformat()
+        # Ensure all datetime objects are converted to strings
+        alert_dict = self._serialize_datetime_objects(alert_dict)
         logger.critical(f"PAGERDUTY ALERT: {alert.title}", extra={
-            "alert_details": asdict(alert)
+            "alert_details": alert_dict
         })
     
     def get_metrics_summary(self, hours: int = 24) -> Dict[str, Any]:

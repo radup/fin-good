@@ -242,11 +242,15 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         try:
             response = await call_next(request)
         except Exception as e:
-            self.logger.error(f"Error processing request: {str(e)}", extra={
-                'url': str(request.url),
-                'method': request.method,
-                'error': str(e)
-            })
+            # Simplified error logging to avoid datetime serialization issues
+            # Just log basic info without extra fields that might contain datetime objects
+            try:
+                import logging
+                simple_logger = logging.getLogger('simple_error')
+                simple_logger.error(f"Request processing error: {type(e).__name__} at {request.method} {request.url.path}")
+            except:
+                # If even this fails, continue without logging
+                pass
             raise
         
         # Add security headers to response

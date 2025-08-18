@@ -29,9 +29,10 @@ type SortDirection = 'asc' | 'desc'
 interface TransactionTableProps {
   transactions: Transaction[]
   isLoading: boolean
+  refreshKey?: number // Add refresh key to trigger data refresh
 }
 
-export function TransactionTable({ transactions: initialTransactions, isLoading }: TransactionTableProps) {
+export function TransactionTable({ transactions: initialTransactions, isLoading, refreshKey }: TransactionTableProps) {
   const [transactions, setTransactions] = useState<Transaction[]>(initialTransactions || [])
   const [totalCount, setTotalCount] = useState(initialTransactions?.length || 0)
   const [currentPage, setCurrentPage] = useState(1)
@@ -40,6 +41,10 @@ export function TransactionTable({ transactions: initialTransactions, isLoading 
   const [categories, setCategories] = useState<string[]>([])
   const [subcategories, setSubcategories] = useState<string[]>([])
   const [isLoadingData, setIsLoadingData] = useState(false)
+  
+  // Sorting state
+  const [sortField, setSortField] = useState<SortField>('date')
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
   
   // Edit mode state
   const [editingId, setEditingId] = useState<number | null>(null)
@@ -59,21 +64,18 @@ export function TransactionTable({ transactions: initialTransactions, isLoading 
     setSubcategories(uniqueSubcategories)
   }, [transactions])
 
-  // Update transactions when prop changes
-  useEffect(() => {
-    if (initialTransactions) {
-      setTransactions(initialTransactions)
-      setTotalCount(initialTransactions.length)
-    }
-  }, [initialTransactions])
+  // Always fetch fresh data from the API for filtering and sorting
+  // Ignore the prop data to ensure we always have the latest data
 
-  // Fetch transactions with filters and pagination
+  // Fetch transactions with filters, sorting, and pagination
   const fetchTransactions = async () => {
     setIsLoadingData(true)
     try {
       const params = {
         skip: (currentPage - 1) * itemsPerPage,
         limit: itemsPerPage,
+        sort_by: sortField,
+        sort_order: sortDirection,
         ...filters
       }
       
@@ -91,15 +93,56 @@ export function TransactionTable({ transactions: initialTransactions, isLoading 
     }
   }
 
-  // Fetch data when filters, page, or items per page change
+  // Fetch data when filters, sorting, page, or items per page change
   useEffect(() => {
     fetchTransactions()
-  }, [filters, currentPage, itemsPerPage])
+  }, [filters, sortField, sortDirection, currentPage, itemsPerPage])
+
+  // Also fetch data on component mount and when refreshKey changes
+  useEffect(() => {
+    fetchTransactions()
+  }, [refreshKey])
 
   // Handle filter changes
   const handleFiltersChange = (newFilters: any) => {
-    setFilters(newFilters)
+    // Clean up filter values - remove empty strings and convert boolean strings
+    const cleanedFilters = Object.entries(newFilters).reduce((acc, [key, value]) => {
+      if (value === '') return acc
+      
+      // Convert boolean strings to actual booleans
+      if (key === 'is_income' || key === 'is_categorized') {
+        if (value === 'true') acc[key] = true
+        else if (value === 'false') acc[key] = false
+      } else {
+        acc[key] = value
+      }
+      
+      return acc
+    }, {} as any)
+    
+    setFilters(cleanedFilters)
     setCurrentPage(1) // Reset to first page when filters change
+  }
+
+  // Handle sorting
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      // Toggle direction if same field
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
+    } else {
+      // Set new field with default direction
+      setSortField(field)
+      setSortDirection('asc')
+    }
+    setCurrentPage(1) // Reset to first page when sorting changes
+  }
+
+  // Get sort icon for a column
+  const getSortIcon = (field: SortField) => {
+    if (sortField !== field) {
+      return <ChevronsUpDown className="w-4 h-4" />
+    }
+    return sortDirection === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
   }
 
   // Handle page change
@@ -136,11 +179,11 @@ export function TransactionTable({ transactions: initialTransactions, isLoading 
     setSaveMessage(null)
     
     try {
-      const response = await transactionAPI.update(id, {
-        category: editCategory,
-        subcategory: editSubcategory || undefined,
-        create_rule: true // Automatically create a rule for future similar transactions
-      })
+      const response = await transactionAPI.updateCategory(
+        id,
+        editCategory,
+        editSubcategory || undefined
+      )
       
       if (response.data.auto_categorized_count > 0) {
         setSaveMessage(`✅ Transaction updated! ${response.data.auto_categorized_count} similar transactions were automatically categorized.`)
@@ -222,23 +265,59 @@ export function TransactionTable({ transactions: initialTransactions, isLoading 
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Date
+              <th 
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                onClick={() => handleSort('date')}
+              >
+                <div className="flex items-center space-x-1">
+                  <span>Date</span>
+                  {getSortIcon('date')}
+                </div>
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Description
+              <th 
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                onClick={() => handleSort('description')}
+              >
+                <div className="flex items-center space-x-1">
+                  <span>Description</span>
+                  {getSortIcon('description')}
+                </div>
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Vendor
+              <th 
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                onClick={() => handleSort('vendor')}
+              >
+                <div className="flex items-center space-x-1">
+                  <span>Vendor</span>
+                  {getSortIcon('vendor')}
+                </div>
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Amount
+              <th 
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                onClick={() => handleSort('amount')}
+              >
+                <div className="flex items-center space-x-1">
+                  <span>Amount</span>
+                  {getSortIcon('amount')}
+                </div>
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Category
+              <th 
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                onClick={() => handleSort('category')}
+              >
+                <div className="flex items-center space-x-1">
+                  <span>Category</span>
+                  {getSortIcon('category')}
+                </div>
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Subcategory
+              <th 
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                onClick={() => handleSort('subcategory')}
+              >
+                <div className="flex items-center space-x-1">
+                  <span>Subcategory</span>
+                  {getSortIcon('subcategory')}
+                </div>
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Status

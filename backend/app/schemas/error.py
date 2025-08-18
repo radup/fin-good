@@ -57,6 +57,12 @@ class ErrorDetail(BaseModel):
     timestamp: datetime = Field(default_factory=datetime.utcnow, description="When the error occurred")
     correlation_id: str = Field(default_factory=lambda: str(uuid.uuid4()), description="Unique ID for tracking this error")
     
+    model_config = {
+        "json_encoders": {
+            datetime: lambda v: v.isoformat()
+        }
+    }
+    
     # User-facing information
     user_message: Optional[str] = Field(
         None, 

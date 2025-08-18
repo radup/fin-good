@@ -2,6 +2,7 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import SQLAlchemyError, OperationalError, DisconnectionError
+from fastapi import HTTPException
 import sys
 import time
 import logging
@@ -117,6 +118,9 @@ def get_db():
         db.rollback()
         raise
         
+    except HTTPException:
+        # Re-raise HTTPExceptions without logging them as database errors
+        raise
     except Exception as e:
         logger.error(f"Unexpected error during database session: {str(e)}")
         db.rollback()

@@ -12,7 +12,7 @@ from enum import Enum
 import logging
 
 from app.core.rate_limiter import RateLimiter, RateLimitType, get_rate_limiter
-from app.core.error_monitoring import security_logger
+from app.core.audit_logger import security_audit_logger as security_logger
 
 logger = logging.getLogger(__name__)
 

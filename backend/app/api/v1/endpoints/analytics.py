@@ -11,8 +11,14 @@ from app.models.user import User
 from app.models.transaction import Transaction
 from app.core.cookie_auth import get_current_user_from_cookie
 from app.schemas.transaction import TransactionSummary
-from app.core.error_codes import ErrorCode
+from app.core.error_codes import FinGoodErrorCodes
 from app.core.exceptions import FinancialAnalyticsError
+from app.services.analytics_service import AnalyticsService
+from app.schemas.analytics import (
+    CashFlowAnalysis, CategoryInsightsResponse, VendorAnalysisResponse,
+    AnomalyDetectionResponse, ComparativeAnalysisResponse, DashboardData,
+    TrendAnalysisResponse, PeriodType
+)
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -529,6 +535,526 @@ async def get_category_trends(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to generate category trends. Please try again."
+        ) from e
+
+
+# Enhanced Analytics Endpoints
+
+@router.get("/cash-flow", response_model=CashFlowAnalysis)
+async def get_cash_flow_analysis(
+    start_date: Optional[datetime] = Query(None, description="Analysis start date"),
+    end_date: Optional[datetime] = Query(None, description="Analysis end date"),
+    period: PeriodType = Query(PeriodType.MONTHLY, description="Aggregation period"),
+    current_user: User = Depends(get_current_user_from_cookie),
+    db: Session = Depends(get_db)
+):
+    """
+    Get comprehensive cash flow analysis with trends and forecasting.
+    
+    Provides detailed cash flow insights including:
+    - Period-by-period income and expense breakdown
+    - Moving averages and trend analysis
+    - Financial health metrics
+    - Cash flow volatility assessment
+    """
+    try:
+        analytics_service = AnalyticsService(db, current_user.id)
+        result = analytics_service.get_cash_flow_analysis(start_date, end_date, period.value)
+        
+        logger.info(f"Generated cash flow analysis for user {current_user.id}")
+        return result
+        
+    except ValueError as e:
+        logger.warning(f"Invalid parameters for cash flow analysis: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception as e:
+        logger.error(f"Error generating cash flow analysis for user {current_user.id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to generate cash flow analysis. Please try again."
+        ) from e
+
+
+@router.get("/categories", response_model=CategoryInsightsResponse)
+async def get_category_insights(
+    start_date: Optional[datetime] = Query(None, description="Analysis start date"),
+    end_date: Optional[datetime] = Query(None, description="Analysis end date"),
+    top_n: int = Query(10, ge=1, le=50, description="Number of top categories to analyze"),
+    current_user: User = Depends(get_current_user_from_cookie),
+    db: Session = Depends(get_db)
+):
+    """
+    Get advanced category analysis with trends, seasonality, and predictions.
+    
+    Provides comprehensive category insights including:
+    - Spending trends and growth rates
+    - Monthly spending patterns
+    - Moving averages and seasonality detection
+    - Category distribution analysis
+    """
+    try:
+        analytics_service = AnalyticsService(db, current_user.id)
+        result = analytics_service.get_category_insights(start_date, end_date, top_n)
+        
+        logger.info(f"Generated category insights for user {current_user.id}")
+        return result
+        
+    except ValueError as e:
+        logger.warning(f"Invalid parameters for category insights: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception as e:
+        logger.error(f"Error generating category insights for user {current_user.id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to generate category insights. Please try again."
+        ) from e
+
+
+@router.get("/vendors", response_model=VendorAnalysisResponse)
+async def get_vendor_analysis(
+    start_date: Optional[datetime] = Query(None, description="Analysis start date"),
+    end_date: Optional[datetime] = Query(None, description="Analysis end date"),
+    top_n: int = Query(15, ge=1, le=100, description="Number of top vendors to analyze"),
+    current_user: User = Depends(get_current_user_from_cookie),
+    db: Session = Depends(get_db)
+):
+    """
+    Get comprehensive vendor spending analysis with patterns and insights.
+    
+    Provides detailed vendor analysis including:
+    - Top vendors by spending and frequency
+    - Transaction patterns and consistency
+    - Vendor categorization and trends
+    - Spending concentration analysis
+    """
+    try:
+        analytics_service = AnalyticsService(db, current_user.id)
+        result = analytics_service.get_vendor_analysis(start_date, end_date, top_n)
+        
+        logger.info(f"Generated vendor analysis for user {current_user.id}")
+        return result
+        
+    except ValueError as e:
+        logger.warning(f"Invalid parameters for vendor analysis: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception as e:
+        logger.error(f"Error generating vendor analysis for user {current_user.id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to generate vendor analysis. Please try again."
+        ) from e
+
+
+@router.get("/anomalies", response_model=AnomalyDetectionResponse)
+async def detect_anomalies(
+    start_date: Optional[datetime] = Query(None, description="Analysis start date"),
+    end_date: Optional[datetime] = Query(None, description="Analysis end date"),
+    sensitivity: float = Query(2.0, ge=1.0, le=5.0, description="Detection sensitivity (higher = less sensitive)"),
+    current_user: User = Depends(get_current_user_from_cookie),
+    db: Session = Depends(get_db)
+):
+    """
+    Detect unusual transactions and spending patterns using statistical analysis.
+    
+    Provides anomaly detection including:
+    - Statistical outlier detection for transaction amounts
+    - Duplicate transaction detection
+    - Large uncategorized transaction alerts
+    - Risk assessment and recommendations
+    """
+    try:
+        analytics_service = AnalyticsService(db, current_user.id)
+        result = analytics_service.detect_anomalies(start_date, end_date, sensitivity)
+        
+        logger.info(f"Completed anomaly detection for user {current_user.id}")
+        return result
+        
+    except ValueError as e:
+        logger.warning(f"Invalid parameters for anomaly detection: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception as e:
+        logger.error(f"Error detecting anomalies for user {current_user.id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to detect anomalies. Please try again."
+        ) from e
+
+
+@router.get("/comparative", response_model=ComparativeAnalysisResponse)
+async def get_comparative_analysis(
+    base_start: datetime = Query(..., description="Base period start date"),
+    base_end: datetime = Query(..., description="Base period end date"),
+    compare_start: datetime = Query(..., description="Comparison period start date"),
+    compare_end: datetime = Query(..., description="Comparison period end date"),
+    current_user: User = Depends(get_current_user_from_cookie),
+    db: Session = Depends(get_db)
+):
+    """
+    Compare financial metrics between two time periods.
+    
+    Provides comparative analysis including:
+    - Income and expense comparisons
+    - Category-level change analysis
+    - Percentage growth calculations
+    - Trend direction insights
+    """
+    try:
+        # Validate date ranges
+        if base_start >= base_end:
+            raise ValueError("Base period start date must be before end date")
+        if compare_start >= compare_end:
+            raise ValueError("Comparison period start date must be before end date")
+        
+        analytics_service = AnalyticsService(db, current_user.id)
+        result = analytics_service.get_comparative_analysis(
+            base_start, base_end, compare_start, compare_end
+        )
+        
+        logger.info(f"Generated comparative analysis for user {current_user.id}")
+        return result
+        
+    except ValueError as e:
+        logger.warning(f"Invalid parameters for comparative analysis: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception as e:
+        logger.error(f"Error generating comparative analysis for user {current_user.id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to generate comparative analysis. Please try again."
+        ) from e
+
+
+@router.get("/dashboard", response_model=DashboardData)
+async def get_dashboard_data(
+    start_date: Optional[datetime] = Query(None, description="Dashboard period start date"),
+    end_date: Optional[datetime] = Query(None, description="Dashboard period end date"),
+    current_user: User = Depends(get_current_user_from_cookie),
+    db: Session = Depends(get_db)
+):
+    """
+    Get comprehensive dashboard data with KPIs, charts, and insights.
+    
+    Provides dashboard data including:
+    - Key performance indicators with trends
+    - Chart data for visualizations
+    - Quick statistics and summaries
+    - Alerts and notifications
+    """
+    try:
+        # Use default period if not specified (last 30 days)
+        if not end_date:
+            end_date = datetime.now()
+        if not start_date:
+            start_date = end_date - timedelta(days=30)
+        
+        analytics_service = AnalyticsService(db, current_user.id)
+        
+        # Gather data from multiple analysis types
+        cash_flow = analytics_service.get_cash_flow_analysis(start_date, end_date, "weekly")
+        category_insights = analytics_service.get_category_insights(start_date, end_date, 8)
+        vendor_analysis = analytics_service.get_vendor_analysis(start_date, end_date, 5)
+        anomalies = analytics_service.detect_anomalies(start_date, end_date, 2.0)
+        
+        # Build comprehensive dashboard response
+        from app.schemas.analytics import AnalyticsConfig, KPIMetric, DashboardChart, DashboardAlerts
+        
+        config = AnalyticsConfig(start_date=start_date, end_date=end_date)
+        
+        # Build KPIs
+        kpis = {
+            "total_income": KPIMetric(
+                value=cash_flow["summary"]["total_income"],
+                change_percent=cash_flow["summary"]["income_growth_rate"],
+                trend="increasing" if cash_flow["summary"]["income_growth_rate"] and cash_flow["summary"]["income_growth_rate"] > 0 else "stable"
+            ),
+            "total_expenses": KPIMetric(
+                value=cash_flow["summary"]["total_expenses"],
+                change_percent=cash_flow["summary"]["expense_growth_rate"],
+                trend="increasing" if cash_flow["summary"]["expense_growth_rate"] and cash_flow["summary"]["expense_growth_rate"] > 0 else "stable"
+            ),
+            "net_flow": KPIMetric(
+                value=cash_flow["summary"]["net_total"],
+                status="positive" if cash_flow["summary"]["net_total"] > 0 else "negative"
+            ),
+            "savings_rate": KPIMetric(
+                value=cash_flow["financial_health"]["savings_rate"],
+                target=Decimal("20.00"),  # 20% savings target
+                status="good" if cash_flow["financial_health"]["savings_rate"] >= 20 else "needs_improvement"
+            )
+        }
+        
+        # Build charts data
+        charts = [
+            DashboardChart(
+                chart_type="line",
+                title="Cash Flow Trend",
+                data=[
+                    {
+                        "period": str(period["period"]),
+                        "income": float(period["income"]),
+                        "expenses": float(period["expenses"]),
+                        "net": float(period["net_flow"])
+                    }
+                    for period in cash_flow["cash_flow_data"]
+                ]
+            ),
+            DashboardChart(
+                chart_type="pie",
+                title="Top Categories",
+                data=[
+                    {
+                        "category": category,
+                        "amount": float(data["total_amount"]),
+                        "percentage": float(data["percentage_of_total"])
+                    }
+                    for category, data in list(category_insights["category_insights"].items())[:6]
+                ]
+            )
+        ]
+        
+        # Build quick stats
+        quick_stats = {
+            "total_transactions": len([t for flow in cash_flow["cash_flow_data"] 
+                                    for t in [flow["income_transactions"], flow["expense_transactions"]]]),
+            "unique_vendors": vendor_analysis["summary"]["total_unique_vendors"],
+            "categories_used": len(category_insights["category_insights"]),
+            "anomalies_detected": anomalies["summary"]["total_anomalies"]
+        }
+        
+        # Build alerts
+        alerts = DashboardAlerts(
+            budget_alerts=[
+                f"High spending in {cat}" 
+                for cat, data in category_insights["category_insights"].items()
+                if data["trend_analysis"]["trend_direction"] == "increasing"
+            ][:3],
+            anomaly_alerts=anomalies["recommendations"][:3],
+            trend_alerts=[
+                "Income growth detected" if cash_flow["summary"]["income_growth_rate"] and 
+                cash_flow["summary"]["income_growth_rate"] > 10 else None,
+                "Expense growth detected" if cash_flow["summary"]["expense_growth_rate"] and 
+                cash_flow["summary"]["expense_growth_rate"] > 10 else None
+            ]
+        )
+        
+        dashboard_data = DashboardData(
+            period=config,
+            kpis=kpis,
+            charts=charts,
+            quick_stats=quick_stats,
+            alerts=alerts,
+            last_updated=datetime.now()
+        )
+        
+        logger.info(f"Generated comprehensive dashboard data for user {current_user.id}")
+        return dashboard_data
+        
+    except Exception as e:
+        logger.error(f"Error generating dashboard data for user {current_user.id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to generate dashboard data. Please try again."
+        ) from e
+
+
+@router.get("/trends", response_model=TrendAnalysisResponse)
+async def get_trend_analysis(
+    start_date: Optional[datetime] = Query(None, description="Analysis start date"),
+    end_date: Optional[datetime] = Query(None, description="Analysis end date"),
+    period: PeriodType = Query(PeriodType.MONTHLY, description="Aggregation period"),
+    forecast_periods: int = Query(3, ge=1, le=12, description="Number of periods to forecast"),
+    metric: str = Query("expenses", regex="^(income|expenses|net_flow)$", description="Metric to analyze"),
+    current_user: User = Depends(get_current_user_from_cookie),
+    db: Session = Depends(get_db)
+):
+    """
+    Get trend analysis and forecasting for financial metrics.
+    
+    Provides trend analysis including:
+    - Historical trend analysis with moving averages
+    - Simple forecasting based on trend patterns
+    - Confidence intervals and accuracy metrics
+    - Seasonality detection and insights
+    """
+    try:
+        analytics_service = AnalyticsService(db, current_user.id)
+        
+        # Get cash flow data for trend analysis
+        cash_flow_data = analytics_service.get_cash_flow_analysis(start_date, end_date, period.value)
+        
+        # Extract the requested metric
+        periods_data = cash_flow_data["cash_flow_data"]
+        
+        metric_values = []
+        periods = []
+        
+        for period_data in periods_data:
+            periods.append(period_data["period"])
+            if metric == "income":
+                metric_values.append(period_data["income"])
+            elif metric == "expenses":
+                metric_values.append(period_data["expenses"])
+            else:  # net_flow
+                metric_values.append(period_data["net_flow"])
+        
+        if len(metric_values) < 3:
+            raise ValueError("Insufficient data for trend analysis. Need at least 3 data points.")
+        
+        # Simple trend analysis and forecasting
+        from decimal import Decimal
+        from app.schemas.analytics import TrendDataPoint, ForecastMetrics
+        
+        # Calculate moving averages
+        moving_avg = analytics_service._calculate_moving_average(metric_values, window=3)
+        
+        # Simple linear trend calculation
+        n = len(metric_values)
+        sum_x = sum(range(n))
+        sum_y = sum([float(val) for val in metric_values])
+        sum_xy = sum(i * float(val) for i, val in enumerate(metric_values))
+        sum_x2 = sum(i * i for i in range(n))
+        
+        # Linear regression slope and intercept
+        slope = (n * sum_xy - sum_x * sum_y) / (n * sum_x2 - sum_x * sum_x)
+        intercept = (sum_y - slope * sum_x) / n
+        
+        # Build trend data
+        trend_data = []
+        
+        # Historical data with trend line
+        for i, (period, actual, moving_avg_val) in enumerate(zip(periods, metric_values, moving_avg)):
+            trend_value = Decimal(str(intercept + slope * i)).quantize(Decimal('0.01'))
+            
+            trend_data.append(TrendDataPoint(
+                period=period,
+                actual_value=actual,
+                trend_value=trend_value,
+                forecast_value=None,
+                confidence_interval=None
+            ))
+        
+        # Generate forecasts
+        last_period = periods[-1]
+        for i in range(forecast_periods):
+            next_period = last_period + timedelta(days=30 * (i + 1)) if period.value == "monthly" else \
+                         last_period + timedelta(days=7 * (i + 1)) if period.value == "weekly" else \
+                         last_period + timedelta(days=1 * (i + 1))
+            
+            forecast_value = Decimal(str(intercept + slope * (n + i))).quantize(Decimal('0.01'))
+            
+            # Simple confidence interval (±20% of trend value)
+            confidence_range = abs(forecast_value * Decimal('0.20'))
+            confidence_interval = {
+                'lower': forecast_value - confidence_range,
+                'upper': forecast_value + confidence_range
+            }
+            
+            trend_data.append(TrendDataPoint(
+                period=next_period,
+                actual_value=None,  # No actual value for future periods
+                trend_value=forecast_value,
+                forecast_value=forecast_value,
+                confidence_interval=confidence_interval
+            ))
+        
+        # Calculate forecast metrics
+        historical_trend_values = [float(intercept + slope * i) for i in range(n)]
+        historical_actual_values = [float(val) for val in metric_values]
+        
+        # Simple accuracy calculation (MAPE - Mean Absolute Percentage Error)
+        try:
+            mape_values = []
+            for actual, predicted in zip(historical_actual_values, historical_trend_values):
+                if actual != 0:
+                    mape_values.append(abs((actual - predicted) / actual))
+            
+            accuracy = (1 - sum(mape_values) / len(mape_values)) * 100 if mape_values else 50
+            accuracy_score = max(0, min(100, accuracy))
+        except:
+            accuracy_score = 50  # Default moderate accuracy
+        
+        # Detect seasonality (simplified)
+        seasonality_detected = False
+        if len(metric_values) >= 12 and period.value == "monthly":
+            # Simple seasonality check - look for recurring patterns
+            try:
+                import statistics
+                monthly_means = [statistics.mean(metric_values[i::12]) for i in range(min(12, len(metric_values)))]
+                monthly_variance = statistics.variance(monthly_means) if len(monthly_means) > 1 else 0
+                seasonality_detected = monthly_variance > (sum(monthly_means) / len(monthly_means)) * 0.1
+            except:
+                seasonality_detected = False
+        
+        forecast_metrics = ForecastMetrics(
+            accuracy_score=Decimal(str(accuracy_score)),
+            confidence_level=Decimal('80.0'),  # 80% confidence level
+            trend_strength=Decimal(str(abs(slope * n))).quantize(Decimal('0.01')),
+            seasonality_detected=seasonality_detected,
+            forecast_horizon=forecast_periods
+        )
+        
+        # Generate insights
+        insights = []
+        if slope > 0.01:
+            insights.append(f"{metric.replace('_', ' ').title()} showing increasing trend (+{slope:.2f} per period)")
+        elif slope < -0.01:
+            insights.append(f"{metric.replace('_', ' ').title()} showing decreasing trend ({slope:.2f} per period)")
+        else:
+            insights.append(f"{metric.replace('_', ' ').title()} showing stable trend")
+        
+        if seasonality_detected:
+            insights.append("Seasonal patterns detected in spending behavior")
+        
+        # Generate recommendations
+        recommendations = []
+        if metric == "expenses" and slope > 0:
+            recommendations.append("Consider budget review as expenses are trending upward")
+        elif metric == "income" and slope < 0:
+            recommendations.append("Monitor income sources as trend is declining")
+        elif metric == "net_flow" and forecast_value < 0:
+            recommendations.append("Projected negative cash flow - consider expense reduction")
+        
+        response = TrendAnalysisResponse(
+            analysis_config=AnalyticsConfig(
+                start_date=start_date or (datetime.now() - timedelta(days=365)),
+                end_date=end_date or datetime.now(),
+                period=period
+            ),
+            trend_data=trend_data,
+            forecast_metrics=forecast_metrics,
+            insights=insights,
+            recommendations=recommendations
+        )
+        
+        logger.info(f"Generated trend analysis for user {current_user.id}: {metric} over {len(periods)} periods")
+        return response
+        
+    except ValueError as e:
+        logger.warning(f"Invalid parameters for trend analysis: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception as e:
+        logger.error(f"Error generating trend analysis for user {current_user.id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to generate trend analysis. Please try again."
         ) from e
 
 

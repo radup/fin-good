@@ -315,7 +315,8 @@ export default function DashboardComponent() {
             <ErrorBoundary fallback={ErrorFallback}>
               <TransactionTable 
                 transactions={transactions} 
-                isLoading={isLoadingTransactions} 
+                isLoading={isLoadingTransactions}
+                refreshKey={refreshKey}
               />
             </ErrorBoundary>
           </div>

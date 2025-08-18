@@ -1,8 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status, BackgroundTasks
+from fastapi.responses import FileResponse, StreamingResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import func, or_
-from typing import List, Optional, Dict, Any
-from datetime import datetime, timedelta
+from typing import List, Optional, Dict, Any, Union
+from datetime import datetime, timedelta, date
+import os
+from pathlib import Path
 
 from app.core.database import get_db
 from app.core.transaction_manager import (
@@ -18,9 +21,15 @@ from app.models.user import User
 from app.models.transaction import Transaction
 from app.core.cookie_auth import get_current_user_from_cookie
 from app.services.categorization import CategorizationService
+from app.services.export_service import ExportService
 from app.schemas.transaction import TransactionResponse, TransactionUpdate
+from app.schemas.export import (
+    ExportFormat, ExportRequest, ExportJobResponse, ExportProgress, 
+    ExportFilterParams, ExportColumnsConfig, ExportOptionsConfig
+)
 from app.core.financial_validators import validate_and_secure_sort_parameters
 from app.core.exceptions import ValidationException
+from app.core.rate_limiter import get_rate_limiter, RateLimitType, RateLimitTier
 
 router = APIRouter()
 
@@ -54,7 +63,13 @@ async def get_transactions(
         query = query.filter(Transaction.subcategory == subcategory)
     
     if vendor:
-        query = query.filter(Transaction.vendor.ilike(f"%{vendor}%"))
+        # Search in both vendor and description fields for more flexible search
+        query = query.filter(
+            or_(
+                Transaction.vendor.ilike(f"%{vendor}%"),
+                Transaction.description.ilike(f"%{vendor}%")
+            )
+        )
     
     if description:
         query = query.filter(Transaction.description.ilike(f"%{description}%"))
@@ -160,7 +175,13 @@ async def get_transaction_count(
         query = query.filter(Transaction.subcategory == subcategory)
     
     if vendor:
-        query = query.filter(Transaction.vendor.ilike(f"%{vendor}%"))
+        # Search in both vendor and description fields for more flexible search
+        query = query.filter(
+            or_(
+                Transaction.vendor.ilike(f"%{vendor}%"),
+                Transaction.description.ilike(f"%{vendor}%")
+            )
+        )
     
     if description:
         query = query.filter(Transaction.description.ilike(f"%{description}%"))
@@ -457,16 +478,27 @@ async def delete_transaction(
 
 @router.post("/categorize")
 async def categorize_transactions(
+    use_ml_fallback: bool = Query(True, description="Use ML categorization for transactions not matched by rules"),
+    batch_id: Optional[str] = Query(None, description="Only categorize transactions from specific import batch"),
     current_user: User = Depends(get_current_user_from_cookie),
     db: Session = Depends(get_db)
 ):
-    """Re-run categorization on all uncategorized transactions"""
+    """Re-run categorization on all uncategorized transactions with ML fallback"""
     categorization_service = CategorizationService(db)
-    categorized_count = await categorization_service.categorize_user_transactions(current_user.id)
+    result = await categorization_service.categorize_user_transactions(
+        current_user.id,
+        batch_id=batch_id,
+        use_ml_fallback=use_ml_fallback
+    )
     
     return {
-        "message": f"Categorized {categorized_count} transactions",
-        "categorized_count": categorized_count
+        "message": f"Categorized {result['rule_categorized'] + result['ml_categorized']} of {result['total_transactions']} transactions",
+        "total_transactions": result['total_transactions'],
+        "rule_categorized": result['rule_categorized'],
+        "ml_categorized": result['ml_categorized'],
+        "failed_categorizations": result['failed_categorizations'],
+        "success_rate": result['success_rate'],
+        "failed_details": result['failed_details']
     }
 
 @router.get("/categories/available")
@@ -611,6 +643,526 @@ async def delete_import_batch(
             correlation_id=str(uuid.uuid4()),
             user_message="Failed to delete batch transactions. Please try again.",
             suggested_action="If the problem persists, please contact support."
+        )
+        
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=error_detail.user_message
+        )
+
+
+# ====================== EXPORT ENDPOINTS ======================
+
+@router.get("/export/csv")
+async def export_transactions_csv(
+    from_date: Optional[date] = Query(None, description="Start date for export (YYYY-MM-DD)"),
+    to_date: Optional[date] = Query(None, description="End date for export (YYYY-MM-DD)"),
+    category: Optional[str] = Query(None, description="Filter by category"),
+    subcategory: Optional[str] = Query(None, description="Filter by subcategory"),
+    is_income: Optional[bool] = Query(None, description="Filter by income/expense type"),
+    min_amount: Optional[float] = Query(None, description="Minimum amount filter"),
+    max_amount: Optional[float] = Query(None, description="Maximum amount filter"),
+    current_user: User = Depends(get_current_user_from_cookie),
+    db: Session = Depends(get_db),
+    rate_limiter = Depends(get_rate_limiter)
+):
+    """Export transactions as CSV with filtering support and rate limiting."""
+    
+    try:
+        # Apply rate limiting (5 exports per hour for free tier)
+        rate_limit_result = await rate_limiter.check_rate_limit(
+            identifier=f"user_{current_user.id}",
+            limit_type=RateLimitType.UPLOAD,  # Reuse upload limits for exports
+            user_tier=getattr(current_user, 'tier', 'free')
+        )
+        
+        if not rate_limit_result.allowed:
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail={
+                    "message": "Export rate limit exceeded",
+                    "retry_after": rate_limit_result.retry_after,
+                    "limit": rate_limit_result.limit,
+                    "reset_time": rate_limit_result.reset_time.isoformat()
+                }
+            )
+        
+        # Build filters
+        filters = ExportFilterParams(
+            from_date=from_date,
+            to_date=to_date,
+            categories=[category] if category else None,
+            subcategories=[subcategory] if subcategory else None,
+            is_income=is_income,
+            min_amount=min_amount,
+            max_amount=max_amount
+        )
+        
+        # Create export service and generate CSV
+        export_service = ExportService(db)
+        job_id = await export_service.create_export_job(
+            user_id=current_user.id,
+            export_format=ExportFormat.CSV,
+            filters=filters,
+            export_name="transactions_csv_export"
+        )
+        
+        # For simple CSV exports, wait for completion and return file
+        max_wait_time = 30  # 30 seconds max wait
+        wait_interval = 1
+        elapsed = 0
+        
+        while elapsed < max_wait_time:
+            progress = export_service.get_export_progress(job_id, current_user.id)
+            if not progress:
+                break
+            
+            if progress.status.value == "completed":
+                file_path = export_service.get_export_download_path(job_id, current_user.id)
+                if file_path and os.path.exists(file_path):
+                    filename = f"transactions_export_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.csv"
+                    return FileResponse(
+                        path=file_path,
+                        filename=filename,
+                        media_type="text/csv",
+                        headers={"Content-Disposition": f"attachment; filename={filename}"}
+                    )
+                break
+            elif progress.status.value == "failed":
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail=f"Export failed: {progress.error_message}"
+                )
+            
+            import asyncio
+            await asyncio.sleep(wait_interval)
+            elapsed += wait_interval
+        
+        # If we get here, export is taking too long - return job ID for polling
+        progress = export_service.get_export_progress(job_id, current_user.id)
+        return ExportJobResponse(
+            job_id=job_id,
+            status="processing",
+            estimated_records=progress.total_records if progress else 0,
+            created_at=datetime.utcnow(),
+            message="Export is processing. Use /export/status/{job_id} to check progress."
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        error_detail = create_secure_error_response(
+            exception=e,
+            error_code="CSV_EXPORT_FAILED",
+            error_category=ErrorCategory.SYSTEM_ERROR,
+            correlation_id=str(uuid.uuid4()),
+            user_message="Failed to export transactions to CSV. Please try again.",
+            suggested_action="Reduce the date range or contact support if the problem persists."
+        )
+        
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=error_detail.user_message
+        )
+
+
+@router.get("/export/excel")
+async def export_transactions_excel(
+    from_date: Optional[date] = Query(None, description="Start date for export (YYYY-MM-DD)"),
+    to_date: Optional[date] = Query(None, description="End date for export (YYYY-MM-DD)"),
+    category: Optional[str] = Query(None, description="Filter by category"),
+    subcategory: Optional[str] = Query(None, description="Filter by subcategory"),
+    is_income: Optional[bool] = Query(None, description="Filter by income/expense type"),
+    min_amount: Optional[float] = Query(None, description="Minimum amount filter"),
+    max_amount: Optional[float] = Query(None, description="Maximum amount filter"),
+    include_summary: bool = Query(True, description="Include summary sheet"),
+    current_user: User = Depends(get_current_user_from_cookie),
+    db: Session = Depends(get_db),
+    rate_limiter = Depends(get_rate_limiter)
+):
+    """Export transactions as Excel workbook with multiple sheets and enhanced formatting."""
+    
+    try:
+        # Apply rate limiting
+        rate_limit_result = await rate_limiter.check_rate_limit(
+            identifier=f"user_{current_user.id}",
+            limit_type=RateLimitType.UPLOAD,
+            user_tier=getattr(current_user, 'tier', 'free')
+        )
+        
+        if not rate_limit_result.allowed:
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail={
+                    "message": "Export rate limit exceeded",
+                    "retry_after": rate_limit_result.retry_after,
+                    "limit": rate_limit_result.limit,
+                    "reset_time": rate_limit_result.reset_time.isoformat()
+                }
+            )
+        
+        # Build filters
+        filters = ExportFilterParams(
+            from_date=from_date,
+            to_date=to_date,
+            categories=[category] if category else None,
+            subcategories=[subcategory] if subcategory else None,
+            is_income=is_income,
+            min_amount=min_amount,
+            max_amount=max_amount
+        )
+        
+        # Configure Excel options
+        options = ExportOptionsConfig(
+            include_summary_sheet=include_summary,
+            include_category_breakdown=True
+        )
+        
+        # Create export job
+        export_service = ExportService(db)
+        job_id = await export_service.create_export_job(
+            user_id=current_user.id,
+            export_format=ExportFormat.EXCEL,
+            filters=filters,
+            options_config=options,
+            export_name="transactions_excel_export"
+        )
+        
+        # For Excel exports, return job ID since they can be large
+        progress = export_service.get_export_progress(job_id, current_user.id)
+        
+        return ExportJobResponse(
+            job_id=job_id,
+            status=progress.status.value if progress else "pending",
+            estimated_records=progress.total_records if progress else 0,
+            created_at=datetime.utcnow(),
+            message="Excel export started. Use /export/status/{job_id} to check progress and download when ready."
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        error_detail = create_secure_error_response(
+            exception=e,
+            error_code="EXCEL_EXPORT_FAILED",
+            error_category=ErrorCategory.SYSTEM_ERROR,
+            correlation_id=str(uuid.uuid4()),
+            user_message="Failed to export transactions to Excel. Please try again.",
+            suggested_action="Reduce the date range or contact support if the problem persists."
+        )
+        
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=error_detail.user_message
+        )
+
+
+@router.get("/export/json")
+async def export_transactions_json(
+    from_date: Optional[date] = Query(None, description="Start date for export (YYYY-MM-DD)"),
+    to_date: Optional[date] = Query(None, description="End date for export (YYYY-MM-DD)"),
+    category: Optional[str] = Query(None, description="Filter by category"),
+    subcategory: Optional[str] = Query(None, description="Filter by subcategory"),
+    is_income: Optional[bool] = Query(None, description="Filter by income/expense type"),
+    min_amount: Optional[float] = Query(None, description="Minimum amount filter"),
+    max_amount: Optional[float] = Query(None, description="Maximum amount filter"),
+    include_metadata: bool = Query(True, description="Include export metadata"),
+    current_user: User = Depends(get_current_user_from_cookie),
+    db: Session = Depends(get_db),
+    rate_limiter = Depends(get_rate_limiter)
+):
+    """Export transactions as structured JSON with metadata."""
+    
+    try:
+        # Apply rate limiting
+        rate_limit_result = await rate_limiter.check_rate_limit(
+            identifier=f"user_{current_user.id}",
+            limit_type=RateLimitType.UPLOAD,
+            user_tier=getattr(current_user, 'tier', 'free')
+        )
+        
+        if not rate_limit_result.allowed:
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail={
+                    "message": "Export rate limit exceeded",
+                    "retry_after": rate_limit_result.retry_after,
+                    "limit": rate_limit_result.limit,
+                    "reset_time": rate_limit_result.reset_time.isoformat()
+                }
+            )
+        
+        # Build filters
+        filters = ExportFilterParams(
+            from_date=from_date,
+            to_date=to_date,
+            categories=[category] if category else None,
+            subcategories=[subcategory] if subcategory else None,
+            is_income=is_income,
+            min_amount=min_amount,
+            max_amount=max_amount
+        )
+        
+        # Configure JSON export to include all relevant data
+        columns = ExportColumnsConfig(
+            include_raw_data=include_metadata,
+            include_meta_data=include_metadata,
+            include_created_at=True,
+            include_updated_at=True,
+            include_confidence_score=True
+        )
+        
+        # Create export job
+        export_service = ExportService(db)
+        job_id = await export_service.create_export_job(
+            user_id=current_user.id,
+            export_format=ExportFormat.JSON,
+            filters=filters,
+            columns_config=columns,
+            export_name="transactions_json_export"
+        )
+        
+        # For JSON, wait a bit since it's structured data
+        max_wait_time = 20
+        wait_interval = 1
+        elapsed = 0
+        
+        while elapsed < max_wait_time:
+            progress = export_service.get_export_progress(job_id, current_user.id)
+            if not progress:
+                break
+            
+            if progress.status.value == "completed":
+                file_path = export_service.get_export_download_path(job_id, current_user.id)
+                if file_path and os.path.exists(file_path):
+                    filename = f"transactions_export_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.json"
+                    return FileResponse(
+                        path=file_path,
+                        filename=filename,
+                        media_type="application/json",
+                        headers={"Content-Disposition": f"attachment; filename={filename}"}
+                    )
+                break
+            elif progress.status.value == "failed":
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail=f"Export failed: {progress.error_message}"
+                )
+            
+            import asyncio
+            await asyncio.sleep(wait_interval)
+            elapsed += wait_interval
+        
+        # Return job ID for polling if still processing
+        progress = export_service.get_export_progress(job_id, current_user.id)
+        return ExportJobResponse(
+            job_id=job_id,
+            status="processing",
+            estimated_records=progress.total_records if progress else 0,
+            created_at=datetime.utcnow(),
+            message="JSON export is processing. Use /export/status/{job_id} to check progress."
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        error_detail = create_secure_error_response(
+            exception=e,
+            error_code="JSON_EXPORT_FAILED",
+            error_category=ErrorCategory.SYSTEM_ERROR,
+            correlation_id=str(uuid.uuid4()),
+            user_message="Failed to export transactions to JSON. Please try again.",
+            suggested_action="Reduce the date range or contact support if the problem persists."
+        )
+        
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=error_detail.user_message
+        )
+
+
+@router.post("/export/custom", response_model=ExportJobResponse)
+async def create_custom_export(
+    export_request: ExportRequest,
+    current_user: User = Depends(get_current_user_from_cookie),
+    db: Session = Depends(get_db),
+    rate_limiter = Depends(get_rate_limiter)
+):
+    """Create a custom export with comprehensive filtering and configuration options."""
+    
+    try:
+        # Apply stricter rate limiting for custom exports
+        rate_limit_result = await rate_limiter.check_rate_limit(
+            identifier=f"user_{current_user.id}",
+            limit_type=RateLimitType.ANALYTICS,  # Use analytics limits (more restrictive)
+            user_tier=getattr(current_user, 'tier', 'free')
+        )
+        
+        if not rate_limit_result.allowed:
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail={
+                    "message": "Custom export rate limit exceeded",
+                    "retry_after": rate_limit_result.retry_after,
+                    "limit": rate_limit_result.limit,
+                    "reset_time": rate_limit_result.reset_time.isoformat()
+                }
+            )
+        
+        # Create export job with custom configuration
+        export_service = ExportService(db)
+        job_id = await export_service.create_export_job(
+            user_id=current_user.id,
+            export_format=export_request.export_format,
+            filters=export_request.filters,
+            columns_config=export_request.columns,
+            options_config=export_request.options,
+            export_name=export_request.export_name
+        )
+        
+        # Get initial progress
+        progress = export_service.get_export_progress(job_id, current_user.id)
+        
+        return ExportJobResponse(
+            job_id=job_id,
+            status=progress.status.value if progress else "pending",
+            estimated_records=progress.total_records if progress else 0,
+            estimated_completion_time=progress.estimated_completion if progress else None,
+            created_at=datetime.utcnow(),
+            message=f"Custom {export_request.export_format.value} export created. Use /export/status/{job_id} to monitor progress."
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        error_detail = create_secure_error_response(
+            exception=e,
+            error_code="CUSTOM_EXPORT_FAILED",
+            error_category=ErrorCategory.SYSTEM_ERROR,
+            correlation_id=str(uuid.uuid4()),
+            user_message="Failed to create custom export. Please try again.",
+            suggested_action="Check your export configuration or contact support if the problem persists."
+        )
+        
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=error_detail.user_message
+        )
+
+
+@router.get("/export/status/{job_id}", response_model=ExportProgress)
+async def get_export_status(
+    job_id: str,
+    current_user: User = Depends(get_current_user_from_cookie),
+    db: Session = Depends(get_db)
+):
+    """Get the status and progress of an export job."""
+    
+    try:
+        export_service = ExportService(db)
+        progress = export_service.get_export_progress(job_id, current_user.id)
+        
+        if not progress:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Export job not found or access denied"
+            )
+        
+        return progress
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        error_detail = create_secure_error_response(
+            exception=e,
+            error_code="EXPORT_STATUS_FAILED",
+            error_category=ErrorCategory.SYSTEM_ERROR,
+            correlation_id=str(uuid.uuid4()),
+            user_message="Failed to retrieve export status. Please try again."
+        )
+        
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=error_detail.user_message
+        )
+
+
+@router.get("/export/download/{job_id}")
+async def download_export(
+    job_id: str,
+    current_user: User = Depends(get_current_user_from_cookie),
+    db: Session = Depends(get_db)
+):
+    """Download a completed export file."""
+    
+    try:
+        export_service = ExportService(db)
+        
+        # Check if export is completed and get file path
+        progress = export_service.get_export_progress(job_id, current_user.id)
+        if not progress:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Export job not found or access denied"
+            )
+        
+        if progress.status.value != "completed":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Export is not ready for download. Current status: {progress.status.value}"
+            )
+        
+        file_path = export_service.get_export_download_path(job_id, current_user.id)
+        if not file_path or not os.path.exists(file_path):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Export file not found or has expired"
+            )
+        
+        # Determine content type and filename based on file extension
+        file_ext = Path(file_path).suffix.lower()
+        
+        if file_ext == '.csv':
+            media_type = "text/csv"
+            filename_suffix = ".csv"
+        elif file_ext == '.xlsx':
+            media_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            filename_suffix = ".xlsx"
+        elif file_ext == '.json':
+            media_type = "application/json"
+            filename_suffix = ".json"
+        elif file_ext == '.gz':
+            media_type = "application/gzip"
+            filename_suffix = ".gz"
+        else:
+            media_type = "application/octet-stream"
+            filename_suffix = ""
+        
+        # Generate secure filename
+        timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+        filename = f"fingood_transactions_export_{timestamp}{filename_suffix}"
+        
+        return FileResponse(
+            path=file_path,
+            filename=filename,
+            media_type=media_type,
+            headers={
+                "Content-Disposition": f"attachment; filename={filename}",
+                "Cache-Control": "no-cache, no-store, must-revalidate",
+                "Pragma": "no-cache",
+                "Expires": "0"
+            }
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        error_detail = create_secure_error_response(
+            exception=e,
+            error_code="EXPORT_DOWNLOAD_FAILED",
+            error_category=ErrorCategory.SYSTEM_ERROR,
+            correlation_id=str(uuid.uuid4()),
+            user_message="Failed to download export file. Please try again."
         )
         
         raise HTTPException(

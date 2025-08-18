@@ -182,13 +182,19 @@ class StructuredJSONFormatter(logging.Formatter):
         if self.include_trace and record.exc_info:
             log_entry['exception'] = self.formatException(record.exc_info)
         
-        # Add custom fields from extra
+        # Add custom fields from extra (with datetime serialization)
         for key, value in record.__dict__.items():
             if key not in {'name', 'msg', 'args', 'levelname', 'levelno', 'pathname',
                           'filename', 'module', 'exc_info', 'exc_text', 'stack_info',
                           'lineno', 'funcName', 'created', 'msecs', 'relativeCreated',
                           'thread', 'threadName', 'processName', 'process', 'getMessage'}:
-                log_entry[key] = value
+                # Handle datetime serialization
+                if isinstance(value, datetime):
+                    log_entry[key] = value.isoformat()
+                elif hasattr(value, '__dict__') and hasattr(value, 'isoformat'):
+                    log_entry[key] = value.isoformat()
+                else:
+                    log_entry[key] = value
         
         # Filter sensitive data if enabled
         if self.mask_sensitive:
