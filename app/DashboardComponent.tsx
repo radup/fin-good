@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
-import { Upload, BarChart3, DollarSign, TrendingUp, TrendingDown, FileText, Trash2, ChevronDown, ChevronRight, HelpCircle, Info, Lightbulb, Target, AlertCircle } from 'lucide-react'
+import { Upload, BarChart3, DollarSign, TrendingUp, TrendingDown, FileText, Trash2, ChevronDown, ChevronRight, HelpCircle, Info, Lightbulb, Target, AlertCircle, Heart } from 'lucide-react'
 import { TransactionTable } from '@/components/TransactionTable'
 import { DESIGN_TOKENS, getBadgeColorClasses } from '@/lib/design-system'
 import { TherapeuticUploadModal } from '@/components/TherapeuticUploadModal'
@@ -9,6 +9,7 @@ import { DashboardStats } from '@/components/DashboardStats'
 import { ImportBatchManager } from '@/components/ImportBatchManager'
 import { ErrorBoundary, ErrorFallback } from '@/components/ErrorBoundary'
 import DrSigmundSpendAvatar from '@/components/DrSigmundSpendAvatar'
+import EmotionalCheckIn from '@/components/EmotionalCheckIn'
 import { authAPI, transactionAPI, analyticsAPI } from '@/lib/api'
 
 // Progressive Disclosure Section Component
@@ -180,8 +181,13 @@ export default function DashboardComponent() {
     wellness: false,
     actions: false,
     transactions: true,
-    insights: false
+    insights: false,
+    emotional: false
   })
+
+  // Emotional check-in state
+  const [userMood, setUserMood] = useState<any>(null)
+  const [achievements, setAchievements] = useState<any[]>([])
 
   useEffect(() => {
     // Mark component as mounted
@@ -297,6 +303,51 @@ export default function DashboardComponent() {
     } finally {
       setIsCategorizing(false)
     }
+  }
+
+  const handleMoodSubmit = (moodData: any) => {
+    setUserMood(moodData)
+    // In a real app, this would be sent to the backend
+    console.log('Mood submitted:', moodData)
+  }
+
+  // Generate mock achievements based on user activity
+  const generateAchievements = () => {
+    const mockAchievements = []
+    
+    if (summary?.categorized_count && summary.categorized_count > 0) {
+      mockAchievements.push({
+        id: 'categorization',
+        type: 'categorization' as const,
+        title: 'Organized Finances',
+        description: `You've categorized ${summary.categorized_count} transactions!`,
+        timestamp: new Date(),
+        value: summary.categorized_count
+      })
+    }
+    
+    if (wellnessMetrics?.savingsRate && wellnessMetrics.savingsRate > 20) {
+      mockAchievements.push({
+        id: 'savings',
+        type: 'savings' as const,
+        title: 'Savings Champion',
+        description: `You're saving ${wellnessMetrics.savingsRate.toFixed(0)}% of your income!`,
+        timestamp: new Date(),
+        value: wellnessMetrics.savingsRate
+      })
+    }
+    
+    if (wellnessMetrics?.categorizationRate && wellnessMetrics.categorizationRate > 90) {
+      mockAchievements.push({
+        id: 'consistency',
+        type: 'consistency' as const,
+        title: 'Financial Organization Pro',
+        description: 'You keep your finances well organized!',
+        timestamp: new Date()
+      })
+    }
+    
+    return mockAchievements
   }
 
   const toggleSection = (section: keyof typeof expandedSections) => {
@@ -677,6 +728,26 @@ export default function DashboardComponent() {
               </div>
             </div>
           </div>
+        </ProgressiveSection>
+
+        {/* Emotional Check-in Section */}
+        <ProgressiveSection
+          title="Emotional Wellness"
+          description="Track your financial mood and get personalized support"
+          isExpanded={expandedSections.emotional}
+          onToggle={() => toggleSection('emotional')}
+          icon={<Heart className="w-5 h-5" />}
+          helpText="Your emotional relationship with money matters. Regular check-ins help us provide better support and celebrate your achievements."
+          badge={userMood ? "Checked In" : "Ready"}
+          badgeColor={userMood ? "success" : "info"}
+        >
+          <ErrorBoundary fallback={ErrorFallback}>
+            <EmotionalCheckIn
+              onMoodSubmit={handleMoodSubmit}
+              achievements={generateAchievements()}
+              showNudges={true}
+            />
+          </ErrorBoundary>
         </ProgressiveSection>
       </main>
 
