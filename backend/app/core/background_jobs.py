@@ -33,7 +33,7 @@ from dataclasses import dataclass, asdict
 from contextlib import asynccontextmanager
 
 import redis
-from rq import Queue, Worker, Connection, get_current_job
+from rq import Queue, Worker, get_current_job
 from rq.job import Job, JobStatus
 from rq.exceptions import InvalidJobOperation
 import pandas as pd
