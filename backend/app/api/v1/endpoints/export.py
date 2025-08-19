@@ -20,7 +20,8 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status, Backgrou
 from fastapi.responses import FileResponse, JSONResponse
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user, get_db
+from app.core.database import get_db
+from app.core.cookie_auth import get_current_user_from_cookie
 from app.core.audit_logger import security_audit_logger
 from app.core.background_jobs import JobPriority
 from app.core.config import settings
@@ -58,7 +59,7 @@ async def create_export_job(
     export_request: ExportRequest,
     background_tasks: BackgroundTasks,
     request: Request,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user_from_cookie),
     db: Session = Depends(get_db)
 ):
     """
@@ -143,7 +144,7 @@ async def create_export_job(
 @router.get("/progress/{job_id}", response_model=ExportProgress)
 async def get_export_progress(
     job_id: str,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user_from_cookie),
     db: Session = Depends(get_db)
 ):
     """
@@ -295,7 +296,7 @@ async def download_export_file(
 @router.get("/history", response_model=List[ExportHistoryEntry])
 async def get_export_history(
     limit: int = Query(default=50, ge=1, le=100, description="Maximum number of records to return"),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user_from_cookie),
     db: Session = Depends(get_db)
 ):
     """
@@ -339,7 +340,7 @@ async def get_export_history(
 @router.delete("/cancel/{job_id}")
 async def cancel_export_job(
     job_id: str,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user_from_cookie),
     db: Session = Depends(get_db)
 ):
     """
@@ -450,7 +451,7 @@ async def get_supported_formats():
 
 @router.get("/templates", response_model=List[Dict[str, str]])
 async def get_export_templates(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user_from_cookie),
     db: Session = Depends(get_db)
 ):
     """
@@ -497,7 +498,7 @@ async def get_export_templates(
 @router.post("/cleanup")
 async def cleanup_expired_exports(
     background_tasks: BackgroundTasks,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user_from_cookie),
     db: Session = Depends(get_db)
 ):
     """
@@ -553,7 +554,7 @@ async def cleanup_expired_exports(
 
 @router.get("/stats", response_model=Dict[str, int])
 async def get_export_stats(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user_from_cookie),
     db: Session = Depends(get_db)
 ):
     """
@@ -604,7 +605,7 @@ async def get_export_stats(
 # Admin endpoints (require appropriate permissions)
 @router.get("/admin/queue-stats", response_model=Dict[str, any])
 async def get_export_queue_stats(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user_from_cookie),
     db: Session = Depends(get_db)
 ):
     """

@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
 // Types for categorization performance
 export interface CategorizationPerformance {
@@ -309,29 +309,11 @@ export const transactionAPI = {
   getConfidence: (transactionId: number) =>
     api.get(`/api/v1/transactions/categorize/confidence/${transactionId}`),
 
-  // NEW: Submit user feedback with ML learning
-  submitFeedback: (transactionId: number, feedbackType: string, suggestedCategory?: string, suggestedSubcategory?: string, feedbackComment?: string) =>
-    api.post('/api/v1/transactions/categorize/feedback', {
-      transaction_id: transactionId,
-      feedback_type: feedbackType,
-      suggested_category: suggestedCategory,
-      suggested_subcategory: suggestedSubcategory,
-      feedback_comment: feedbackComment
-    }),
-
   // NEW: Category suggestions with rule-based and ML-based recommendations
   getSuggestions: (transactionId: number, includeMl?: boolean, includeRules?: boolean) =>
     api.get(`/api/v1/transactions/categorize/suggestions/${transactionId}`, {
       params: { include_ml: includeMl, include_rules: includeRules }
     }),
-
-  // NEW: Auto-improvement with configurable limits
-  autoImprove: (params?: { 
-    batch_id?: string, 
-    min_confidence_threshold?: number, 
-    max_transactions?: number 
-  }) =>
-    api.post('/api/v1/transactions/categorize/auto-improve', params),
 
   // NEW: Categorization performance metrics
   getPerformance: (params?: { start_date?: string, end_date?: string }) =>
@@ -382,4 +364,37 @@ export const categoryAPI = {
     subcategory?: string
     priority?: number
   }) => api.post('/api/v1/categories/rules', data),
+}
+
+// Export endpoints
+export const exportAPI = {
+  // Create export job
+  createJob: (data: {
+    export_format: 'csv' | 'excel' | 'pdf' | 'json'
+    export_name?: string
+    filters?: any
+    columns_config?: any
+    options_config?: any
+  }) => api.post('/api/v1/export/create', data),
+  
+  // Get export progress
+  getProgress: (jobId: string) => api.get(`/api/v1/export/progress/${jobId}`),
+  
+  // Download export file
+  download: (downloadToken: string) => api.get(`/api/v1/export/download/${downloadToken}`),
+  
+  // Get export history
+  getHistory: (limit?: number) => api.get('/api/v1/export/history', { params: { limit } }),
+  
+  // Cancel export job
+  cancelJob: (jobId: string) => api.delete(`/api/v1/export/cancel/${jobId}`),
+  
+  // Get export templates
+  getTemplates: () => api.get('/api/v1/export/templates'),
+  
+  // Get export statistics
+  getStats: () => api.get('/api/v1/export/stats'),
+  
+  // Cleanup expired exports
+  cleanup: () => api.post('/api/v1/export/cleanup'),
 }
