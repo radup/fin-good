@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { Upload, BarChart3, DollarSign, TrendingUp, TrendingDown, FileText, Trash2, ChevronDown, ChevronRight, HelpCircle, Info, Lightbulb, Target, AlertCircle, Heart, Brain } from 'lucide-react'
 import { TransactionTable } from '@/components/TransactionTable'
 import { DESIGN_TOKENS, getBadgeColorClasses } from '@/lib/design-system'
@@ -472,33 +472,17 @@ export default function DashboardComponent() {
     )
   }
 
-  // Show login page if not authenticated
+  // Redirect to login if not authenticated
   if (!isAuthenticated) {
+    // Use useEffect to redirect to avoid hydration issues
+    React.useEffect(() => {
+      window.location.href = '/login'
+    }, [])
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
-        <div className="text-center max-w-md mx-auto p-8">
-          <DrSigmundSpendAvatar 
-            size="xl" 
-            mood="encouraging"
-            message="Welcome to FinGood! I'm here to help you understand your finances better."
-            className="mb-6"
-          />
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">Welcome to FinGood</h1>
-          <p className="text-gray-600 mb-8">Your AI-powered financial companion is ready to help you achieve financial wellness</p>
-          <div className="space-y-4">
-            <a 
-              href="/login" 
-              className="btn-primary block w-full"
-            >
-              Login
-            </a>
-            <button 
-              onClick={handleDemoLogin}
-              className="btn-secondary block w-full"
-            >
-              Try Demo (demo@fingood.com)
-            </button>
-          </div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 therapeutic-transition">Redirecting to login...</p>
         </div>
       </div>
     )
