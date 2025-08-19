@@ -7,10 +7,10 @@ import { ComboBox } from './ComboBox'
 import { TransactionFilters } from './TransactionFilters'
 import { Pagination } from './Pagination'
 import { useCategoryOptions } from '@/hooks/useCategories'
-import { transactionAPI } from '@/lib/api'
+import { transactionAPI, bulkOperationsAPI } from '@/lib/api'
 import { useQueryClient } from '@tanstack/react-query'
 import AIConfidenceDisplay from './AIConfidenceDisplay'
-import type { BulkCategorizationResponse } from '@/types/api'
+import type { BulkOperationResponse } from '@/types/api'
 
 interface Transaction {
 	id: number
@@ -276,19 +276,20 @@ export function TransactionTable({ transactions: initialTransactions, isLoading,
 		setIsApplyingBulk(true)
 		
 		try {
-			// Use new bulk categorization API
-			const response = await transactionAPI.bulkCategorize(
+			// Use new bulk operations API
+			const response = await bulkOperationsAPI.categorize(
 				Array.from(selectedIds),
-				true // use ML fallback
+				bulkCategory || 'Uncategorized',
+				bulkSubcategory
 			)
 			
 			const result = response.data
 			
 			// Display detailed results from new API
 			setBulkMessage(
-				`Bulk categorization completed: ${result.rule_categorized + result.ml_categorized} of ${result.total_transactions} transactions categorized. ` +
-				`Rules: ${result.rule_categorized}, ML: ${result.ml_categorized}, Failed: ${result.failed_categorizations}. ` +
-				`Processing time: ${result.processing_time.toFixed(2)}s`
+				`Bulk categorization completed: ${result.successful_operations} of ${result.total_transactions} transactions categorized. ` +
+				`Failed: ${result.failed_operations}. Processing time: ${result.processing_time.toFixed(2)}s. ` +
+				`${result.undo_available ? 'Undo available.' : ''}`
 			)
 			
 			// Clear selection and refresh data
@@ -317,23 +318,45 @@ export function TransactionTable({ transactions: initialTransactions, isLoading,
 	}
 
 	const undoLastBulk = async () => {
-		if (!lastBulkAction) return
 		setIsApplyingBulk(true)
-		let successCount = 0
-		let failureCount = 0
-		for (const change of lastBulkAction.changes) {
-			try {
-				await transactionAPI.updateCategory(change.id, change.prevCategory || '', change.prevSubcategory || undefined)
-				successCount += 1
-			} catch (e) {
-				console.error('Undo failed for id', change.id, e)
-				failureCount += 1
-			}
+		try {
+			const response = await bulkOperationsAPI.undo()
+			const result = response.data
+			
+			setBulkMessage(
+				`Undo completed: ${result.successful_operations} of ${result.total_transactions} operations undone. ` +
+				`Failed: ${result.failed_operations}. Processing time: ${result.processing_time.toFixed(2)}s. ` +
+				`${result.redo_available ? 'Redo available.' : ''}`
+			)
+			
+			fetchTransactions()
+		} catch (error: any) {
+			console.error('Undo failed:', error)
+			setBulkMessage('Undo failed. Please try again.')
+		} finally {
+			setIsApplyingBulk(false)
 		}
-		setBulkMessage(`Undo complete: restored ${successCount} transaction(s).${failureCount ? ` ${failureCount} failed.` : ''}`)
-		setIsApplyingBulk(false)
-		setLastBulkAction(null)
-		fetchTransactions()
+	}
+
+	const redoLastBulk = async () => {
+		setIsApplyingBulk(true)
+		try {
+			const response = await bulkOperationsAPI.redo()
+			const result = response.data
+			
+			setBulkMessage(
+				`Redo completed: ${result.successful_operations} of ${result.total_transactions} operations redone. ` +
+				`Failed: ${result.failed_operations}. Processing time: ${result.processing_time.toFixed(2)}s. ` +
+				`${result.undo_available ? 'Undo available.' : ''}`
+			)
+			
+			fetchTransactions()
+		} catch (error: any) {
+			console.error('Redo failed:', error)
+			setBulkMessage('Redo failed. Please try again.')
+		} finally {
+			setIsApplyingBulk(false)
+		}
 	}
 
 	// Get available subcategories based on selected category
@@ -389,13 +412,76 @@ export function TransactionTable({ transactions: initialTransactions, isLoading,
 				</div>
 
 				<div className="flex items-center gap-2">
+					{/* Bulk Categorization */}
+					<div className="flex items-center gap-2">
+						<ComboBox
+							options={allCategories}
+							value={bulkCategory}
+							onChange={setBulkCategory}
+							placeholder="Select category"
+							className="w-32"
+						/>
+						<ComboBox
+							options={getSubcategories(bulkCategory)}
+							value={bulkSubcategory}
+							onChange={setBulkSubcategory}
+							placeholder="Select subcategory"
+							className="w-32"
+						/>
+						<button
+							onClick={applyBulkCategorization}
+							disabled={isApplyingBulk || selectedIds.size === 0 || !bulkCategory}
+							className="btn-primary disabled:opacity-50"
+						>
+							{isApplyingBulk ? 'Categorizing...' : `Categorize ${selectedIds.size} selected`}
+						</button>
+					</div>
+
+					{/* Bulk Delete */}
 					<button
-						onClick={applyBulkCategorization}
+						onClick={async () => {
+							if (confirm(`Are you sure you want to delete ${selectedIds.size} selected transactions?`)) {
+								setIsApplyingBulk(true)
+								try {
+									const response = await bulkOperationsAPI.delete(Array.from(selectedIds))
+									const result = response.data
+									setBulkMessage(
+										`Bulk delete completed: ${result.successful_operations} of ${result.total_transactions} transactions deleted. ` +
+										`Failed: ${result.failed_operations}. Processing time: ${result.processing_time.toFixed(2)}s. ` +
+										`${result.undo_available ? 'Undo available.' : ''}`
+									)
+									setSelectedIds(new Set())
+									fetchTransactions()
+								} catch (error: any) {
+									console.error('Bulk delete failed:', error)
+									setBulkMessage('Bulk delete failed. Please try again.')
+								} finally {
+									setIsApplyingBulk(false)
+								}
+							}
+						}}
 						disabled={isApplyingBulk || selectedIds.size === 0}
-						className="btn-primary disabled:opacity-50"
+						className="btn-danger disabled:opacity-50"
 					>
-						{isApplyingBulk ? 'Categorizing...' : `Categorize ${selectedIds.size} selected`}
+						{isApplyingBulk ? 'Deleting...' : `Delete ${selectedIds.size} selected`}
 					</button>
+
+					{/* Undo/Redo */}
+					<button
+						onClick={undoLastBulk}
+						disabled={isApplyingBulk}
+						className="btn-secondary disabled:opacity-50"
+					>
+						Undo
+					</button>
+					<button
+						onClick={redoLastBulk}
+						disabled={isApplyingBulk}
+						className="btn-secondary disabled:opacity-50"
+					>
+						Redo
+					</button>
+
 					{selectedIds.size > 1000 && (
 						<span className="text-sm text-orange-600">
 							⚠️ Max 1000 transactions
