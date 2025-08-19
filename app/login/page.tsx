@@ -28,7 +28,8 @@ export default function LoginPage() {
       // Authentication is now handled by secure HttpOnly cookies
       // No need to store tokens in localStorage
       
-      router.push('/')
+      // Redirect to dashboard after successful login
+      router.push('/dashboard')
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Login failed')
     } finally {

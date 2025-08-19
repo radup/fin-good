@@ -266,9 +266,8 @@ export default function DashboardComponent() {
       const response = await authAPI.me()
       setIsAuthenticated(true)
     } catch (error: any) {
-      // Redirecting to login
+      // Just set as not authenticated, don't redirect
       setIsAuthenticated(false)
-      window.location.href = '/login'
     }
   }
 
@@ -290,7 +289,6 @@ export default function DashboardComponent() {
       console.error('Error fetching transactions:', error)
       if (error.response?.status === 401) {
         setIsAuthenticated(false)
-        window.location.href = '/login'
       }
     } finally {
       setIsLoadingTransactions(false)
@@ -307,7 +305,6 @@ export default function DashboardComponent() {
       console.error('Error fetching summary:', error)
       if (error.response?.status === 401) {
         setIsAuthenticated(false)
-        window.location.href = '/login'
       }
     } finally {
       setIsLoadingSummary(false)
