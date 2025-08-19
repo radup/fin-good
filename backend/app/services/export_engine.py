@@ -628,7 +628,7 @@ class EnhancedExportEngine:
         return cleaned_count
 
 
-def process_export_job(job_data: Dict[str, Any]) -> JobResult:
+async def process_export_job(job_data: Dict[str, Any]) -> JobResult:
     """Background worker function for processing export jobs."""
     start_time = datetime.utcnow()
     job_id = job_data['job_id']
