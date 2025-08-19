@@ -102,21 +102,15 @@ export function ForecastingDashboard({ className = '' }: ForecastingDashboardPro
   })
 
   const handleGenerateForecast = () => {
-    setIsGenerating(true)
-    const request: ForecastRequest = {
-      forecast_type: selectedForecastType as any,
-      horizon: selectedHorizon as any,
-      custom_days: selectedHorizon === 'custom' ? customDays : undefined,
-      category_filter: categoryFilter || undefined,
-      confidence_level: confidenceLevel,
-    }
-    generateForecastMutation.mutate(request)
+    // Disabled until backend is ready
+    console.log('Forecast generation disabled - backend not implemented yet')
+    return
   }
 
   const handleRefresh = () => {
-    queryClient.invalidateQueries({ queryKey: ['forecast-accuracy'] })
-    queryClient.invalidateQueries({ queryKey: ['forecast-types'] })
-    queryClient.invalidateQueries({ queryKey: ['forecast-horizons'] })
+    // Disabled until backend is ready
+    console.log('Refresh disabled - backend not implemented yet')
+    return
   }
 
   if (typesLoading || horizonsLoading) {
@@ -131,8 +125,9 @@ export function ForecastingDashboard({ className = '' }: ForecastingDashboardPro
     )
   }
 
-  // Show backend not ready message
-  if (typesError || horizonsError || accuracyError) {
+  // Show backend not ready message - since queries are disabled, backend is not ready
+  const backendNotReady = true // TODO: Change to false when backend Task B4.1 is implemented
+  if (backendNotReady) {
     return (
       <div className={`space-y-6 ${className}`}>
         <div className="flex items-center justify-between">
