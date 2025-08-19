@@ -42,24 +42,30 @@ export function ForecastingDashboard({ className = '' }: ForecastingDashboardPro
   const queryClient = useQueryClient()
 
   // Fetch available forecast types
-  const { data: forecastTypes, isLoading: typesLoading } = useQuery({
+  const { data: forecastTypes, isLoading: typesLoading, error: typesError } = useQuery({
     queryKey: ['forecast-types'],
     queryFn: () => forecastingAPI.getForecastTypes(),
     staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 1,
+    retryDelay: 1000,
   })
 
   // Fetch available horizons
-  const { data: horizons, isLoading: horizonsLoading } = useQuery({
+  const { data: horizons, isLoading: horizonsLoading, error: horizonsError } = useQuery({
     queryKey: ['forecast-horizons'],
     queryFn: () => forecastingAPI.getHorizons(),
     staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 1,
+    retryDelay: 1000,
   })
 
   // Fetch accuracy history
-  const { data: accuracyHistory, isLoading: accuracyLoading } = useQuery({
+  const { data: accuracyHistory, isLoading: accuracyLoading, error: accuracyError } = useQuery({
     queryKey: ['forecast-accuracy'],
     queryFn: () => forecastingAPI.getAccuracyHistory({ days: 30 }),
     staleTime: 10 * 60 * 1000, // 10 minutes
+    retry: 1,
+    retryDelay: 1000,
   })
 
   // Generate forecast mutation
@@ -172,7 +178,13 @@ export function ForecastingDashboard({ className = '' }: ForecastingDashboardPro
                 <option key={type.value} value={type.value}>
                   {type.label}
                 </option>
-              ))}
+              )) || (
+                <>
+                  <option value="cash_flow">Cash Flow Forecasting</option>
+                  <option value="spending">Spending Forecasting</option>
+                  <option value="revenue">Revenue Forecasting</option>
+                </>
+              )}
             </select>
           </div>
 
@@ -191,7 +203,15 @@ export function ForecastingDashboard({ className = '' }: ForecastingDashboardPro
                 <option key={horizon.value} value={horizon.value}>
                   {horizon.label}
                 </option>
-              ))}
+              )) || (
+                <>
+                  <option value="7_days">7 Days</option>
+                  <option value="30_days">30 Days</option>
+                  <option value="60_days">60 Days</option>
+                  <option value="90_days">90 Days</option>
+                  <option value="custom">Custom</option>
+                </>
+              )}
             </select>
           </div>
 

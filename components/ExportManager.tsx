@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Download, FileText, FileSpreadsheet, FilePdf, FileJson, Clock, CheckCircle, XCircle, AlertCircle, RefreshCw } from 'lucide-react'
+import { Download, FileText, FileSpreadsheet, FileJson, Clock, CheckCircle, XCircle, AlertCircle, RefreshCw } from 'lucide-react'
 import { exportAPI } from '@/lib/api'
 import { ErrorBoundary } from './ErrorBoundary'
 
@@ -166,7 +166,7 @@ export function ExportManager() {
     switch (format) {
       case 'csv': return <FileText className="w-4 h-4" />
       case 'excel': return <FileSpreadsheet className="w-4 h-4" />
-      case 'pdf': return <FilePdf className="w-4 h-4" />
+              case 'pdf': return <FileText className="w-4 h-4" />
       case 'json': return <FileJson className="w-4 h-4" />
       default: return <FileText className="w-4 h-4" />
     }

@@ -23,7 +23,19 @@ import {
   BatchForecastResponse,
   ForecastTypeInfo,
   ForecastHorizonInfo,
-  ForecastingHealth
+  ForecastingHealth,
+  Budget,
+  BudgetListResponse,
+  BudgetDetailResponse,
+  BudgetVarianceResponse,
+  BudgetRecommendationsResponse,
+  BudgetScenariosResponse,
+  BudgetScenario,
+  BudgetAlertsResponse,
+  BudgetAlert,
+  BudgetPerformanceResponse,
+  BudgetAnalysisSummary,
+  BudgetAnalysisHealth
 } from '@/types/api'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
@@ -700,4 +712,108 @@ export const forecastingAPI = {
 
   // Get forecasting health status
   getHealth: () => api.get<ForecastingHealth>('/api/v1/forecasting/health'),
+}
+
+// Budget Analysis API
+export const budgetAnalysisAPI = {
+  // Get budget list
+  getBudgets: (params?: {
+    page?: number
+    page_size?: number
+    status?: string
+  }) => api.get<BudgetListResponse>('/api/v1/budgets', { params }),
+
+  // Get budget details
+  getBudget: (budgetId: string) => 
+    api.get<BudgetDetailResponse>(`/api/v1/budgets/${budgetId}`),
+
+  // Create budget
+  createBudget: (data: {
+    name: string
+    description: string
+    period_type: 'monthly' | 'quarterly' | 'yearly' | 'custom'
+    start_date: string
+    end_date: string
+    total_budget: number
+    currency: string
+  }) => api.post<Budget>('/api/v1/budgets', data),
+
+  // Update budget
+  updateBudget: (budgetId: string, data: Partial<Budget>) =>
+    api.put<Budget>(`/api/v1/budgets/${budgetId}`, data),
+
+  // Delete budget
+  deleteBudget: (budgetId: string) =>
+    api.delete(`/api/v1/budgets/${budgetId}`),
+
+  // Get budget variance analysis
+  getVarianceAnalysis: (budgetId: string, params?: {
+    period_start?: string
+    period_end?: string
+  }) => api.get<BudgetVarianceResponse>(`/api/v1/budgets/${budgetId}/variance`, { params }),
+
+  // Get budget recommendations
+  getRecommendations: (budgetId: string, params?: {
+    limit?: number
+    applied?: boolean
+  }) => api.get<BudgetRecommendationsResponse>(`/api/v1/budgets/${budgetId}/recommendations`, { params }),
+
+  // Apply recommendation
+  applyRecommendation: (budgetId: string, recommendationId: string) =>
+    api.post(`/api/v1/budgets/${budgetId}/recommendations/${recommendationId}/apply`),
+
+  // Get budget scenarios
+  getScenarios: (budgetId: string, params?: {
+    scenario_type?: string
+    limit?: number
+  }) => api.get<BudgetScenariosResponse>(`/api/v1/budgets/${budgetId}/scenarios`, { params }),
+
+  // Create budget scenario
+  createScenario: (budgetId: string, data: {
+    name: string
+    description: string
+    scenario_type: 'what_if' | 'optimization' | 'forecast' | 'stress_test'
+    adjustments: Array<{
+      category: string
+      subcategory?: string
+      adjustment_type: 'increase' | 'decrease' | 'reallocate'
+      amount: number
+      percentage: number
+      reasoning: string
+    }>
+  }) => api.post<BudgetScenario>(`/api/v1/budgets/${budgetId}/scenarios`, data),
+
+  // Get budget alerts
+  getAlerts: (budgetId: string, params?: {
+    acknowledged?: boolean
+    severity?: string
+    limit?: number
+  }) => api.get<BudgetAlertsResponse>(`/api/v1/budgets/${budgetId}/alerts`, { params }),
+
+  // Acknowledge alert
+  acknowledgeAlert: (budgetId: string, alertId: string) =>
+    api.post(`/api/v1/budgets/${budgetId}/alerts/${alertId}/acknowledge`),
+
+  // Create budget alert
+  createAlert: (budgetId: string, data: {
+    alert_type: 'variance_threshold' | 'category_overrun' | 'trend_warning' | 'forecast_alert'
+    threshold_type: 'percentage' | 'absolute_amount'
+    threshold_value: number
+    condition: 'greater_than' | 'less_than' | 'equals'
+    category?: string
+    subcategory?: string
+    notification_channels: ('email' | 'push' | 'in_app')[]
+  }) => api.post<BudgetAlert>(`/api/v1/budgets/${budgetId}/alerts`, data),
+
+  // Get budget performance metrics
+  getPerformance: (budgetId: string, params?: {
+    period_start?: string
+    period_end?: string
+  }) => api.get<BudgetPerformanceResponse>(`/api/v1/budgets/${budgetId}/performance`, { params }),
+
+  // Get budget analysis summary
+  getSummary: () => api.get<BudgetAnalysisSummary>('/api/v1/budgets/summary'),
+
+  // Get budget analysis health
+  getHealth: () => api.get<BudgetAnalysisHealth>('/api/v1/budgets/health'),
 }

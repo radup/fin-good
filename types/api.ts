@@ -624,3 +624,301 @@ export interface ApiErrorResponse {
   error_code?: string
   timestamp?: string
 }
+
+// ============================================================================
+// BUDGET ANALYSIS SYSTEM TYPES (Task F2.6 - Frontend Integration)
+// ============================================================================
+
+// Budget Definition
+export interface Budget {
+  budget_id: string
+  name: string
+  description: string
+  period_type: 'monthly' | 'quarterly' | 'yearly' | 'custom'
+  start_date: string
+  end_date: string
+  total_budget: number
+  currency: string
+  status: 'active' | 'draft' | 'archived'
+  created_at: string
+  updated_at: string
+  created_by: string
+}
+
+// Budget Category Allocation
+export interface BudgetCategory {
+  budget_id: string
+  category: string
+  subcategory?: string
+  allocated_amount: number
+  actual_amount: number
+  variance_amount: number
+  variance_percentage: number
+  status: 'under_budget' | 'on_budget' | 'over_budget' | 'critical'
+  last_updated: string
+}
+
+// Budget vs Actual Analysis
+export interface BudgetVarianceAnalysis {
+  budget_id: string
+  period_start: string
+  period_end: string
+  total_budget: number
+  total_actual: number
+  total_variance: number
+  variance_percentage: number
+  overall_status: 'under_budget' | 'on_budget' | 'over_budget' | 'critical'
+  category_breakdown: BudgetCategory[]
+  statistical_significance: {
+    is_significant: boolean
+    confidence_level: number
+    p_value: number
+    effect_size: number
+  }
+  trend_analysis: {
+    trend_direction: 'improving' | 'stable' | 'worsening'
+    trend_strength: number
+    trend_confidence: number
+  }
+}
+
+// Budget Alert Configuration
+export interface BudgetAlert {
+  alert_id: string
+  budget_id: string
+  alert_type: 'variance_threshold' | 'category_overrun' | 'trend_warning' | 'forecast_alert'
+  threshold_type: 'percentage' | 'absolute_amount'
+  threshold_value: number
+  condition: 'greater_than' | 'less_than' | 'equals'
+  category?: string
+  subcategory?: string
+  enabled: boolean
+  notification_channels: ('email' | 'push' | 'in_app')[]
+  created_at: string
+  last_triggered?: string
+}
+
+// Budget Alert Trigger
+export interface BudgetAlertTrigger {
+  alert_id: string
+  budget_id: string
+  trigger_type: string
+  trigger_value: number
+  threshold_value: number
+  variance_amount: number
+  variance_percentage: number
+  category?: string
+  subcategory?: string
+  severity: 'low' | 'medium' | 'high' | 'critical'
+  triggered_at: string
+  acknowledged: boolean
+  acknowledged_at?: string
+  acknowledged_by?: string
+}
+
+// Budget Recommendation
+export interface BudgetRecommendation {
+  recommendation_id: string
+  budget_id: string
+  recommendation_type: 'category_adjustment' | 'period_extension' | 'spending_reduction' | 'reallocation' | 'forecast_adjustment'
+  category?: string
+  subcategory?: string
+  current_amount: number
+  recommended_amount: number
+  adjustment_amount: number
+  confidence_score: number
+  reasoning: string
+  impact_analysis: {
+    short_term_impact: string
+    long_term_impact: string
+    risk_level: 'low' | 'medium' | 'high'
+  }
+  ml_insights: {
+    pattern_detected: string
+    historical_comparison: string
+    seasonal_factor?: number
+  }
+  created_at: string
+  applied: boolean
+  applied_at?: string
+}
+
+// Budget Scenario Planning
+export interface BudgetScenario {
+  scenario_id: string
+  budget_id: string
+  name: string
+  description: string
+  scenario_type: 'what_if' | 'optimization' | 'forecast' | 'stress_test'
+  base_budget: number
+  scenario_budget: number
+  adjustments: Array<{
+    category: string
+    subcategory?: string
+    adjustment_type: 'increase' | 'decrease' | 'reallocate'
+    amount: number
+    percentage: number
+    reasoning: string
+  }>
+  projected_variance: number
+  projected_variance_percentage: number
+  confidence_level: number
+  risk_assessment: {
+    risk_level: 'low' | 'medium' | 'high'
+    risk_factors: string[]
+    mitigation_strategies: string[]
+  }
+  created_at: string
+  created_by: string
+}
+
+// Budget Performance Metrics
+export interface BudgetPerformanceMetrics {
+  budget_id: string
+  period_start: string
+  period_end: string
+  accuracy_score: number
+  adherence_rate: number
+  forecast_accuracy: number
+  variance_trend: {
+    direction: 'improving' | 'stable' | 'worsening'
+    magnitude: number
+    consistency: number
+  }
+  category_performance: Array<{
+    category: string
+    subcategory?: string
+    accuracy_score: number
+    adherence_rate: number
+    variance_trend: number
+    recommendation_count: number
+    alert_count: number
+  }>
+  historical_comparison: {
+    previous_period_accuracy: number
+    improvement_rate: number
+    best_performance_date: string
+    worst_performance_date: string
+  }
+  ml_model_performance: {
+    prediction_accuracy: number
+    confidence_improvement: number
+    model_learning_rate: number
+  }
+}
+
+// Budget Analysis Summary
+export interface BudgetAnalysisSummary {
+  total_budgets: number
+  active_budgets: number
+  average_variance: number
+  critical_alerts: number
+  pending_recommendations: number
+  overall_performance: {
+    accuracy_score: number
+    adherence_rate: number
+    forecast_accuracy: number
+  }
+  top_performing_categories: Array<{
+    category: string
+    accuracy_score: number
+    adherence_rate: number
+  }>
+  areas_needing_attention: Array<{
+    category: string
+    variance_percentage: number
+    alert_count: number
+    recommendation_count: number
+  }>
+  recent_trends: {
+    variance_trend: 'improving' | 'stable' | 'worsening'
+    alert_frequency: 'increasing' | 'stable' | 'decreasing'
+    recommendation_effectiveness: number
+  }
+}
+
+// Budget Analysis API Responses
+export interface BudgetListResponse {
+  budgets: Budget[]
+  total_count: number
+  page: number
+  page_size: number
+}
+
+export interface BudgetDetailResponse {
+  budget: Budget
+  variance_analysis: BudgetVarianceAnalysis
+  performance_metrics: BudgetPerformanceMetrics
+  active_alerts: BudgetAlertTrigger[]
+  recent_recommendations: BudgetRecommendation[]
+  scenarios: BudgetScenario[]
+}
+
+export interface BudgetVarianceResponse {
+  variance_analysis: BudgetVarianceAnalysis
+  category_details: BudgetCategory[]
+  alerts: BudgetAlertTrigger[]
+  recommendations: BudgetRecommendation[]
+}
+
+export interface BudgetRecommendationsResponse {
+  recommendations: BudgetRecommendation[]
+  total_count: number
+  applied_count: number
+  pending_count: number
+  average_confidence: number
+}
+
+export interface BudgetScenariosResponse {
+  scenarios: BudgetScenario[]
+  total_count: number
+  active_count: number
+  average_confidence: number
+}
+
+export interface BudgetAlertsResponse {
+  alerts: BudgetAlertTrigger[]
+  total_count: number
+  acknowledged_count: number
+  pending_count: number
+  critical_count: number
+}
+
+export interface BudgetPerformanceResponse {
+  performance_metrics: BudgetPerformanceMetrics
+  historical_data: Array<{
+    period_start: string
+    period_end: string
+    accuracy_score: number
+    adherence_rate: number
+    variance_percentage: number
+  }>
+  trend_analysis: {
+    accuracy_trend: 'improving' | 'stable' | 'worsening'
+    adherence_trend: 'improving' | 'stable' | 'worsening'
+    variance_trend: 'improving' | 'stable' | 'worsening'
+  }
+}
+
+// Budget Analysis Health Check
+export interface BudgetAnalysisHealth {
+  status: 'healthy' | 'degraded' | 'unhealthy'
+  system_components: {
+    variance_calculator: 'ready' | 'processing' | 'error'
+    recommendation_engine: 'ready' | 'processing' | 'error'
+    alert_system: 'ready' | 'processing' | 'error'
+    ml_models: 'ready' | 'training' | 'error'
+  }
+  performance_metrics: {
+    average_response_time: number
+    success_rate: number
+    error_rate: number
+    active_budgets: number
+    pending_alerts: number
+  }
+  system_resources: {
+    memory_usage: number
+    cpu_usage: number
+    active_analyses: number
+  }
+}
