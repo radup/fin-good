@@ -45,7 +45,8 @@ This is a **financial application** with enterprise-grade security:
 
 ### Development Setup (Recommended)
 ```bash
-./dev-setup.sh   # Backend in Docker, frontend local with hot reload
+./dev-setup.sh   # Database in Docker, backend/frontend local with hot reload
+./dev-start.sh   # Start both frontend and backend development servers
 ```
 
 ### Development Scripts
@@ -69,14 +70,16 @@ npm run test:e2e     # Run Playwright E2E tests
 ### Backend Commands
 ```bash
 cd backend
-python main.py       # Start FastAPI server (port 8000)
+python main.py       # Start FastAPI server (port 8001 by default, 8000 fallback)
 python scripts/setup_db.py  # Initialize database with sample data
 
 # Testing (comprehensive test suite available)
-pytest                    # Run all tests
+COMPLIANCE_SECRET_KEY="test-compliance-secret-key-at-least-32-chars-long" pytest  # Run all tests
 pytest -m unit           # Run unit tests only
 pytest -m integration    # Run integration tests
 pytest -m security       # Run security tests
+pytest -m financial     # Run financial data validation tests
+pytest -m compliance    # Run regulatory compliance tests
 pytest tests/unit/api/   # Run specific test directory
 pytest -k "test_auth"    # Run specific test pattern
 pytest --cov            # Run with coverage report
@@ -111,9 +114,9 @@ REDIS_URL=redis://:password@host:port/db  # Note: colon before password for Redi
 
 ## Service URLs
 - **Frontend**: http://localhost:3000
-- **Backend API**: http://localhost:8000
-- **API Documentation**: http://localhost:8000/docs
-- **Health Check**: http://localhost:8000/health
+- **Backend API**: http://localhost:8001 (or 8000)
+- **API Documentation**: http://localhost:8001/docs
+- **Health Check**: http://localhost:8001/health
 
 ## Demo Account
 - Email: `demo@fingood.com`
@@ -160,10 +163,11 @@ REDIS_URL=redis://:password@host:port/db  # Note: colon before password for Redi
 - `financial`: Financial data validation
 - `compliance`: Regulatory compliance tests
 
-### Frontend Testing (TODO)
-- Currently missing - should add React component tests
-- Jest and Testing Library configured in package.json
-- Playwright E2E tests configured
+### Frontend Testing
+- **Jest unit tests**: `npm test`, `npm run test:watch`, `npm run test:coverage`
+- **E2E tests**: `npm run test:e2e` (Playwright configured)
+- **Test utilities**: Jest, Testing Library, Faker.js for test data
+- **Accessibility testing**: jest-axe configured for a11y testing
 
 ## File Upload Processing
 - Supports CSV, XLSX, XLS formats
@@ -171,6 +175,26 @@ REDIS_URL=redis://:password@host:port/db  # Note: colon before password for Redi
 - Upload limit: 10MB with security scanning
 - Processing pipeline: validation → parsing → categorization → storage
 - Real-time progress via WebSocket updates
+
+## Advanced Features
+
+### Background Job System (RQ)
+- **Job processing**: Redis Queue (RQ) for async transaction processing
+- **Job types**: File processing, categorization, export generation
+- **Monitoring**: Job status tracking, retry logic, failure handling
+- **Configuration**: `backend/app/core/background_jobs.py`
+
+### Performance & Monitoring
+- **Performance monitoring**: System resource tracking, request timing
+- **Audit logging**: Financial-grade transaction audit trails
+- **Compliance logging**: Regulatory compliance event tracking
+- **Error monitoring**: Structured error reporting with sanitization
+- **Rate limiting**: Redis-backed per-user request limits
+
+### WebSocket Integration
+- **Real-time updates**: Upload progress, categorization status
+- **Connection management**: User authentication, batch tracking
+- **Event streaming**: Transaction processing progress
 
 ## Security Considerations
 - All middleware disabled in main.py for development - **re-enable for production**

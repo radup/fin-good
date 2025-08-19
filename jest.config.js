@@ -7,25 +7,30 @@ const createJestConfig = nextJest({
 
 // Add any custom config to be passed to Jest
 const customJestConfig = {
-  setupFilesAfterEnv: [],
+  setupFilesAfterEnv: ['<rootDir>/__tests__/setup.ts'],
   testEnvironment: 'jest-environment-jsdom',
   
   // Test patterns
   testMatch: [
-    '<rootDir>/src/**/__tests__/**/*.{js,jsx,ts,tsx}',
-    '<rootDir>/src/**/*.{test,spec}.{js,jsx,ts,tsx}',
-    '<rootDir>/tests/**/*.{test,spec}.{js,jsx,ts,tsx}'
+    '<rootDir>/__tests__/**/*.{test,spec}.{js,jsx,ts,tsx}',
+    '<rootDir>/components/**/*.{test,spec}.{js,jsx,ts,tsx}',
+    '<rootDir>/hooks/**/*.{test,spec}.{js,jsx,ts,tsx}',
+    '<rootDir>/lib/**/*.{test,spec}.{js,jsx,ts,tsx}',
+    '<rootDir>/app/**/*.{test,spec}.{js,jsx,ts,tsx}'
   ],
   
   // Coverage configuration
   collectCoverageFrom: [
-    'src/**/*.{js,jsx,ts,tsx}',
-    '!src/**/*.d.ts',
-    '!src/test-utils/**/*',
-    '!src/**/*.stories.{js,jsx,ts,tsx}',
-    '!src/**/index.{js,jsx,ts,tsx}',
-    '!src/pages/_app.tsx',
-    '!src/pages/_document.tsx'
+    'components/**/*.{js,jsx,ts,tsx}',
+    'hooks/**/*.{js,jsx,ts,tsx}',
+    'lib/**/*.{js,jsx,ts,tsx}',
+    'app/**/*.{js,jsx,ts,tsx}',
+    '!**/*.d.ts',
+    '!**/test-utils/**/*',
+    '!**/*.stories.{js,jsx,ts,tsx}',
+    '!**/index.{js,jsx,ts,tsx}',
+    '!app/layout.tsx',
+    '!app/page.tsx'
   ],
   coverageReporters: ['text', 'lcov', 'html'],
   coverageDirectory: 'coverage',
@@ -40,7 +45,7 @@ const customJestConfig = {
   
   // Module name mapping for absolute imports and assets
   moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/src/$1',
+    '^@/(.*)$': '<rootDir>/$1',
     '^@/components/(.*)$': '<rootDir>/components/$1',
     '^@/hooks/(.*)$': '<rootDir>/hooks/$1',
     '^@/lib/(.*)$': '<rootDir>/lib/$1',
