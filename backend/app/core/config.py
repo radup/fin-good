@@ -144,6 +144,21 @@ class Settings(BaseSettings):
     WEBSOCKET_MESSAGE_RATE_LIMIT: int = 10  # messages per second
     WEBSOCKET_MAX_MESSAGE_SIZE: int = 1024  # bytes
     
+    # Background Job Queue Configuration
+    ENABLE_BACKGROUND_JOBS: bool = True
+    JOB_TIMEOUT_MINUTES: int = 30  # Default job timeout in minutes
+    MAX_JOB_RETRIES: int = 3  # Maximum retry attempts for failed jobs
+    JOB_RESULT_TTL_HOURS: int = 24  # Job result retention in hours
+    ENABLE_JOB_MONITORING: bool = True  # Enable job monitoring dashboard
+    
+    # Job queue priorities and limits
+    MAX_JOBS_PER_USER_PER_HOUR: int = 20
+    MAX_CONCURRENT_JOBS_PER_USER: int = 3
+    CRITICAL_QUEUE_MAX_SIZE: int = 100
+    HIGH_QUEUE_MAX_SIZE: int = 500
+    NORMAL_QUEUE_MAX_SIZE: int = 1000
+    LOW_QUEUE_MAX_SIZE: int = 2000
+    
     # AI/ML settings
     OLLAMA_BASE_URL: str = "http://localhost:11434"
     OLLAMA_MODEL: str = "llama2"
