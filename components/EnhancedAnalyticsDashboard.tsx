@@ -15,7 +15,7 @@ import {
   AlertCircle,
   CheckCircle
 } from 'lucide-react'
-import { enhancedAnalyticsAPI } from '@/lib/api'
+import { useAnalyticsDashboard } from '@/hooks/useAnalytics'
 
 interface AnalyticsData {
   cashFlow?: any
@@ -46,68 +46,29 @@ export default function EnhancedAnalyticsDashboard({
     end: endDate || new Date().toISOString().split('T')[0]
   })
 
-  const fetchAnalyticsData = async () => {
-    setLoading(true)
-    setError(null)
-    
-    try {
-      const params = {
-        start_date: dateRange.start,
-        end_date: dateRange.end
-      }
+  const {
+    dashboardData,
+    cashFlow,
+    categoryInsights,
+    vendorAnalysis,
+    anomalyDetection,
+    trendAnalysis,
+    isLoading,
+    error
+  } = useAnalyticsDashboard({
+    start_date: dateRange.start,
+    end_date: dateRange.end
+  })
 
-      // Fetch all analytics data in parallel
-      const [
-        cashFlowResponse,
-        categoryInsightsResponse,
-        vendorAnalysisResponse,
-        anomalyDetectionResponse,
-        trendAnalysisResponse,
-        dashboardResponse
-      ] = await Promise.allSettled([
-        enhancedAnalyticsAPI.getCashFlowAnalysis(params),
-        enhancedAnalyticsAPI.getCategoryInsights(params),
-        enhancedAnalyticsAPI.getVendorAnalysis(params),
-        enhancedAnalyticsAPI.getAnomalyDetection(params),
-        enhancedAnalyticsAPI.getTrendAnalysis(params),
-        enhancedAnalyticsAPI.getDashboardData(params)
-      ])
-
-      const newData: AnalyticsData = {}
-
-      // Process successful responses
-      if (cashFlowResponse.status === 'fulfilled') {
-        newData.cashFlow = cashFlowResponse.value.data
-      }
-      if (categoryInsightsResponse.status === 'fulfilled') {
-        newData.categoryInsights = categoryInsightsResponse.value.data
-      }
-      if (vendorAnalysisResponse.status === 'fulfilled') {
-        newData.vendorAnalysis = vendorAnalysisResponse.value.data
-      }
-      if (anomalyDetectionResponse.status === 'fulfilled') {
-        newData.anomalyDetection = anomalyDetectionResponse.value.data
-      }
-      if (trendAnalysisResponse.status === 'fulfilled') {
-        newData.trendAnalysis = trendAnalysisResponse.value.data
-      }
-      if (dashboardResponse.status === 'fulfilled') {
-        newData.dashboardData = dashboardResponse.value.data
-      }
-
-      setAnalyticsData(newData)
-
-    } catch (err: any) {
-      console.error('Failed to fetch analytics data:', err)
-      setError(err.response?.data?.detail || 'Failed to load analytics data')
-    } finally {
-      setLoading(false)
-    }
+  // Combine data from hooks
+  const analyticsData: AnalyticsData = {
+    cashFlow: cashFlow.data,
+    categoryInsights: categoryInsights.data,
+    vendorAnalysis: vendorAnalysis.data,
+    anomalyDetection: anomalyDetection.data,
+    trendAnalysis: trendAnalysis.data,
+    dashboardData: dashboardData.data
   }
-
-  useEffect(() => {
-    fetchAnalyticsData()
-  }, [dateRange])
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -120,7 +81,7 @@ export default function EnhancedAnalyticsDashboard({
     return `${(value * 100).toFixed(1)}%`
   }
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className={`bg-white rounded-lg shadow-sm border p-6 ${className}`}>
         <div className="animate-pulse">
@@ -148,7 +109,14 @@ export default function EnhancedAnalyticsDashboard({
         </div>
         <p className="text-gray-600 mb-4">{error}</p>
         <button
-          onClick={fetchAnalyticsData}
+          onClick={() => {
+            dashboardData.refetch()
+            cashFlow.refetch()
+            categoryInsights.refetch()
+            vendorAnalysis.refetch()
+            anomalyDetection.refetch()
+            trendAnalysis.refetch()
+          }}
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
           <RefreshCw className="w-4 h-4 inline mr-2" />
@@ -169,7 +137,14 @@ export default function EnhancedAnalyticsDashboard({
           </div>
           <div className="flex items-center gap-2">
             <button
-              onClick={fetchAnalyticsData}
+              onClick={() => {
+                dashboardData.refetch()
+                cashFlow.refetch()
+                categoryInsights.refetch()
+                vendorAnalysis.refetch()
+                anomalyDetection.refetch()
+                trendAnalysis.refetch()
+              }}
               className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
               title="Refresh data"
             >
