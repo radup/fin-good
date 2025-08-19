@@ -55,6 +55,17 @@ export interface CategorizationPerformance {
   }
 }
 
+// Types for auto-improvement
+export interface AutoImprovementResult {
+  message: string
+  rules_created: number
+  rules_updated: number
+  ml_model_improvements: number
+  transactions_reprocessed: number
+  improvement_score: number
+  processing_time: number
+}
+
 // Global CSRF token storage
 let globalCsrfToken: string | null = null
 
@@ -195,6 +206,14 @@ export const transactionAPI = {
     end_date?: string
   }): Promise<{ data: CategorizationPerformance }> =>
     api.get('/api/v1/transactions/categorize/performance', { params }),
+
+  // Auto-improve categorization based on user feedback and patterns
+  autoImprove: (params?: {
+    batch_id?: string
+    min_confidence_threshold?: number
+    max_transactions?: number
+  }): Promise<{ data: AutoImprovementResult }> =>
+    api.post('/api/v1/transactions/categorize/auto-improve', null, { params }),
 
   // List import batches (files)
   listImportBatches: () => 
