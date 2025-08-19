@@ -104,7 +104,7 @@ COMPLIANCE_SECRET_KEY=<generated-with-secrets.token_urlsafe(32)>
 
 # Database (production requires secure credentials)
 DATABASE_URL=postgresql://username:password@host:port/database
-REDIS_URL=redis://username:password@host:port/db
+REDIS_URL=redis://:password@host:port/db  # Note: colon before password for Redis auth
 ```
 
 **Important**: The configuration validator in `backend/app/core/config.py` enforces security requirements and will reject weak keys.
