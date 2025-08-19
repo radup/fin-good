@@ -248,6 +248,158 @@ The backend has been significantly enhanced with advanced categorization APIs, b
 
 ---
 
+### **Task F2.4: WebSocket Integration for Real-time Features**
+- **Status**: `❌ NOT STARTED`
+- **Priority**: P1 High
+- **Effort**: 2-3 days
+- **Dependencies**: Task F1.1 (API Client Integration)
+- **Description**: Integrate WebSocket connections for real-time progress tracking
+
+**Implementation Steps:**
+- [ ] **Create WebSocket client** - Real-time connection management
+  - [ ] Implement WebSocket connection with JWT authentication
+  - [ ] Add connection state management (connecting, connected, disconnected)
+  - [ ] Handle reconnection logic with exponential backoff
+  - [ ] Add connection error handling and user notifications
+- [ ] **Integrate with upload progress** - Real-time upload tracking
+  - [ ] Connect to `/ws/upload-progress/{job_id}` endpoints
+  - [ ] Display real-time upload progress bars
+  - [ ] Show processing status (parsing, categorizing, etc.)
+  - [ ] Handle upload completion and error states
+- [ ] **Add export progress tracking** - Real-time export monitoring
+  - [ ] Track export job progress via WebSocket
+  - [ ] Show export generation progress
+  - [ ] Display download readiness notifications
+  - [ ] Handle export completion and download links
+
+**Files to Create:**
+- `lib/websocket.ts` - WebSocket client and connection management
+- `hooks/useWebSocket.ts` - React hook for WebSocket integration
+- `components/ProgressTracker.tsx` - Real-time progress display
+- `components/UploadProgress.tsx` - Upload-specific progress component
+
+**Success Criteria:**
+- Real-time progress tracking for uploads and exports
+- Reliable WebSocket connections with authentication
+- User-friendly progress indicators
+- Seamless real-time updates
+
+---
+
+### **Task F2.5: Analytics Engine Integration**
+- **Status**: `❌ NOT STARTED`
+- **Priority**: P1 High
+- **Effort**: 3-4 days
+- **Dependencies**: Task F1.1 (API Client Integration)
+- **Description**: Integrate new analytics endpoints for enhanced financial insights
+
+**Implementation Steps:**
+- [ ] **Add analytics API integration** - Connect to new analytics endpoints
+  - [ ] Integrate `/api/v1/analytics/*` endpoints for KPIs
+  - [ ] Add time-series analysis data fetching
+  - [ ] Implement Redis-cached analytics data
+  - [ ] Add analytics data refresh mechanisms
+- [ ] **Create enhanced dashboard** - Financial KPIs and insights
+  - [ ] Display key financial metrics (revenue, expenses, profit margins)
+  - [ ] Show spending trends and patterns
+  - [ ] Add vendor performance analytics
+  - [ ] Display cash flow analysis
+- [ ] **Add interactive analytics** - Drill-down capabilities
+  - [ ] Click-to-filter functionality on charts
+  - [ ] Date range selection for analytics
+  - [ ] Category-based analytics filtering
+  - [ ] Export analytics data and charts
+
+**Files to Create:**
+- `lib/analytics.ts` - Analytics API client functions
+- `components/AnalyticsDashboard.tsx` - Enhanced analytics dashboard
+- `components/FinancialKPIs.tsx` - Key performance indicators
+- `components/AnalyticsCharts.tsx` - Analytics-specific chart components
+
+**Success Criteria:**
+- Complete analytics integration with backend
+- Enhanced financial insights and KPIs
+- Interactive analytics dashboard
+- Real-time analytics data updates
+
+---
+
+### **Task F2.6: Export Engine Integration**
+- **Status**: `❌ NOT STARTED`
+- **Priority**: P1 High
+- **Effort**: 2-3 days
+- **Dependencies**: Task F1.1 (API Client Integration), Task F2.4 (WebSocket Integration)
+- **Description**: Integrate new export engine for multi-format data export
+
+**Implementation Steps:**
+- [ ] **Add export API integration** - Connect to export endpoints
+  - [ ] Integrate `/api/v1/export/*` endpoints
+  - [ ] Add export job creation and management
+  - [ ] Implement secure download token system
+  - [ ] Add export history and tracking
+- [ ] **Create export interface** - User-friendly export options
+  - [ ] Multi-format export selection (CSV, Excel, PDF, JSON)
+  - [ ] Export configuration options (columns, filters, formatting)
+  - [ ] Background export job management
+  - [ ] Export progress tracking via WebSocket
+- [ ] **Add export features** - Advanced export capabilities
+  - [ ] Template-based PDF report generation
+  - [ ] Custom Excel formatting and charts
+  - [ ] Streaming CSV exports for large datasets
+  - [ ] Export scheduling and automation
+
+**Files to Create:**
+- `lib/export.ts` - Export API client functions
+- `components/ExportManager.tsx` - Export job management interface
+- `components/ExportOptions.tsx` - Export configuration component
+- `components/ExportHistory.tsx` - Export history and tracking
+
+**Success Criteria:**
+- Complete export engine integration
+- Multi-format export capabilities
+- Background export job management
+- Professional export functionality
+
+---
+
+### **Task F2.7: Report Builder Integration**
+- **Status**: `❌ NOT STARTED`
+- **Priority**: P1 High
+- **Effort**: 3-4 days
+- **Dependencies**: Task F1.1 (API Client Integration)
+- **Description**: Integrate report builder API for dynamic report generation
+
+**Implementation Steps:**
+- [ ] **Add report API integration** - Connect to report endpoints
+  - [ ] Integrate `/api/v1/reports/*` endpoints
+  - [ ] Add dynamic report generation capabilities
+  - [ ] Implement report template management
+  - [ ] Add report caching and performance optimization
+- [ ] **Create report interface** - User-friendly report builder
+  - [ ] 8 pre-configured report types (cash flow, spending analysis, etc.)
+  - [ ] Custom filtering and grouping options
+  - [ ] Report preview and customization
+  - [ ] Report scheduling and automation
+- [ ] **Add report features** - Advanced reporting capabilities
+  - [ ] Interactive report charts and visualizations
+  - [ ] Report sharing and collaboration
+  - [ ] Report export in multiple formats
+  - [ ] Report versioning and history
+
+**Files to Create:**
+- `lib/reports.ts` - Report API client functions
+- `components/ReportBuilder.tsx` - Main report builder interface
+- `components/ReportTemplates.tsx` - Report template selection
+- `components/ReportPreview.tsx` - Report preview and customization
+
+**Success Criteria:**
+- Complete report builder integration
+- Dynamic report generation capabilities
+- Professional reporting interface
+- Report sharing and collaboration features
+
+---
+
 ## **🎨 P2 MEDIUM PRIORITY TASKS**
 
 ### **Task F3.1: Rate Limit Handling & User Feedback**
@@ -499,6 +651,10 @@ The backend has been significantly enhanced with advanced categorization APIs, b
 | **P1** | F2.1: Performance Dashboard | 3-4 days | High | Medium | F1.1 |
 | **P1** | F2.2: Auto-Improvement UI | 2-3 days | Medium | Medium | F1.1 |
 | **P1** | F2.3: Category Suggestions | 2-3 days | Medium | Medium | F1.1 |
+| **P1** | F2.4: WebSocket Integration for Real-time Features | 2-3 days | Medium | Medium | F1.1 |
+| **P1** | F2.5: Analytics Engine Integration | 3-4 days | High | Medium | F1.1 |
+| **P1** | F2.6: Export Engine Integration | 2-3 days | Medium | Medium | F1.1, F2.4 |
+| **P1** | F2.7: Report Builder Integration | 3-4 days | High | Medium | F1.1 |
 | **P2** | F3.1: Rate Limit Handling | 1-2 days | Medium | Low | F1.1 |
 | **P2** | F3.2: Navigation & Pages | 3-5 days | Medium | Low | None |
 | **P2** | F3.3: Data Visualization | 5-8 days | High | High | F2.1 |

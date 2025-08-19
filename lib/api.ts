@@ -2,6 +2,109 @@ import axios from 'axios'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001'
 
+// Types for categorization performance
+export interface CategorizationPerformance {
+  user_id: number
+  period: {
+    start_date: string | null
+    end_date: string | null
+  }
+  overall_metrics: {
+    total_transactions: number
+    categorized_count: number
+    accuracy_rate: number
+    average_confidence: number
+    success_rate: number
+  }
+  method_breakdown: {
+    rule_based: {
+      count: number
+      accuracy: number
+      average_confidence: number
+    }
+    ml_based: {
+      count: number
+      accuracy: number
+      average_confidence: number
+    }
+  }
+  confidence_distribution: {
+    high_confidence: number
+    medium_confidence: number
+    low_confidence: number
+  }
+  category_performance: {
+    [category: string]: {
+      count: number
+      accuracy: number
+      average_confidence: number
+    }
+  }
+  improvement_trends: {
+    daily_accuracy: Array<{
+      date: string
+      accuracy: number
+    }>
+    weekly_improvement: number
+  }
+  feedback_analysis: {
+    total_feedback: number
+    positive_feedback: number
+    negative_feedback: number
+    feedback_accuracy: number
+  }
+}
+
+// Types for auto-improvement
+export interface AutoImprovementResult {
+  message: string
+  rules_created: number
+  rules_updated: number
+  ml_model_improvements: number
+  transactions_reprocessed: number
+  improvement_score: number
+  processing_time: number
+}
+
+// Types for category suggestions
+export interface CategorySuggestion {
+  category: string
+  subcategory?: string
+  confidence: number
+  source: 'rule' | 'ml'
+  reasoning?: string
+}
+
+export interface CategorySuggestions {
+  transaction_id: number
+  description: string
+  amount: number
+  current_category: string
+  current_subcategory?: string
+  suggestions: CategorySuggestion[]
+  rule_matches: CategorySuggestion[]
+  ml_predictions: CategorySuggestion[]
+  confidence_threshold: number
+}
+
+// Types for feedback
+export interface FeedbackResult {
+  message: string
+  feedback_id: string
+  transaction_id: number
+  feedback_type: 'correct' | 'incorrect' | 'suggest_alternative'
+  impact: string
+  ml_learning: boolean
+}
+
+// Types for rate limit handling
+export interface RateLimitInfo {
+  retry_after: number
+  limit: number
+  reset_time: string
+  message: string
+}
+
 // Global CSRF token storage
 let globalCsrfToken: string | null = null
 
@@ -152,6 +255,39 @@ export const transactionAPI = {
   updateCategory: (id: number, category: string, subcategory?: string) =>
     api.put(`/api/v1/transactions/${id}/category`, null, {
       params: { category, subcategory }
+    }),
+
+  // Get categorization performance metrics
+  getCategorizationPerformance: (params?: {
+    start_date?: string
+    end_date?: string
+  }): Promise<{ data: CategorizationPerformance }> =>
+    api.get('/api/v1/transactions/categorize/performance', { params }),
+
+  // Auto-improve categorization based on user feedback and patterns
+  autoImprove: (params?: {
+    batch_id?: string
+    min_confidence_threshold?: number
+    max_transactions?: number
+  }): Promise<{ data: AutoImprovementResult }> =>
+    api.post('/api/v1/transactions/categorize/auto-improve', null, { params }),
+
+  // Get category suggestions for a transaction
+  getCategorySuggestions: (transactionId: number, params?: {
+    include_ml?: boolean
+    include_rules?: boolean
+  }): Promise<{ data: CategorySuggestions }> =>
+    api.get(`/api/v1/transactions/categorize/suggestions/${transactionId}`, { params }),
+
+  // Submit categorization feedback
+  submitFeedback: (transactionId: number, params: {
+    feedback_type: 'correct' | 'incorrect' | 'suggest_alternative'
+    suggested_category?: string
+    suggested_subcategory?: string
+    feedback_comment?: string
+  }): Promise<{ data: FeedbackResult }> =>
+    api.post(`/api/v1/transactions/categorize/feedback`, null, { 
+      params: { transaction_id: transactionId, ...params }
     }),
 
   // List import batches (files)
