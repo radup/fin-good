@@ -51,6 +51,69 @@ export default function SuggestionDisplay({
     } catch (err: any) {
       console.error('Failed to fetch suggestions:', err)
       
+      // For development/testing, provide mock suggestions when API is not available
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Using mock category suggestions for development')
+        setSuggestions({
+          transaction_id: transactionId,
+          description: 'Sample Transaction',
+          amount: 25.50,
+          current_category: currentCategory,
+          current_subcategory: currentSubcategory,
+          suggestions: [
+            {
+              category: 'Food & Dining',
+              subcategory: 'Restaurants',
+              confidence: 0.85,
+              source: 'ml',
+              reasoning: 'High confidence based on merchant name and amount pattern'
+            },
+            {
+              category: 'Food & Dining',
+              subcategory: 'Coffee Shops',
+              confidence: 0.72,
+              source: 'rule',
+              reasoning: 'Rule match: merchant contains "coffee" or "cafe"'
+            },
+            {
+              category: 'Transportation',
+              subcategory: 'Public Transit',
+              confidence: 0.45,
+              source: 'ml',
+              reasoning: 'Lower confidence: could be transit fare'
+            }
+          ],
+          rule_matches: [
+            {
+              category: 'Food & Dining',
+              subcategory: 'Coffee Shops',
+              confidence: 0.72,
+              source: 'rule',
+              reasoning: 'Rule match: merchant contains "coffee" or "cafe"'
+            }
+          ],
+          ml_predictions: [
+            {
+              category: 'Food & Dining',
+              subcategory: 'Restaurants',
+              confidence: 0.85,
+              source: 'ml',
+              reasoning: 'High confidence based on merchant name and amount pattern'
+            },
+            {
+              category: 'Transportation',
+              subcategory: 'Public Transit',
+              confidence: 0.45,
+              source: 'ml',
+              reasoning: 'Lower confidence: could be transit fare'
+            }
+          ],
+          confidence_threshold: 0.6
+        })
+        return
+      }
+      
+      // Handle specific error cases for production
       if (err.response?.status === 401) {
         setError('Authentication required. Please log in.')
       } else if (err.response?.status === 403) {
@@ -61,70 +124,9 @@ export default function SuggestionDisplay({
         setError('Rate limit exceeded. Please try again later.')
       } else if (err.response?.status >= 500) {
         setError('Server error. Please try again later.')
-      } else {
-        // For development/testing, provide mock suggestions when API is not available
-        if (process.env.NODE_ENV === 'development') {
-          console.log('Using mock category suggestions for development')
-          setSuggestions({
-            transaction_id: transactionId,
-            description: 'Sample Transaction',
-            amount: 25.50,
-            current_category: currentCategory,
-            current_subcategory: currentSubcategory,
-            suggestions: [
-              {
-                category: 'Food & Dining',
-                subcategory: 'Restaurants',
-                confidence: 0.85,
-                source: 'ml',
-                reasoning: 'High confidence based on merchant name and amount pattern'
-              },
-              {
-                category: 'Food & Dining',
-                subcategory: 'Coffee Shops',
-                confidence: 0.72,
-                source: 'rule',
-                reasoning: 'Rule match: merchant contains "coffee" or "cafe"'
-              },
-              {
-                category: 'Transportation',
-                subcategory: 'Public Transit',
-                confidence: 0.45,
-                source: 'ml',
-                reasoning: 'Lower confidence: could be transit fare'
-              }
-            ],
-            rule_matches: [
-              {
-                category: 'Food & Dining',
-                subcategory: 'Coffee Shops',
-                confidence: 0.72,
-                source: 'rule',
-                reasoning: 'Rule match: merchant contains "coffee" or "cafe"'
-              }
-            ],
-            ml_predictions: [
-              {
-                category: 'Food & Dining',
-                subcategory: 'Restaurants',
-                confidence: 0.85,
-                source: 'ml',
-                reasoning: 'High confidence based on merchant name and amount pattern'
-              },
-              {
-                category: 'Transportation',
-                subcategory: 'Public Transit',
-                confidence: 0.45,
-                source: 'ml',
-                reasoning: 'Lower confidence: could be transit fare'
-              }
-            ],
-            confidence_threshold: 0.6
-          })
-          return
-        }
-        
+            } else {
         setError(err.response?.data?.detail || 'Failed to load suggestions. Please try again.')
+      }
       }
     } finally {
       setLoading(false)
