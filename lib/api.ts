@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
 // Types for categorization performance
 export interface CategorizationPerformance {
@@ -378,7 +378,14 @@ api.interceptors.response.use(
       // Handle unauthorized - redirect to login
       // Clear any stored CSRF token
       globalCsrfToken = null
-      window.location.href = '/login'
+      
+      // Don't redirect if we're already on the login page or if it's a login request
+      const isLoginRequest = error.config?.url?.includes('/auth/login')
+      const isOnLoginPage = typeof window !== 'undefined' && window.location.pathname === '/login'
+      
+      if (!isLoginRequest && !isOnLoginPage) {
+        window.location.href = '/login'
+      }
     } else if (error.response?.status === 429) {
       // Handle rate limiting
       const retryAfter = error.response.data?.retry_after || 60

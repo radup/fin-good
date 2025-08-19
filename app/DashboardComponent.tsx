@@ -271,11 +271,16 @@ export default function DashboardComponent() {
     }
   }
 
-  // Fetch data when authenticated
+  // Fetch data when authenticated and handle redirect
   useEffect(() => {
-    if (isAuthenticated && mounted) {
-      fetchTransactions()
-      fetchSummary()
+    if (mounted) {
+      if (isAuthenticated) {
+        fetchTransactions()
+        fetchSummary()
+      } else {
+        // Redirect to login if not authenticated
+        window.location.href = '/login'
+      }
     }
   }, [isAuthenticated, mounted])
 
@@ -472,12 +477,7 @@ export default function DashboardComponent() {
     )
   }
 
-  // Redirect to login if not authenticated
   if (!isAuthenticated) {
-    // Use useEffect to redirect to avoid hydration issues
-    React.useEffect(() => {
-      window.location.href = '/login'
-    }, [])
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
         <div className="text-center">

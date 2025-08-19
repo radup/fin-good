@@ -25,6 +25,7 @@ Architecture:
 import asyncio
 import json
 import logging
+import os
 import uuid
 from datetime import datetime, timedelta
 from enum import Enum
@@ -162,10 +163,19 @@ class BackgroundJobManager:
             
         except redis.RedisError as e:
             logger.error(f"Failed to connect to Redis: {e}")
-            raise SystemException(
-                message="Failed to initialize background job system",
-                code="REDIS_CONNECTION_ERROR"
-            )
+            # For development, allow the system to start without Redis
+            if os.getenv('DEBUG', 'false').lower() == 'true':
+                logger.warning("Redis connection failed, but continuing in development mode")
+                self.redis_client = None
+                self.queues = {}
+                self.job_status_key_prefix = "fingood:job:status"
+                self.job_progress_key_prefix = "fingood:job:progress"
+                self.user_jobs_key_prefix = "fingood:user:jobs"
+            else:
+                raise SystemException(
+                    message="Failed to initialize background job system",
+                    code="REDIS_CONNECTION_ERROR"
+                )
     
     def _get_job_status_key(self, job_id: str) -> str:
         """Get Redis key for job status"""

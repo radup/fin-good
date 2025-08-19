@@ -24,9 +24,9 @@ class Settings(BaseSettings):
     
     # Cookie Security Settings
     COOKIE_NAME: str = "fingood_auth"
-    COOKIE_SECURE: bool = True  # Set to False for localhost development
+    COOKIE_SECURE: bool = False  # Set to False for localhost development
     COOKIE_HTTPONLY: bool = True
-    COOKIE_SAMESITE: str = "strict"
+    COOKIE_SAMESITE: str = "lax"  # Use 'lax' for localhost development
     COOKIE_DOMAIN: Optional[str] = None  # Set to your domain in production
     
     # CSRF Protection
@@ -42,7 +42,7 @@ class Settings(BaseSettings):
     ]
     
     # Security Headers and HTTPS Enforcement
-    ENFORCE_HTTPS: bool = True  # Set to False for localhost development
+    ENFORCE_HTTPS: bool = False  # Set to False for localhost development
     HSTS_MAX_AGE: int = 31536000  # 1 year in seconds
     HSTS_INCLUDE_SUBDOMAINS: bool = True
     HSTS_PRELOAD: bool = True

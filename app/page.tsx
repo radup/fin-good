@@ -2,7 +2,7 @@
 
 import React from 'react'
 import Link from 'next/link'
-import { DrSigmundSpendAvatar } from '@/components/DrSigmundSpendAvatar'
+import DrSigmundSpendAvatar from '@/components/DrSigmundSpendAvatar'
 import { ArrowRight, BarChart3, Shield, Zap, Users, TrendingUp } from 'lucide-react'
 
 export default function LandingPage() {
@@ -15,7 +15,7 @@ export default function LandingPage() {
             <div className="flex items-center gap-4">
               <DrSigmundSpendAvatar 
                 size="md" 
-                mood="friendly"
+                mood="encouraging"
                 showMessage={false}
               />
               <div>
@@ -41,7 +41,7 @@ export default function LandingPage() {
         <div className="text-center mb-16">
           <DrSigmundSpendAvatar 
             size="xl" 
-            mood="enthusiastic"
+            mood="inspiring"
             message="Welcome to the future of financial management! Let me help you understand your money better."
             className="mb-8"
           />
@@ -163,7 +163,7 @@ export default function LandingPage() {
             <div className="flex items-center justify-center gap-4 mb-4">
               <DrSigmundSpendAvatar 
                 size="sm" 
-                mood="friendly"
+                mood="encouraging"
                 showMessage={false}
               />
               <span className="text-lg font-semibold text-gray-900">FinGood</span>
