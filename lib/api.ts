@@ -686,29 +686,64 @@ export const reportBuilderAPI = {
 // Forecasting API
 export const forecastingAPI = {
   // Generate forecast
-  generateForecast: (data: ForecastRequest) => 
-    api.post<ForecastResponse>('/api/v1/forecasting/generate', data),
+  generateForecast: (data: ForecastRequest) => {
+    const { forecast_type, ...kwargs } = data
+    const params = {
+      args: forecast_type,
+      kwargs: JSON.stringify(kwargs)
+    }
+    return api.post<ForecastResponse>('/api/v1/forecasting/generate', null, { params })
+  },
 
   // Get forecast accuracy history
   getAccuracyHistory: (params?: {
     days?: number
-  }) => api.get<AccuracyHistoryResponse>('/api/v1/forecasting/accuracy-history', { params }),
+  }) => {
+    const apiParams = {
+      args: 'accuracy_history',
+      kwargs: JSON.stringify(params || {})
+    }
+    return api.get<AccuracyHistoryResponse>('/api/v1/forecasting/accuracy-history', { params: apiParams })
+  },
 
   // Get model analysis
   getModelAnalysis: (params?: {
     forecast_type?: string
     horizon?: string
-  }) => api.get<EnsembleAnalysisResponse>('/api/v1/forecasting/model-analysis', { params }),
+  }) => {
+    const apiParams = {
+      args: 'model_analysis',
+      kwargs: JSON.stringify(params || {})
+    }
+    return api.get<EnsembleAnalysisResponse>('/api/v1/forecasting/model-analysis', { params: apiParams })
+  },
 
   // Batch forecast
-  batchForecast: (data: BatchForecastRequest) =>
-    api.post<BatchForecastResponse>('/api/v1/forecasting/batch-forecast', data),
+  batchForecast: (data: BatchForecastRequest) => {
+    const apiParams = {
+      args: 'batch_forecast',
+      kwargs: JSON.stringify(data)
+    }
+    return api.post<BatchForecastResponse>('/api/v1/forecasting/batch-forecast', null, { params: apiParams })
+  },
 
   // Get available forecast types
-  getForecastTypes: () => api.get<ForecastTypeInfo[]>('/api/v1/forecasting/forecast-types'),
+  getForecastTypes: () => {
+    const params = {
+      args: 'forecast_types',
+      kwargs: '{}'
+    }
+    return api.get<ForecastTypeInfo[]>('/api/v1/forecasting/forecast-types', { params })
+  },
 
   // Get available horizons
-  getHorizons: () => api.get<ForecastHorizonInfo[]>('/api/v1/forecasting/horizons'),
+  getHorizons: () => {
+    const params = {
+      args: 'horizons',
+      kwargs: '{}'
+    }
+    return api.get<ForecastHorizonInfo[]>('/api/v1/forecasting/horizons', { params })
+  },
 
   // Get forecasting health status
   getHealth: () => api.get<ForecastingHealth>('/api/v1/forecasting/health'),
