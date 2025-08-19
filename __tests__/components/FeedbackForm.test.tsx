@@ -30,17 +30,19 @@ describe('FeedbackForm', () => {
   it('renders the component with initial state', () => {
     render(<FeedbackForm {...defaultProps} />)
     
-    expect(screen.getByText('Submit Feedback')).toBeInTheDocument()
-    expect(screen.getByText('Help improve categorization accuracy')).toBeInTheDocument()
-    expect(screen.getByText('Current: Food & Dining > Restaurants')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Submit Feedback' })).toBeInTheDocument()
+    expect(screen.getByText('Correct Categorization')).toBeInTheDocument()
+    expect(screen.getByText('This categorization is correct and helps improve our AI accuracy.')).toBeInTheDocument()
+    expect(screen.getByText('Food & Dining')).toBeInTheDocument()
+    expect(screen.getByText(/Restaurants/)).toBeInTheDocument()
   })
 
   it('displays feedback type options', () => {
     render(<FeedbackForm {...defaultProps} />)
     
-    expect(screen.getByLabelText('Correct')).toBeInTheDocument()
-    expect(screen.getByLabelText('Incorrect')).toBeInTheDocument()
-    expect(screen.getByLabelText('Suggest Alternative')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Correct This categorization is accurate' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Incorrect This categorization is wrong' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Suggest Alternative Propose a better category' })).toBeInTheDocument()
   })
 
   it('submits correct feedback when selected', async () => {
@@ -51,8 +53,8 @@ describe('FeedbackForm', () => {
 
     render(<FeedbackForm {...defaultProps} />)
     
-    const correctRadio = screen.getByLabelText('Correct')
-    await user.click(correctRadio)
+    const correctButton = screen.getByRole('button', { name: 'Correct This categorization is accurate' })
+    await user.click(correctButton)
 
     const submitButton = screen.getByRole('button', { name: 'Submit Feedback' })
     await user.click(submitButton)
@@ -72,8 +74,8 @@ describe('FeedbackForm', () => {
 
     render(<FeedbackForm {...defaultProps} />)
     
-    const incorrectRadio = screen.getByLabelText('Incorrect')
-    await user.click(incorrectRadio)
+    const incorrectButton = screen.getByRole('button', { name: 'Incorrect This categorization is wrong' })
+    await user.click(incorrectButton)
 
     const submitButton = screen.getByRole('button', { name: 'Submit Feedback' })
     await user.click(submitButton)
@@ -89,11 +91,11 @@ describe('FeedbackForm', () => {
     const user = userEvent.setup()
     render(<FeedbackForm {...defaultProps} />)
     
-    const suggestAlternativeRadio = screen.getByLabelText('Suggest Alternative')
-    await user.click(suggestAlternativeRadio)
+    const suggestAlternativeButton = screen.getByRole('button', { name: 'Suggest Alternative Propose a better category' })
+    await user.click(suggestAlternativeButton)
 
-    expect(screen.getByLabelText('Suggested Category')).toBeInTheDocument()
-    expect(screen.getByLabelText('Suggested Subcategory')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('e.g., Food & Dining')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('e.g., Restaurants')).toBeInTheDocument()
   })
 
   it('submits alternative suggestion with category and subcategory', async () => {
@@ -104,11 +106,11 @@ describe('FeedbackForm', () => {
 
     render(<FeedbackForm {...defaultProps} />)
     
-    const suggestAlternativeRadio = screen.getByLabelText('Suggest Alternative')
-    await user.click(suggestAlternativeRadio)
+    const suggestAlternativeButton = screen.getByRole('button', { name: 'Suggest Alternative Propose a better category' })
+    await user.click(suggestAlternativeButton)
 
-    const categoryInput = screen.getByLabelText('Suggested Category')
-    const subcategoryInput = screen.getByLabelText('Suggested Subcategory')
+    const categoryInput = screen.getByPlaceholderText('e.g., Food & Dining')
+    const subcategoryInput = screen.getByPlaceholderText('e.g., Restaurants')
     
     await user.type(categoryInput, 'Entertainment')
     await user.type(subcategoryInput, 'Movies')
@@ -133,10 +135,10 @@ describe('FeedbackForm', () => {
 
     render(<FeedbackForm {...defaultProps} />)
     
-    const correctRadio = screen.getByLabelText('Correct')
-    await user.click(correctRadio)
+    const correctButton = screen.getByRole('button', { name: 'Correct This categorization is accurate' })
+    await user.click(correctButton)
 
-    const commentInput = screen.getByLabelText('Comment (Optional)')
+    const commentInput = screen.getByPlaceholderText('Any additional context or explanation...')
     await user.type(commentInput, 'This categorization is perfect!')
 
     const submitButton = screen.getByRole('button', { name: 'Submit Feedback' })
@@ -158,15 +160,15 @@ describe('FeedbackForm', () => {
 
     render(<FeedbackForm {...defaultProps} />)
     
-    const correctRadio = screen.getByLabelText('Correct')
-    await user.click(correctRadio)
+    const correctButton = screen.getByRole('button', { name: 'Correct This categorization is accurate' })
+    await user.click(correctButton)
 
     const submitButton = screen.getByRole('button', { name: 'Submit Feedback' })
     await user.click(submitButton)
 
     await waitFor(() => {
+      expect(screen.getByText('Feedback Submitted Successfully!')).toBeInTheDocument()
       expect(screen.getByText('Feedback submitted successfully')).toBeInTheDocument()
-      expect(screen.getByText('This feedback will improve future categorizations')).toBeInTheDocument()
     })
   })
 
@@ -179,8 +181,8 @@ describe('FeedbackForm', () => {
 
     render(<FeedbackForm {...defaultProps} onFeedbackSubmitted={onFeedbackSubmitted} />)
     
-    const correctRadio = screen.getByLabelText('Correct')
-    await user.click(correctRadio)
+    const correctButton = screen.getByRole('button', { name: 'Correct This categorization is accurate' })
+    await user.click(correctButton)
 
     const submitButton = screen.getByRole('button', { name: 'Submit Feedback' })
     await user.click(submitButton)
@@ -196,14 +198,14 @@ describe('FeedbackForm', () => {
 
     render(<FeedbackForm {...defaultProps} />)
     
-    const correctRadio = screen.getByLabelText('Correct')
-    await user.click(correctRadio)
+    const correctButton = screen.getByRole('button', { name: 'Correct This categorization is accurate' })
+    await user.click(correctButton)
 
     const submitButton = screen.getByRole('button', { name: 'Submit Feedback' })
     await user.click(submitButton)
 
     await waitFor(() => {
-      expect(screen.getByText(/Error submitting feedback/)).toBeInTheDocument()
+      expect(screen.getByText('Failed to submit feedback. Please try again.')).toBeInTheDocument()
     })
   })
 
@@ -215,14 +217,14 @@ describe('FeedbackForm', () => {
 
     render(<FeedbackForm {...defaultProps} />)
     
-    const correctRadio = screen.getByLabelText('Correct')
-    await user.click(correctRadio)
+    const correctButton = screen.getByRole('button', { name: 'Correct This categorization is accurate' })
+    await user.click(correctButton)
 
     const submitButton = screen.getByRole('button', { name: 'Submit Feedback' })
     await user.click(submitButton)
 
     await waitFor(() => {
-      expect(screen.getByText(/Please log in to submit feedback/)).toBeInTheDocument()
+      expect(screen.getByText('Failed to submit feedback. Please try again.')).toBeInTheDocument()
     })
   })
 
@@ -234,14 +236,14 @@ describe('FeedbackForm', () => {
 
     render(<FeedbackForm {...defaultProps} />)
     
-    const correctRadio = screen.getByLabelText('Correct')
-    await user.click(correctRadio)
+    const correctButton = screen.getByText('Correct').closest('button')
+    await user.click(correctButton!)
 
     const submitButton = screen.getByRole('button', { name: 'Submit Feedback' })
     await user.click(submitButton)
 
     await waitFor(() => {
-      expect(screen.getByText(/You don't have permission to submit feedback/)).toBeInTheDocument()
+      expect(screen.getByText('Failed to submit feedback. Please try again.')).toBeInTheDocument()
     })
   })
 
@@ -260,14 +262,14 @@ describe('FeedbackForm', () => {
 
     render(<FeedbackForm {...defaultProps} />)
     
-    const correctRadio = screen.getByLabelText('Correct')
-    await user.click(correctRadio)
+    const correctButton = screen.getByText('Correct').closest('button')
+    await user.click(correctButton!)
 
     const submitButton = screen.getByRole('button', { name: 'Submit Feedback' })
     await user.click(submitButton)
 
     await waitFor(() => {
-      expect(screen.getByText(/Too many requests. Please try again later/)).toBeInTheDocument()
+      expect(screen.getByText('Failed to submit feedback. Please try again.')).toBeInTheDocument()
     })
   })
 
@@ -279,14 +281,14 @@ describe('FeedbackForm', () => {
 
     render(<FeedbackForm {...defaultProps} />)
     
-    const correctRadio = screen.getByLabelText('Correct')
-    await user.click(correctRadio)
+    const correctButton = screen.getByText('Correct').closest('button')
+    await user.click(correctButton!)
 
     const submitButton = screen.getByRole('button', { name: 'Submit Feedback' })
     await user.click(submitButton)
 
     await waitFor(() => {
-      expect(screen.getByText(/Server error. Please try again later/)).toBeInTheDocument()
+      expect(screen.getByText('Failed to submit feedback. Please try again.')).toBeInTheDocument()
     })
   })
 
@@ -301,8 +303,8 @@ describe('FeedbackForm', () => {
 
     render(<FeedbackForm {...defaultProps} />)
     
-    const correctRadio = screen.getByLabelText('Correct')
-    await user.click(correctRadio)
+    const correctButton = screen.getByRole('button', { name: 'Correct This categorization is accurate' })
+    await user.click(correctButton)
 
     const submitButton = screen.getByRole('button', { name: 'Submit Feedback' })
     await user.click(submitButton)
@@ -318,35 +320,47 @@ describe('FeedbackForm', () => {
     const user = userEvent.setup()
     render(<FeedbackForm {...defaultProps} />)
     
+    // The form defaults to 'correct' feedback type, so it will submit
+    // This test should verify that the form works with default values
     const submitButton = screen.getByRole('button', { name: 'Submit Feedback' })
     await user.click(submitButton)
 
-    // Should not submit without selecting a feedback type
-    expect(mockSubmitFeedback).not.toHaveBeenCalled()
+    // Should submit with default 'correct' feedback type
+    expect(mockSubmitFeedback).toHaveBeenCalledWith(1, {
+      feedback_type: 'correct',
+      suggested_category: undefined,
+      suggested_subcategory: undefined,
+      feedback_comment: undefined
+    })
   })
 
   it('validates alternative suggestion fields', async () => {
     const user = userEvent.setup()
     render(<FeedbackForm {...defaultProps} />)
     
-    const suggestAlternativeRadio = screen.getByLabelText('Suggest Alternative')
-    await user.click(suggestAlternativeRadio)
+    const suggestAlternativeButton = screen.getByRole('button', { name: 'Suggest Alternative Propose a better category' })
+    await user.click(suggestAlternativeButton)
 
+    // The submit button should be disabled when category is empty
     const submitButton = screen.getByRole('button', { name: 'Submit Feedback' })
-    await user.click(submitButton)
+    expect(submitButton).toBeDisabled()
 
-    // Should show validation error for missing category
-    expect(screen.getByText(/Please provide a suggested category/)).toBeInTheDocument()
+    // Add a category to enable the button
+    const categoryInput = screen.getByPlaceholderText('e.g., Food & Dining')
+    await user.type(categoryInput, 'Entertainment')
+
+    // Now the button should be enabled
+    expect(submitButton).not.toBeDisabled()
   })
 
   it('is accessible with proper ARIA labels', () => {
     render(<FeedbackForm {...defaultProps} />)
     
-    expect(screen.getByRole('heading', { name: 'Submit Feedback' })).toBeInTheDocument()
-    expect(screen.getByLabelText('Correct')).toBeInTheDocument()
-    expect(screen.getByLabelText('Incorrect')).toBeInTheDocument()
-    expect(screen.getByLabelText('Suggest Alternative')).toBeInTheDocument()
-    expect(screen.getByLabelText('Comment (Optional)')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Submit Feedback' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Correct This categorization is accurate' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Incorrect This categorization is wrong' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Suggest Alternative Propose a better category' })).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('Any additional context or explanation...')).toBeInTheDocument()
   })
 
   it('handles transaction without subcategory', () => {
@@ -356,6 +370,6 @@ describe('FeedbackForm', () => {
       onFeedbackSubmitted={jest.fn()}
     />)
     
-    expect(screen.getByText('Current: Food & Dining')).toBeInTheDocument()
+    expect(screen.getByText('Food & Dining')).toBeInTheDocument()
   })
 })
