@@ -1,8 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
+import { transactionAPI } from '@/lib/api';
+import type { ConfidenceAnalysisResponse, FeedbackSubmissionResponse } from '@/types/api';
 
 interface AIConfidenceDisplayProps {
+  transactionId: number; // Required for API integration
   confidence: number; // 0-100
   category: string;
   reasoning?: string;
@@ -10,17 +13,22 @@ interface AIConfidenceDisplayProps {
   onIncorrect?: () => void;
   showFeedback?: boolean;
   className?: string;
+  onFeedbackSubmitted?: (response: FeedbackSubmissionResponse) => void;
 }
 
 const AIConfidenceDisplay: React.FC<AIConfidenceDisplayProps> = ({
+  transactionId,
   confidence,
   category,
   reasoning,
   onCorrect,
   onIncorrect,
   showFeedback = true,
-  className = ''
+  className = '',
+  onFeedbackSubmitted
 }) => {
+  const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
+  const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
   const getConfidenceLevel = (score: number): { level: 'high' | 'medium' | 'low'; color: string; text: string } => {
     if (score >= 80) return { level: 'high', color: 'green', text: 'Very Confident' };
     if (score >= 60) return { level: 'medium', color: 'yellow', text: 'Somewhat Confident' };
@@ -28,6 +36,51 @@ const AIConfidenceDisplay: React.FC<AIConfidenceDisplayProps> = ({
   };
 
   const confidenceInfo = getConfidenceLevel(confidence);
+
+  // Submit feedback to backend API
+  const submitFeedback = async (feedbackType: 'correct' | 'incorrect' | 'suggest_alternative', suggestedCategory?: string) => {
+    setIsSubmittingFeedback(true);
+    setFeedbackMessage(null);
+    
+    try {
+      const response = await transactionAPI.submitFeedback(
+        transactionId,
+        feedbackType,
+        suggestedCategory
+      );
+      
+      const result = response.data;
+      
+      // Show success message
+      setFeedbackMessage(`Feedback submitted! ${result.impact === 'ml_learning' ? 'AI is learning from your feedback.' : 'Thank you for your feedback.'}`);
+      
+      // Call callback if provided
+      if (onFeedbackSubmitted) {
+        onFeedbackSubmitted(result);
+      }
+      
+      // Call original callbacks if provided
+      if (feedbackType === 'correct' && onCorrect) {
+        onCorrect();
+      } else if (feedbackType === 'incorrect' && onIncorrect) {
+        onIncorrect();
+      }
+      
+    } catch (error: any) {
+      console.error('Feedback submission failed:', error);
+      
+      if (error.response?.status === 429) {
+        // Rate limit exceeded
+        const retryAfter = error.response.data?.retry_after || 60;
+        setFeedbackMessage(`Rate limit exceeded. Please wait ${retryAfter} seconds before trying again.`);
+      } else {
+        // Generic error
+        setFeedbackMessage('Failed to submit feedback. Please try again.');
+      }
+    } finally {
+      setIsSubmittingFeedback(false);
+    }
+  };
   
   const confidenceColorClasses = {
     high: 'bg-green-100 text-green-800 border-green-200',
@@ -72,26 +125,35 @@ const AIConfidenceDisplay: React.FC<AIConfidenceDisplayProps> = ({
         </div>
       </div>
       
-      {showFeedback && (onCorrect || onIncorrect) && (
+      {showFeedback && (
         <div className="flex gap-2">
-          {onCorrect && (
-            <button
-              onClick={onCorrect}
-              className="flex-1 py-2 px-3 bg-green-100 text-green-800 rounded-lg hover:bg-green-200 transition-colors therapeutic-transition therapeutic-hover"
-            >
-              <span className="mr-1">👍</span>
-              Correct
-            </button>
-          )}
-          {onIncorrect && (
-            <button
-              onClick={onIncorrect}
-              className="flex-1 py-2 px-3 bg-orange-100 text-orange-800 rounded-lg hover:bg-orange-200 transition-colors therapeutic-transition therapeutic-hover"
-            >
-              <span className="mr-1">👎</span>
-              Let me correct this
-            </button>
-          )}
+          <button
+            onClick={() => submitFeedback('correct')}
+            disabled={isSubmittingFeedback}
+            className="flex-1 py-2 px-3 bg-green-100 text-green-800 rounded-lg hover:bg-green-200 transition-colors therapeutic-transition therapeutic-hover disabled:opacity-50"
+          >
+            <span className="mr-1">👍</span>
+            {isSubmittingFeedback ? 'Submitting...' : 'Correct'}
+          </button>
+          <button
+            onClick={() => submitFeedback('incorrect')}
+            disabled={isSubmittingFeedback}
+            className="flex-1 py-2 px-3 bg-orange-100 text-orange-800 rounded-lg hover:bg-orange-200 transition-colors therapeutic-transition therapeutic-hover disabled:opacity-50"
+          >
+            <span className="mr-1">👎</span>
+            {isSubmittingFeedback ? 'Submitting...' : 'Incorrect'}
+          </button>
+        </div>
+      )}
+      
+      {/* Feedback message */}
+      {feedbackMessage && (
+        <div className={`mt-3 p-2 rounded-lg text-sm ${
+          feedbackMessage.includes('Rate limit') || feedbackMessage.includes('Failed') 
+            ? 'bg-red-50 text-red-700 border border-red-200' 
+            : 'bg-green-50 text-green-700 border border-green-200'
+        }`}>
+          {feedbackMessage}
         </div>
       )}
       
