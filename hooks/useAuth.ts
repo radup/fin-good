@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { authAPI } from '@/lib/api'
 
 interface User {
   id: number
@@ -29,49 +30,29 @@ export function useAuth() {
 
   const checkAuthStatus = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/v1/auth/me', {
-        method: 'GET',
-        credentials: 'include', // Include cookies for authentication
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
-
-      if (response.ok) {
-        const userData = await response.json()
-        setUser(userData)
-        setIsAuthenticated(true)
-        
-        // Extract CSRF token from cookie if available
-        const csrfCookie = document.cookie
-          .split('; ')
-          .find(row => row.startsWith('fingood_auth_csrf='))
-        
-        if (csrfCookie) {
-          const token = csrfCookie.split('=')[1]
-          setCsrfToken(token)
-        }
-      } else if (response.status === 401) {
+      const response = await authAPI.me()
+      const userData = response.data
+      setUser(userData)
+      setIsAuthenticated(true)
+      
+      // Extract CSRF token from cookie if available
+      const csrfCookie = document.cookie
+        .split('; ')
+        .find(row => row.startsWith('fingood_auth_csrf='))
+      
+      if (csrfCookie) {
+        const token = csrfCookie.split('=')[1]
+        setCsrfToken(token)
+      }
+    } catch (error: any) {
+      if (error.response?.status === 401) {
         // 401 is expected when user is not authenticated - this is normal behavior
         setUser(null)
         setIsAuthenticated(false)
         setCsrfToken(null)
       } else {
         // Only log warnings for unexpected error statuses
-        console.warn('Auth check failed with unexpected status:', response.status)
-        setUser(null)
-        setIsAuthenticated(false)
-        setCsrfToken(null)
-      }
-    } catch (error) {
-      // Don't log network errors for auth checks - they're expected when not authenticated
-      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
-        // This is expected when the backend is not reachable or CORS issues
-        setUser(null)
-        setIsAuthenticated(false)
-        setCsrfToken(null)
-      } else {
-        console.error('Unexpected auth check error:', error)
+        console.warn('Auth check failed with unexpected status:', error.response?.status)
         setUser(null)
         setIsAuthenticated(false)
         setCsrfToken(null)
@@ -83,24 +64,8 @@ export function useAuth() {
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await fetch('http://localhost:8000/api/v1/auth/login', {
-        method: 'POST',
-        credentials: 'include', // Include cookies to receive secure auth cookies
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: new URLSearchParams({
-          username: email,
-          password: password,
-        }),
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.detail || 'Login failed')
-      }
-
-      const data: AuthResponse = await response.json()
+      const response = await authAPI.login(email, password)
+      const data: AuthResponse = response.data
       
       // Store user data and CSRF token from response
       setUser(data.user)
@@ -116,23 +81,12 @@ export function useAuth() {
 
   const logout = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/v1/auth/logout', {
-        method: 'POST',
-        credentials: 'include', // Include cookies for authentication
-        headers: {
-          'Content-Type': 'application/json',
-          ...(csrfToken && { 'X-CSRF-Token': csrfToken })
-        },
-      })
+      await authAPI.logout()
 
       // Clear state regardless of response status
       setUser(null)
       setIsAuthenticated(false)
       setCsrfToken(null)
-
-      if (!response.ok) {
-        console.warn('Logout request failed, but local state cleared')
-      }
     } catch (error) {
       console.error('Logout error:', error)
       // Clear state even if logout request fails
@@ -144,19 +98,10 @@ export function useAuth() {
 
   const refreshCsrfToken = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/v1/auth/refresh-csrf', {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        setCsrfToken(data.csrf_token)
-        return data.csrf_token
-      }
+      const response = await authAPI.refreshCsrf()
+      const data = response.data
+      setCsrfToken(data.csrf_token)
+      return data.csrf_token
     } catch (error) {
       console.error('CSRF refresh error:', error)
     }

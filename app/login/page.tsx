@@ -17,8 +17,18 @@ export default function LoginPage() {
     setIsLoading(true)
     setError('')
 
+    // Get form data directly from the form
+    const formData = new FormData(e.target as HTMLFormElement)
+    const formEmail = formData.get('email') as string
+    const formPassword = formData.get('password') as string
+    
+    console.log('Form data:', { formEmail, formPassword })
+    console.log('State data:', { email, password })
+
     try {
-      const response = await authAPI.login(email, password)
+      console.log('Attempting login with:', { email: formEmail, password: formPassword })
+      const response = await authAPI.login(formEmail, formPassword)
+      console.log('Login response:', response.data)
       
       // Store CSRF token globally for API requests
       if (response.data.csrf_token) {
@@ -31,6 +41,8 @@ export default function LoginPage() {
       // Redirect to dashboard after successful login
       router.push('/dashboard')
     } catch (err: any) {
+      console.error('Login error:', err)
+      console.error('Error response:', err.response?.data)
       setError(err.response?.data?.detail || 'Login failed')
     } finally {
       setIsLoading(false)
