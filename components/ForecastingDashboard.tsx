@@ -48,6 +48,7 @@ export function ForecastingDashboard({ className = '' }: ForecastingDashboardPro
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: 1,
     retryDelay: 1000,
+    enabled: false, // Disable until backend is ready
   })
 
   // Fetch available horizons
@@ -57,6 +58,7 @@ export function ForecastingDashboard({ className = '' }: ForecastingDashboardPro
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: 1,
     retryDelay: 1000,
+    enabled: false, // Disable until backend is ready
   })
 
   // Fetch accuracy history
@@ -66,6 +68,7 @@ export function ForecastingDashboard({ className = '' }: ForecastingDashboardPro
     staleTime: 10 * 60 * 1000, // 10 minutes
     retry: 1,
     retryDelay: 1000,
+    enabled: false, // Disable until backend is ready
   })
 
   // Generate forecast mutation
@@ -128,6 +131,104 @@ export function ForecastingDashboard({ className = '' }: ForecastingDashboardPro
     )
   }
 
+  // Show backend not ready message
+  if (typesError || horizonsError || accuracyError) {
+    return (
+      <div className={`space-y-6 ${className}`}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <TrendingUp className="w-8 h-8 text-blue-600" />
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">Cash Flow Forecasting</h2>
+              <p className="text-gray-600">ML-powered predictions with confidence intervals</p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+          <div className="flex items-center gap-3">
+            <AlertCircle className="w-6 h-6 text-yellow-600" />
+            <div>
+              <h3 className="text-lg font-semibold text-yellow-800">Backend Not Ready</h3>
+              <p className="text-yellow-700 mt-1">
+                The forecasting backend is not yet implemented. This is a frontend demo with mock data.
+              </p>
+              <p className="text-yellow-600 text-sm mt-2">
+                Backend Task B4.1 (Predictive Analytics System) needs to be completed first.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Show demo interface with mock data */}
+        <div className="bg-white rounded-lg shadow p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Demo Interface</h3>
+          <p className="text-gray-600 mb-4">
+            This shows how the interface will look when the backend is implemented.
+          </p>
+          
+          {/* Demo form */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Forecast Type
+              </label>
+              <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="cash_flow">Cash Flow Forecasting</option>
+                <option value="spending">Spending Forecasting</option>
+                <option value="revenue">Revenue Forecasting</option>
+              </select>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Forecast Horizon
+              </label>
+              <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="7_days">7 Days</option>
+                <option value="30_days">30 Days</option>
+                <option value="60_days">60 Days</option>
+                <option value="90_days">90 Days</option>
+              </select>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Category Filter
+              </label>
+              <input
+                type="text"
+                placeholder="e.g., Food, Transport"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Confidence Level: 85%
+              </label>
+              <input
+                type="range"
+                min="0.5"
+                max="0.99"
+                step="0.01"
+                defaultValue="0.85"
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+              />
+            </div>
+          </div>
+          
+          <button
+            className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50"
+            disabled
+          >
+            Generate Forecast (Backend Required)
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className={`space-y-6 ${className}`}>
       {/* Header */}
@@ -174,11 +275,11 @@ export function ForecastingDashboard({ className = '' }: ForecastingDashboardPro
               onChange={(e) => setSelectedForecastType(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              {forecastTypes?.map((type) => (
+              {Array.isArray(forecastTypes) ? forecastTypes.map((type) => (
                 <option key={type.value} value={type.value}>
                   {type.label}
                 </option>
-              )) || (
+              )) : (
                 <>
                   <option value="cash_flow">Cash Flow Forecasting</option>
                   <option value="spending">Spending Forecasting</option>
@@ -199,11 +300,11 @@ export function ForecastingDashboard({ className = '' }: ForecastingDashboardPro
               onChange={(e) => setSelectedHorizon(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              {horizons?.map((horizon) => (
+              {Array.isArray(horizons) ? horizons.map((horizon) => (
                 <option key={horizon.value} value={horizon.value}>
                   {horizon.label}
                 </option>
-              )) || (
+              )) : (
                 <>
                   <option value="7_days">7 Days</option>
                   <option value="30_days">30 Days</option>
