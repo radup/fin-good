@@ -3,6 +3,7 @@
 import React from 'react'
 import DashboardLayout from '@/components/DashboardLayout'
 import DashboardComponent from '@/app/DashboardComponent'
+import { ExportManager } from '@/components/ExportManager'
 
 export default function DashboardPage() {
   return (
@@ -16,6 +17,11 @@ export default function DashboardPage() {
         </div>
         
         <DashboardComponent />
+        
+        {/* Export Manager Section */}
+        <div className="mt-8">
+          <ExportManager />
+        </div>
       </div>
     </DashboardLayout>
   )
