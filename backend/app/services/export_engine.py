@@ -32,7 +32,7 @@ from reportlab.lib.units import inch
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak
 from reportlab.platypus.tableofcontents import TableOfContents
 from sqlalchemy.orm import Session
-from weasyprint import HTML, CSS
+# from weasyprint import HTML, CSS  # Temporarily disabled due to system dependencies
 
 from app.core.audit_logger import security_audit_logger
 from app.core.background_jobs import job_manager, JobType, JobState, JobProgress, JobResult, JobPriority
@@ -106,6 +106,8 @@ class ExportFormatters:
         output_path: str,
         options_config: ExportOptionsConfig
     ) -> Tuple[str, int]:
+        # WeasyPrint temporarily disabled - fallback to ReportLab
+        return await self._generate_reportlab_pdf(records, user, output_path, options_config)
         """Generate PDF using HTML template with weasyprint."""
         
         # Default HTML template
@@ -233,19 +235,9 @@ class ExportFormatters:
         template = Template(template_html)
         html_content = template.render(**context)
         
-        # Generate PDF with weasyprint
-        html_doc = HTML(string=html_content)
-        css_styles = CSS(string="""
-            @page { 
-                margin: 1in; 
-                @top-right { content: "Page " counter(page) " of " counter(pages); }
-            }
-        """)
-        
-        html_doc.write_pdf(output_path, stylesheets=[css_styles])
-        
-        file_size = os.path.getsize(output_path)
-        return output_path, file_size
+        # WeasyPrint generation disabled - method returns early with ReportLab fallback
+        # This code is unreachable but kept for future WeasyPrint implementation
+        raise NotImplementedError("WeasyPrint PDF generation temporarily disabled")
     
     async def _generate_reportlab_pdf(
         self,
@@ -677,17 +669,17 @@ def process_export_job(job_data: Dict[str, Any]) -> JobResult:
         
         # Generate export based on format
         if job_data['export_format'] == 'csv':
-            output_path, file_size = await generator.generate_csv_export(
+            output_path, file_size = asyncio.run(generator.generate_csv_export(
                 transactions, columns_config, options_config, str(file_path)
-            )
+            ))
         elif job_data['export_format'] == 'excel':
-            output_path, file_size = await generator.generate_excel_export(
+            output_path, file_size = asyncio.run(generator.generate_excel_export(
                 transactions, columns_config, options_config, str(file_path.with_suffix('.xlsx'))
-            )
+            ))
         elif job_data['export_format'] == 'json':
-            output_path, file_size = await generator.generate_json_export(
+            output_path, file_size = asyncio.run(generator.generate_json_export(
                 transactions, columns_config, options_config, str(file_path)
-            )
+            ))
         elif job_data['export_format'] == 'pdf':
             # Get template config if template_id provided
             template_config = None
@@ -699,9 +691,9 @@ def process_export_job(job_data: Dict[str, Any]) -> JobResult:
                 if template:
                     template_config = template.template_config
             
-            output_path, file_size = await formatters.generate_pdf_export(
+            output_path, file_size = asyncio.run(formatters.generate_pdf_export(
                 transactions, columns_config, options_config, str(file_path.with_suffix('.pdf')), template_config
-            )
+            ))
         else:
             raise ValueError(f"Unsupported export format: {job_data['export_format']}")
         
