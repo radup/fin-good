@@ -31,6 +31,7 @@ from app.core.websocket_manager import (
     emit_database_progress,
     emit_categorization_progress
 )
+from app.core.background_jobs import job_manager, JobPriority, JobState
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -55,17 +56,25 @@ async def upload_csv(
     request: Request,
     file: UploadFile = File(...),
     batch_id: Optional[str] = None,
+    force_sync: bool = False,
     current_user: User = Depends(get_current_user_from_cookie),
     db: Session = Depends(get_db)
 ):
     """
-    Upload and process CSV file with comprehensive security validation and processing.
+    Upload and process CSV file with intelligent async/sync routing.
+    
+    This endpoint automatically routes files based on size:
+    - Small files (< 5MB): Processed synchronously for immediate results
+    - Large files (>= 5MB): Automatically routed to async processing unless force_sync=True
     
     Features SHA256 hash-based duplicate prevention:
     - Each file's content is hashed using SHA256
     - Hash serves as batch_id for tracking and deduplication
     - Rejects duplicates with HTTP 409 and clear error message
     - Maintains existing DELETE /api/v1/transactions/import-batch/{hash} functionality
+    
+    Parameters:
+    - force_sync: If True, forces synchronous processing even for large files
     
     Security measures include file validation, malware scanning, content sanitization,
     and comprehensive audit logging for financial compliance.
@@ -103,6 +112,186 @@ async def upload_csv(
         )
         
         logger.info(f"Processing file upload: {file.filename}, size: {file_size} bytes, user: {current_user.id}")
+        
+        # Intelligent routing: Large files (>=5MB) go to async processing unless forced sync
+        ASYNC_THRESHOLD = 5 * 1024 * 1024  # 5MB
+        should_process_async = file_size >= ASYNC_THRESHOLD and not force_sync
+        
+        if should_process_async:
+            logger.info(f"Routing large file ({file_size} bytes) to async processing for user {current_user.id}")
+            
+            # Route to async processing - delegate to the async endpoint logic
+            try:
+                # Validate priority (default to normal for auto-routed files)
+                job_priority = JobPriority.NORMAL
+                
+                # Basic file type validation (early check)
+                if not file.filename.lower().endswith('.csv'):
+                    security_audit_logger.log_file_upload_failure(
+                        user_id=str(current_user.id),
+                        filename=file.filename,
+                        file_size=file_size,
+                        error="Invalid file extension",
+                        request=request
+                    )
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail="Only CSV files are supported"
+                    )
+                
+                # Basic size validation (should already pass but double-check)
+                max_size = settings.MAX_FILE_SIZE
+                if file_size > max_size:
+                    security_audit_logger.log_file_size_violation(
+                        user_id=str(current_user.id),
+                        filename=file.filename,
+                        file_size=file_size,
+                        max_allowed=max_size,
+                        request=request
+                    )
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail=f"File too large. Maximum size: {max_size / (1024*1024):.1f} MB"
+                    )
+                
+                # Check user job limits
+                user_jobs = await job_manager.get_user_jobs(str(current_user.id), limit=50)
+                active_jobs = [job for job in user_jobs if job.state in ['queued', 'started', 'processing']]
+                
+                if len(active_jobs) >= settings.MAX_CONCURRENT_JOBS_PER_USER:
+                    raise HTTPException(
+                        status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                        detail=f"Too many active jobs. Maximum concurrent jobs: {settings.MAX_CONCURRENT_JOBS_PER_USER}"
+                    )
+                
+                # Generate SHA256 file hash for batch_id (duplicate prevention)
+                if not batch_id:
+                    file_hash = calculate_file_hash_streaming(content)
+                    batch_id = file_hash
+                    
+                    logger.info(f"Generated SHA256 hash for {file.filename}: {truncate_hash_for_display(file_hash)} (size: {file_size} bytes)")
+                    
+                    # Early duplicate detection
+                    existing_upload = db.query(Transaction).filter(
+                        Transaction.user_id == current_user.id,
+                        Transaction.import_batch == file_hash
+                    ).first()
+                    
+                    if existing_upload:
+                        security_audit_logger.log_file_upload_failure(
+                            user_id=str(current_user.id),
+                            filename=file.filename,
+                            file_size=file_size,
+                            error=f"Duplicate file upload detected - hash: {truncate_hash_for_display(file_hash)}",
+                            request=request
+                        )
+                        
+                        logger.warning(f"Duplicate file upload rejected for user {current_user.id}: hash {truncate_hash_for_display(file_hash)}")
+                        
+                        raise HTTPException(
+                            status_code=status.HTTP_409_CONFLICT,
+                            detail={
+                                "message": "This file has already been uploaded",
+                                "duplicate_batch_id": file_hash,
+                                "error_code": "DUPLICATE_FILE_UPLOAD",
+                                "suggested_action": f"Use DELETE /api/v1/transactions/import-batch/{file_hash} to remove the previous upload before re-uploading"
+                            }
+                        )
+                
+                # Get client info for monitoring
+                client_ip = request.client.host if request.client else None
+                user_agent = request.headers.get("User-Agent")
+                
+                # Queue the background job
+                job_id = await job_manager.queue_csv_upload_job(
+                    user_id=str(current_user.id),
+                    file_content=content,
+                    filename=file.filename,
+                    file_size=file_size,
+                    batch_id=batch_id,
+                    client_ip=client_ip,
+                    user_agent=user_agent,
+                    priority=job_priority
+                )
+                
+                # Estimate processing time based on file size
+                estimated_time_minutes = max(1, file_size / (1024 * 1024))  # Rough estimate: 1 minute per MB
+                if file_size > 5 * 1024 * 1024:  # Files > 5MB get longer estimates
+                    estimated_time_minutes *= 1.5
+                
+                processing_time = (datetime.utcnow() - start_time).total_seconds()
+                
+                # Return async response with routing information
+                return {
+                    "message": "Large file automatically routed to background processing",
+                    "processing_mode": "async",
+                    "routing_reason": f"File size ({file_size:,} bytes) exceeds sync threshold ({ASYNC_THRESHOLD:,} bytes)",
+                    "job_id": job_id,
+                    "batch_id": batch_id,
+                    "file_hash": batch_id,
+                    "status": "queued",
+                    "priority": job_priority.value,
+                    "file_info": {
+                        "filename": file.filename,
+                        "file_size": file_size,
+                        "estimated_processing_time_minutes": round(estimated_time_minutes, 1)
+                    },
+                    "tracking": {
+                        "status_endpoint": f"/api/v1/upload/jobs/{job_id}/status",
+                        "progress_endpoint": f"/api/v1/upload/jobs/{job_id}/progress",
+                        "cancel_endpoint": f"/api/v1/upload/jobs/{job_id}/cancel",
+                        "websocket_updates": "Connect to WebSocket for real-time progress"
+                    },
+                    "queue_info": {
+                        "position_estimate": "Processing will begin shortly",
+                        "active_jobs": len(active_jobs),
+                        "max_concurrent": settings.MAX_CONCURRENT_JOBS_PER_USER
+                    },
+                    "performance": {
+                        "queue_time": processing_time,
+                        "estimated_total_time_minutes": round(estimated_time_minutes, 1)
+                    },
+                    "instructions": {
+                        "monitoring": "Use the provided tracking endpoints to monitor progress",
+                        "websocket": "Connect to WebSocket for real-time updates",
+                        "completion": "You'll receive a completion notification via WebSocket",
+                        "force_sync": "Add '?force_sync=true' to force synchronous processing for large files"
+                    }
+                }
+                
+            except HTTPException:
+                # Re-raise HTTP exceptions
+                raise
+            except Exception as e:
+                # Create sanitized error response for unexpected errors
+                error_detail = create_secure_error_response(
+                    exception=e,
+                    error_code="ASYNC_ROUTING_ERROR",
+                    error_category=ErrorCategory.SYSTEM_ERROR,
+                    correlation_id=str(uuid.uuid4()),
+                    user_message="Failed to route large file to background processing. Please try again.",
+                    suggested_action="If the problem persists, try adding '?force_sync=true' to process the file synchronously."
+                )
+                
+                security_audit_logger.log_file_upload_failure(
+                    user_id=str(current_user.id),
+                    filename=file.filename,
+                    file_size=file_size,
+                    error=f"Async routing error: {error_detail.correlation_id}",
+                    request=request
+                )
+                
+                logger.error(f"Failed to route large file to async processing: {error_detail.correlation_id}")
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail=error_detail.user_message
+                )
+        
+        # Continue with synchronous processing for small files or forced sync
+        if should_process_async:
+            logger.info(f"Large file forced to sync processing by user request: {file.filename}")
+        else:
+            logger.info(f"Processing small file ({file_size} bytes) synchronously: {file.filename}")
         
         # Get client info for monitoring
         client_ip = request.client.host if request.client else None
@@ -693,6 +882,7 @@ async def upload_csv(
         
         response_data = {
             "message": "File uploaded and processed successfully",
+            "processing_mode": "sync",
             "batch_id": batch_id,
             "file_hash": batch_id,  # For transparency - batch_id is now the file hash
             "file_info": {
@@ -903,3 +1093,580 @@ async def get_validation_rules():
             "zero_amount": "Zero amounts will trigger a warning"
         }
     }
+
+@router.post("/csv/async")
+async def upload_csv_async(
+    request: Request,
+    file: UploadFile = File(...),
+    batch_id: Optional[str] = None,
+    priority: Optional[str] = "normal",
+    current_user: User = Depends(get_current_user_from_cookie),
+    db: Session = Depends(get_db)
+):
+    """
+    Upload and process CSV file asynchronously using background job queue.
+    
+    This endpoint queues the file processing as a background job and returns immediately
+    with a job ID for tracking progress. The same comprehensive security validation and
+    processing pipeline is maintained, but execution happens asynchronously.
+    
+    Features:
+    - Immediate response with job ID for tracking
+    - Background processing with progress updates
+    - Same security measures as synchronous upload
+    - WebSocket progress notifications
+    - Comprehensive error handling and retry logic
+    - Job priority support for urgent uploads
+    
+    Priority levels:
+    - critical: Highest priority, processed immediately
+    - high: High priority, processed before normal jobs  
+    - normal: Default priority (recommended)
+    - low: Lower priority, processed when resources available
+    
+    Returns:
+    - job_id: Unique identifier for tracking the background job
+    - status: Initial job status
+    - estimated_processing_time: Estimated time to completion
+    - tracking_endpoints: URLs for monitoring progress
+    """
+    
+    start_time = datetime.utcnow()
+    
+    # Basic file validation
+    if not file.filename:
+        security_audit_logger.log_file_upload_failure(
+            user_id=str(current_user.id),
+            filename="<no filename>",
+            file_size=0,
+            error="No filename provided",
+            request=request
+        )
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Filename is required"
+        )
+    
+    try:
+        # Read file content
+        content = await file.read()
+        file_size = len(content)
+        
+        # Log upload attempt
+        security_audit_logger.log_file_upload_attempt(
+            user_id=str(current_user.id),
+            filename=file.filename,
+            file_size=file_size,
+            timestamp=start_time,
+            request=request
+        )
+        
+        logger.info(f"Processing async file upload: {file.filename}, size: {file_size} bytes, user: {current_user.id}")
+        
+        # Validate priority
+        try:
+            job_priority = JobPriority(priority.lower())
+        except ValueError:
+            job_priority = JobPriority.NORMAL
+        
+        # Basic file type validation (early check)
+        if not file.filename.lower().endswith('.csv'):
+            security_audit_logger.log_file_upload_failure(
+                user_id=str(current_user.id),
+                filename=file.filename,
+                file_size=file_size,
+                error="Invalid file extension",
+                request=request
+            )
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Only CSV files are supported"
+            )
+        
+        # Basic size validation (early check)
+        max_size = settings.MAX_FILE_SIZE
+        if file_size > max_size:
+            security_audit_logger.log_file_size_violation(
+                user_id=str(current_user.id),
+                filename=file.filename,
+                file_size=file_size,
+                max_allowed=max_size,
+                request=request
+            )
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"File too large. Maximum size: {max_size / (1024*1024):.1f} MB"
+            )
+        
+        # Check user job limits
+        user_jobs = await job_manager.get_user_jobs(str(current_user.id), limit=50)
+        active_jobs = [job for job in user_jobs if job.state in ['queued', 'started', 'processing']]
+        
+        if len(active_jobs) >= settings.MAX_CONCURRENT_JOBS_PER_USER:
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail=f"Too many active jobs. Maximum concurrent jobs: {settings.MAX_CONCURRENT_JOBS_PER_USER}"
+            )
+        
+        # Generate SHA256 file hash for batch_id (duplicate prevention)
+        if not batch_id:
+            file_hash = calculate_file_hash_streaming(content)
+            batch_id = file_hash
+            
+            logger.info(f"Generated SHA256 hash for {file.filename}: {truncate_hash_for_display(file_hash)} (size: {file_size} bytes)")
+            
+            # Early duplicate detection
+            existing_upload = db.query(Transaction).filter(
+                Transaction.user_id == current_user.id,
+                Transaction.import_batch == file_hash
+            ).first()
+            
+            if existing_upload:
+                security_audit_logger.log_file_upload_failure(
+                    user_id=str(current_user.id),
+                    filename=file.filename,
+                    file_size=file_size,
+                    error=f"Duplicate file upload detected - hash: {truncate_hash_for_display(file_hash)}",
+                    request=request
+                )
+                
+                logger.warning(f"Duplicate file upload rejected for user {current_user.id}: hash {truncate_hash_for_display(file_hash)}")
+                
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail={
+                        "message": "This file has already been uploaded",
+                        "duplicate_batch_id": file_hash,
+                        "error_code": "DUPLICATE_FILE_UPLOAD",
+                        "suggested_action": f"Use DELETE /api/v1/transactions/import-batch/{file_hash} to remove the previous upload before re-uploading"
+                    }
+                )
+        
+        # Get client info for monitoring
+        client_ip = request.client.host if request.client else None
+        user_agent = request.headers.get("User-Agent")
+        
+        # Queue the background job
+        job_id = await job_manager.queue_csv_upload_job(
+            user_id=str(current_user.id),
+            file_content=content,
+            filename=file.filename,
+            file_size=file_size,
+            batch_id=batch_id,
+            client_ip=client_ip,
+            user_agent=user_agent,
+            priority=job_priority
+        )
+        
+        # Estimate processing time based on file size
+        estimated_time_minutes = max(1, file_size / (1024 * 1024))  # Rough estimate: 1 minute per MB
+        if file_size > 5 * 1024 * 1024:  # Files > 5MB get longer estimates
+            estimated_time_minutes *= 1.5
+        
+        processing_time = (datetime.utcnow() - start_time).total_seconds()
+        
+        response_data = {
+            "message": "File upload queued for background processing",
+            "job_id": job_id,
+            "batch_id": batch_id,
+            "file_hash": batch_id,
+            "status": "queued",
+            "priority": job_priority.value,
+            "file_info": {
+                "filename": file.filename,
+                "file_size": file_size,
+                "estimated_processing_time_minutes": round(estimated_time_minutes, 1)
+            },
+            "tracking": {
+                "status_endpoint": f"/api/v1/upload/jobs/{job_id}/status",
+                "progress_endpoint": f"/api/v1/upload/jobs/{job_id}/progress",
+                "cancel_endpoint": f"/api/v1/upload/jobs/{job_id}/cancel",
+                "websocket_updates": "Connect to WebSocket for real-time progress"
+            },
+            "queue_info": {
+                "position_estimate": "Processing will begin shortly",
+                "active_jobs": len(active_jobs),
+                "max_concurrent": settings.MAX_CONCURRENT_JOBS_PER_USER
+            },
+            "performance": {
+                "queue_time": processing_time,
+                "estimated_total_time_minutes": round(estimated_time_minutes, 1)
+            },
+            "instructions": {
+                "monitoring": "Use the provided tracking endpoints to monitor progress",
+                "websocket": "Connect to WebSocket for real-time updates",
+                "completion": "You'll receive a completion notification via WebSocket"
+            }
+        }
+        
+        logger.info(f"Queued async CSV upload job {job_id} for user {current_user.id}")
+        
+        return response_data
+        
+    except HTTPException:
+        # Re-raise HTTP exceptions
+        raise
+    except Exception as e:
+        # Create sanitized error response for unexpected errors
+        error_detail = create_secure_error_response(
+            exception=e,
+            error_code="JOB_QUEUE_ERROR",
+            error_category=ErrorCategory.SYSTEM_ERROR,
+            correlation_id=str(uuid.uuid4()),
+            user_message="Failed to queue upload job. Please try again.",
+            suggested_action="If the problem persists, try the synchronous upload endpoint."
+        )
+        
+        security_audit_logger.log_file_upload_failure(
+            user_id=str(current_user.id),
+            filename=file.filename,
+            file_size=len(content) if 'content' in locals() else 0,
+            error=f"Job queue error: {error_detail.correlation_id}",
+            request=request
+        )
+        
+        logger.error(f"Failed to queue upload job for file {file.filename}: {error_detail.correlation_id}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=error_detail.user_message
+        )
+
+@router.get("/jobs/{job_id}/status")
+async def get_job_status(
+    job_id: str,
+    current_user: User = Depends(get_current_user_from_cookie)
+):
+    """
+    Get detailed status and progress of a background upload job.
+    
+    Returns comprehensive job information including:
+    - Current status and progress percentage
+    - Processing details and error information
+    - Performance metrics and timing
+    - Result data when completed
+    """
+    try:
+        job_progress = await job_manager.get_job_status(job_id)
+        
+        if not job_progress:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Job not found"
+            )
+        
+        # Verify user owns this job
+        if job_progress.user_id != str(current_user.id):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Job not found"  # Don't reveal job exists to unauthorized user
+            )
+        
+        # Calculate elapsed time and estimated completion
+        elapsed_time = (datetime.utcnow() - job_progress.created_at).total_seconds()
+        
+        # Estimate remaining time based on progress
+        estimated_remaining = None
+        if job_progress.progress_percentage > 0 and job_progress.state == JobState.PROCESSING:
+            estimated_total = elapsed_time / (job_progress.progress_percentage / 100.0)
+            estimated_remaining = max(0, estimated_total - elapsed_time)
+        
+        response_data = {
+            "job_id": job_id,
+            "status": job_progress.state.value,
+            "progress": {
+                "percentage": job_progress.progress_percentage,
+                "current_step": job_progress.current_step,
+                "message": job_progress.message,
+                "details": job_progress.details
+            },
+            "timing": {
+                "created_at": job_progress.created_at.isoformat(),
+                "updated_at": job_progress.updated_at.isoformat(),
+                "started_at": job_progress.started_at.isoformat() if job_progress.started_at else None,
+                "completed_at": job_progress.completed_at.isoformat() if job_progress.completed_at else None,
+                "elapsed_seconds": round(elapsed_time, 2),
+                "estimated_remaining_seconds": round(estimated_remaining, 2) if estimated_remaining else None
+            },
+            "job_info": {
+                "job_type": job_progress.job_type.value,
+                "retry_count": job_progress.retry_count,
+                "max_retries": job_progress.max_retries
+            }
+        }
+        
+        # Add error information if job failed
+        if job_progress.error_info:
+            response_data["error"] = {
+                "message": job_progress.error_info.get("message", "Job failed"),
+                "error_code": job_progress.error_info.get("error_code"),
+                "correlation_id": job_progress.error_info.get("correlation_id")
+            }
+        
+        # Add completion data for completed jobs
+        if job_progress.state == JobState.COMPLETED and job_progress.details:
+            response_data["result"] = {
+                "batch_id": job_progress.details.get("batch_id"),
+                "total_transactions": job_progress.details.get("total_transactions"),
+                "categorized_count": job_progress.details.get("categorized_count"),
+                "processing_time": job_progress.details.get("processing_time"),
+                "overall_success_rate": job_progress.details.get("overall_success_rate")
+            }
+        
+        return response_data
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to get job status for {job_id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to retrieve job status"
+        )
+
+@router.get("/jobs/{job_id}/progress")
+async def get_job_progress(
+    job_id: str,
+    current_user: User = Depends(get_current_user_from_cookie)
+):
+    """
+    Get real-time progress updates for a background upload job.
+    
+    Lightweight endpoint optimized for frequent polling to get
+    just the essential progress information.
+    """
+    try:
+        job_progress = await job_manager.get_job_status(job_id)
+        
+        if not job_progress:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Job not found"
+            )
+        
+        # Verify user owns this job
+        if job_progress.user_id != str(current_user.id):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Job not found"
+            )
+        
+        return {
+            "job_id": job_id,
+            "status": job_progress.state.value,
+            "progress_percentage": job_progress.progress_percentage,
+            "current_step": job_progress.current_step,
+            "message": job_progress.message,
+            "updated_at": job_progress.updated_at.isoformat(),
+            "is_complete": job_progress.state in [JobState.COMPLETED, JobState.FAILED, JobState.CANCELLED]
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to get job progress for {job_id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to retrieve job progress"
+        )
+
+@router.post("/jobs/{job_id}/cancel")
+async def cancel_job(
+    job_id: str,
+    current_user: User = Depends(get_current_user_from_cookie)
+):
+    """
+    Cancel a queued or running background upload job.
+    
+    Jobs can only be cancelled by the user who created them
+    and only if they are in a cancellable state.
+    """
+    try:
+        # Verify job exists and user owns it
+        job_progress = await job_manager.get_job_status(job_id)
+        
+        if not job_progress:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Job not found"
+            )
+        
+        if job_progress.user_id != str(current_user.id):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Job not found"
+            )
+        
+        # Check if job can be cancelled
+        if job_progress.state in [JobState.COMPLETED, JobState.FAILED, JobState.CANCELLED]:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Cannot cancel job in {job_progress.state.value} state"
+            )
+        
+        # Attempt to cancel the job
+        success = await job_manager.cancel_job(job_id, str(current_user.id))
+        
+        if not success:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Failed to cancel job"
+            )
+        
+        logger.info(f"Job {job_id} cancelled by user {current_user.id}")
+        
+        return {
+            "message": "Job cancelled successfully",
+            "job_id": job_id,
+            "status": "cancelled",
+            "cancelled_at": datetime.utcnow().isoformat()
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to cancel job {job_id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to cancel job"
+        )
+
+@router.get("/jobs")
+async def get_user_jobs(
+    current_user: User = Depends(get_current_user_from_cookie),
+    limit: int = 20,
+    status_filter: Optional[str] = None
+):
+    """
+    Get all background upload jobs for the current user.
+    
+    Supports filtering by status and pagination for efficient
+    job management and monitoring.
+    """
+    try:
+        # Validate limit
+        limit = min(max(1, limit), 100)  # Between 1 and 100
+        
+        # Get user's jobs
+        user_jobs = await job_manager.get_user_jobs(str(current_user.id), limit=limit)
+        
+        # Filter by status if requested
+        if status_filter:
+            try:
+                filter_state = JobState(status_filter.lower())
+                user_jobs = [job for job in user_jobs if job.state == filter_state]
+            except ValueError:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Invalid status filter: {status_filter}"
+                )
+        
+        # Format response
+        jobs_data = []
+        for job in user_jobs:
+            elapsed_time = (datetime.utcnow() - job.created_at).total_seconds()
+            
+            job_data = {
+                "job_id": job.job_id,
+                "job_type": job.job_type.value,
+                "status": job.state.value,
+                "progress_percentage": job.progress_percentage,
+                "current_step": job.current_step,
+                "message": job.message,
+                "created_at": job.created_at.isoformat(),
+                "updated_at": job.updated_at.isoformat(),
+                "elapsed_seconds": round(elapsed_time, 2),
+                "details": {
+                    "filename": job.details.get("filename"),
+                    "file_size": job.details.get("file_size"),
+                    "batch_id": job.details.get("batch_id")
+                }
+            }
+            
+            # Add completion info for finished jobs
+            if job.state == JobState.COMPLETED:
+                job_data["result"] = {
+                    "total_transactions": job.details.get("total_transactions"),
+                    "categorized_count": job.details.get("categorized_count"),
+                    "overall_success_rate": job.details.get("overall_success_rate")
+                }
+            elif job.state == JobState.FAILED and job.error_info:
+                job_data["error"] = {
+                    "message": job.error_info.get("message", "Job failed"),
+                    "error_code": job.error_info.get("error_code")
+                }
+            
+            jobs_data.append(job_data)
+        
+        # Get summary statistics
+        total_jobs = len(user_jobs)
+        status_counts = {}
+        for job in user_jobs:
+            status = job.state.value
+            status_counts[status] = status_counts.get(status, 0) + 1
+        
+        return {
+            "jobs": jobs_data,
+            "summary": {
+                "total_jobs": total_jobs,
+                "status_counts": status_counts,
+                "limit": limit,
+                "filtered_by": status_filter
+            }
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to get user jobs for {current_user.id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to retrieve jobs"
+        )
+
+@router.get("/queue/stats")
+async def get_queue_statistics(
+    current_user: User = Depends(get_current_user_from_cookie)
+):
+    """
+    Get comprehensive queue statistics and system health information.
+    
+    Provides insight into job queue performance, capacity, and
+    processing metrics for monitoring and capacity planning.
+    """
+    try:
+        # Get queue statistics
+        queue_stats = job_manager.get_queue_stats()
+        
+        # Get user's active jobs
+        user_jobs = await job_manager.get_user_jobs(str(current_user.id), limit=50)
+        user_active_jobs = [job for job in user_jobs if job.state in [JobState.QUEUED, JobState.STARTED, JobState.PROCESSING]]
+        
+        # Calculate user-specific statistics
+        user_stats = {
+            "active_jobs": len(user_active_jobs),
+            "max_concurrent": settings.MAX_CONCURRENT_JOBS_PER_USER,
+            "remaining_capacity": max(0, settings.MAX_CONCURRENT_JOBS_PER_USER - len(user_active_jobs))
+        }
+        
+        return {
+            "queue_statistics": queue_stats,
+            "user_statistics": user_stats,
+            "system_limits": {
+                "max_concurrent_jobs_per_user": settings.MAX_CONCURRENT_JOBS_PER_USER,
+                "max_jobs_per_user_per_hour": settings.MAX_JOBS_PER_USER_PER_HOUR,
+                "job_timeout_minutes": settings.JOB_TIMEOUT_MINUTES,
+                "max_job_retries": settings.MAX_JOB_RETRIES
+            },
+            "queue_health": {
+                "status": "healthy" if queue_stats.get("total_queued", 0) < 1000 else "busy",
+                "total_queued": queue_stats.get("total_queued", 0),
+                "processing_capacity": "available" if user_stats["remaining_capacity"] > 0 else "at_limit"
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to get queue statistics: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to retrieve queue statistics"
+        )
