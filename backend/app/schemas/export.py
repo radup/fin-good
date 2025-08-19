@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field, field_validator, model_validator, ConfigDict
 from typing import Optional, List, Dict, Any, Literal
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from decimal import Decimal
 from enum import Enum
 
@@ -12,6 +12,7 @@ class ExportFormat(str, Enum):
     CSV = "csv"
     EXCEL = "excel"
     JSON = "json"
+    PDF = "pdf"
 
 
 class ExportStatus(str, Enum):

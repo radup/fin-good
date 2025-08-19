@@ -152,6 +152,24 @@ api.interceptors.response.use(
       // Clear any stored CSRF token
       globalCsrfToken = null
       window.location.href = '/login'
+    } else if (error.response?.status === 429) {
+      // Handle rate limiting
+      const retryAfter = error.response.data?.retry_after || 60
+      console.warn(`Rate limit exceeded. Retry after ${retryAfter} seconds.`)
+      
+      // You can add a global rate limit handler here
+      // For example, show a toast notification or disable buttons temporarily
+      if (typeof window !== 'undefined') {
+        // Show user-friendly rate limit message
+        const event = new CustomEvent('rate-limit-exceeded', {
+          detail: {
+            retryAfter,
+            limit: error.response.data?.limit,
+            currentUsage: error.response.data?.current_usage
+          }
+        })
+        window.dispatchEvent(event)
+      }
     }
     return Promise.reject(error)
   }
@@ -279,6 +297,45 @@ export const transactionAPI = {
   // Delete transactions by import batch
   deleteImportBatch: (batchId: string) => 
     api.delete(`/api/v1/transactions/import-batch/${batchId}`),
+
+  // NEW: Bulk categorization with transaction IDs
+  bulkCategorize: (transactionIds: number[], useMlFallback?: boolean) =>
+    api.post('/api/v1/transactions/categorize/bulk', { 
+      transaction_ids: transactionIds, 
+      use_ml_fallback: useMlFallback 
+    }),
+
+  // NEW: Confidence analysis for individual transactions
+  getConfidence: (transactionId: number) =>
+    api.get(`/api/v1/transactions/categorize/confidence/${transactionId}`),
+
+  // NEW: Submit user feedback with ML learning
+  submitFeedback: (transactionId: number, feedbackType: string, suggestedCategory?: string, suggestedSubcategory?: string, feedbackComment?: string) =>
+    api.post('/api/v1/transactions/categorize/feedback', {
+      transaction_id: transactionId,
+      feedback_type: feedbackType,
+      suggested_category: suggestedCategory,
+      suggested_subcategory: suggestedSubcategory,
+      feedback_comment: feedbackComment
+    }),
+
+  // NEW: Category suggestions with rule-based and ML-based recommendations
+  getSuggestions: (transactionId: number, includeMl?: boolean, includeRules?: boolean) =>
+    api.get(`/api/v1/transactions/categorize/suggestions/${transactionId}`, {
+      params: { include_ml: includeMl, include_rules: includeRules }
+    }),
+
+  // NEW: Auto-improvement with configurable limits
+  autoImprove: (params?: { 
+    batch_id?: string, 
+    min_confidence_threshold?: number, 
+    max_transactions?: number 
+  }) =>
+    api.post('/api/v1/transactions/categorize/auto-improve', params),
+
+  // NEW: Categorization performance metrics
+  getPerformance: (params?: { start_date?: string, end_date?: string }) =>
+    api.get('/api/v1/transactions/categorize/performance', { params }),
 }
 
 // Upload endpoints
