@@ -12,7 +12,9 @@ import {
   InformationCircleIcon,
   ShieldCheckIcon,
   CpuChipIcon,
-  SparklesIcon
+  SparklesIcon,
+  PhotoIcon,
+  FolderIcon
 } from '@heroicons/react/24/outline';
 import { useDropzone } from 'react-dropzone'
 import { uploadAPI } from '@/lib/api'
@@ -84,6 +86,19 @@ export function TherapeuticUploadModal({ isOpen, onClose, onUploadSuccess }: The
   const [showDetails, setShowDetails] = useState(false)
   const [uploadStage, setUploadStage] = useState<'uploading' | 'processing' | 'categorizing' | 'complete'>('uploading')
   const [uploadProgress, setUploadProgress] = useState(0)
+  const [isMobile, setIsMobile] = useState(false)
+
+  // Detect mobile device
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   // Reset state whenever the modal opens
   useEffect(() => {
@@ -171,6 +186,8 @@ export function TherapeuticUploadModal({ isOpen, onClose, onUploadSuccess }: The
       'text/csv': ['.csv'],
     },
     multiple: false,
+    noClick: false, // Allow clicking on mobile
+    noDrag: isMobile, // Disable drag on mobile for better UX
   })
 
   const formatFileSize = (bytes: number) => {
@@ -206,52 +223,135 @@ export function TherapeuticUploadModal({ isOpen, onClose, onUploadSuccess }: The
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-        <div className="p-6">
-          <div className="flex justify-between items-center mb-6">
-            <div className="flex items-center gap-3">
-              <h2 className="text-2xl font-bold text-gray-900">Upload Your Financial Data</h2>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className={`bg-white rounded-lg shadow-xl w-full max-h-[90vh] overflow-y-auto ${
+        isMobile ? 'max-w-full mx-0' : 'max-w-2xl mx-4'
+      }`}>
+        <div className={`${isMobile ? 'p-4' : 'p-6'}`}>
+          {/* Header - Mobile Optimized */}
+          <div className={`flex justify-between items-center mb-6 ${
+            isMobile ? 'mb-4' : 'mb-6'
+          }`}>
+            <div className={`flex items-center gap-3 ${
+              isMobile ? 'flex-1 min-w-0' : ''
+            }`}>
+              <h2 className={`font-bold text-gray-900 ${
+                isMobile ? 'text-xl' : 'text-2xl'
+              } ${isMobile ? 'truncate' : ''}`}>
+                Upload Your Financial Data
+              </h2>
+              {!isMobile && (
+                <DrSigmundSpendAvatar 
+                  size="sm" 
+                  mood="encouraging"
+                  message="I'm here to help you understand your finances!"
+                  showMessage={false}
+                />
+              )}
+            </div>
+            <button
+              onClick={onClose}
+              className={`text-gray-400 hover:text-gray-600 transition-colors therapeutic-transition ${
+                isMobile ? 'p-2 -m-2' : ''
+              }`}
+              aria-label="Close modal"
+            >
+              <XMarkIcon className={`${isMobile ? 'w-5 h-5' : 'w-6 h-6'}`} />
+            </button>
+          </div>
+
+          {/* Mobile Avatar - Show below header on mobile */}
+          {isMobile && (
+            <div className="flex justify-center mb-4">
               <DrSigmundSpendAvatar 
                 size="sm" 
                 mood="encouraging"
                 message="I'm here to help you understand your finances!"
-                showMessage={false}
+                showMessage={true}
               />
             </div>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 transition-colors therapeutic-transition"
-            >
-              <XMarkIcon className="w-6 h-6" />
-            </button>
-          </div>
+          )}
 
           {!uploadStatus && !uploading && (
             <div
               {...getRootProps()}
-              className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer therapeutic-transition therapeutic-hover ${
+              className={`border-2 border-dashed rounded-lg text-center cursor-pointer therapeutic-transition therapeutic-hover ${
+                isMobile 
+                  ? 'p-6 border-gray-300 hover:border-blue-400' 
+                  : 'p-8 border-gray-300 hover:border-blue-400'
+              } ${
                 isDragActive
                   ? 'border-blue-500 bg-blue-50'
                   : 'border-gray-300 hover:border-blue-400'
               }`}
             >
               <input {...getInputProps()} />
-              <div className="mb-4">
-                <ArrowUpTrayIcon className="w-12 h-12 text-blue-400 mx-auto" />
-              </div>
-              <p className="text-lg font-medium text-gray-900 mb-2">
-                {isDragActive ? 'Drop your file here' : 'Drag & drop your CSV file here'}
-              </p>
-              <p className="text-gray-600 mb-4">
-                or click to select a file
-              </p>
-              <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-                <div className="flex items-center gap-2 text-sm text-blue-700 mb-2">
+              
+              {/* Mobile-optimized upload area */}
+              {isMobile ? (
+                <div className="space-y-4">
+                  <div className="flex justify-center">
+                    <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+                      <PhotoIcon className="w-8 h-8 text-blue-600" />
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-lg font-medium text-gray-900 mb-2">
+                      Tap to select your CSV file
+                    </p>
+                    <p className="text-sm text-gray-600 mb-4">
+                      We'll help you understand your finances
+                    </p>
+                  </div>
+                  
+                  {/* Mobile file selection buttons */}
+                  <div className="space-y-3">
+                    <button
+                      type="button"
+                      className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium therapeutic-transition therapeutic-hover"
+                      onClick={() => document.querySelector('input[type="file"]')?.click()}
+                    >
+                      <div className="flex items-center justify-center gap-2">
+                        <FolderIcon className="w-5 h-5" />
+                        Choose File
+                      </div>
+                    </button>
+                    
+                    <div className="text-xs text-gray-500">
+                      Supported: CSV files only
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="mb-4">
+                  <ArrowUpTrayIcon className="w-12 h-12 text-blue-400 mx-auto" />
+                </div>
+              )}
+              
+              {!isMobile && (
+                <>
+                  <p className="text-lg font-medium text-gray-900 mb-2">
+                    {isDragActive ? 'Drop your file here' : 'Drag & drop your CSV file here'}
+                  </p>
+                  <p className="text-gray-600 mb-4">
+                    or click to select a file
+                  </p>
+                </>
+              )}
+              
+              {/* Security message - Mobile optimized */}
+              <div className={`bg-blue-50 rounded-lg border border-blue-200 ${
+                isMobile ? 'p-3 mt-4' : 'p-4'
+              }`}>
+                <div className={`flex items-center gap-2 text-sm text-blue-700 mb-2 ${
+                  isMobile ? 'justify-center' : ''
+                }`}>
                   <ShieldCheckIcon className="w-4 h-4" />
                   <span className="font-medium">Your data is secure</span>
                 </div>
-                <p className="text-xs text-blue-600">
+                <p className={`text-blue-600 ${
+                  isMobile ? 'text-xs text-center' : 'text-xs'
+                }`}>
                   We use bank-level encryption and never share your personal information
                 </p>
               </div>
@@ -264,56 +364,79 @@ export function TherapeuticUploadModal({ isOpen, onClose, onUploadSuccess }: The
               stage={uploadStage}
               filename="your file"
               className="mb-4"
+              isMobile={isMobile}
             />
           )}
 
           {uploadStatus && (
             <>
-              <div className={`p-6 rounded-lg mb-6 therapeutic-transition ${
+              <div className={`rounded-lg mb-6 therapeutic-transition ${
                 uploadStatus.success 
                   ? 'bg-green-50 border border-green-200' 
                   : 'bg-red-50 border border-red-200'
-              }`}>
-                <div className="flex items-start gap-4">
+              } ${isMobile ? 'p-4' : 'p-6'}`}>
+                <div className={`flex items-start gap-4 ${
+                  isMobile ? 'flex-col text-center' : ''
+                }`}>
                   {uploadStatus.success ? (
-                    <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <div className={`bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 ${
+                      isMobile ? 'w-12 h-12 mx-auto' : 'w-12 h-12'
+                    }`}>
                       <CheckCircleIcon className="w-6 h-6 text-green-600" />
                     </div>
                   ) : (
-                    <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <div className={`bg-red-100 rounded-full flex items-center justify-center flex-shrink-0 ${
+                      isMobile ? 'w-12 h-12 mx-auto' : 'w-12 h-12'
+                    }`}>
                       <ExclamationTriangleIcon className="w-6 h-6 text-red-600" />
                     </div>
                   )}
                   <div className="flex-1">
-                    <h3 className="font-medium text-gray-900 mb-2">
+                    <h3 className={`font-medium text-gray-900 mb-2 ${
+                      isMobile ? 'text-center' : ''
+                    }`}>
                       {uploadStatus.success ? 'Upload Successful!' : 'Upload Failed'}
                     </h3>
-                    <p className="text-gray-600 mb-3">{uploadStatus.message}</p>
+                    <p className={`text-gray-600 mb-3 ${
+                      isMobile ? 'text-center' : ''
+                    }`}>{uploadStatus.message}</p>
                     
                     {uploadStatus.success && (
-                      <DrSigmundSpendAvatar 
-                        size="sm" 
-                        mood="celebrating"
-                        message="Excellent! Your financial insights are ready to explore."
-                      />
+                      <div className={isMobile ? 'flex justify-center' : ''}>
+                        <DrSigmundSpendAvatar 
+                          size="sm" 
+                          mood="celebrating"
+                          message="Excellent! Your financial insights are ready to explore."
+                        />
+                      </div>
                     )}
                   </div>
                 </div>
 
-                {/* File Info */}
+                {/* File Info - Mobile optimized */}
                 {uploadStatus.file_info && (
-                  <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                    <h4 className="font-medium text-gray-900 mb-3">File Information</h4>
-                    <div className="grid grid-cols-3 gap-4">
-                      <div>
+                  <div className={`mt-6 bg-gray-50 rounded-lg ${
+                    isMobile ? 'p-3' : 'p-4'
+                  }`}>
+                    <h4 className={`font-medium text-gray-900 mb-3 ${
+                      isMobile ? 'text-center' : ''
+                    }`}>File Information</h4>
+                    <div className={`gap-4 ${
+                      isMobile 
+                        ? 'space-y-3' 
+                        : 'grid grid-cols-3 gap-4'
+                    }`}>
+                      <div className={isMobile ? 'text-center' : ''}>
                         <p className="text-gray-500 text-sm">Filename</p>
-                        <p className="font-medium">{uploadStatus.file_info.filename}</p>
+                        <p className={`font-medium ${isMobile ? 'text-sm truncate' : ''}`}>
+                          {uploadStatus.file_info.filename}
+                        </p>
                       </div>
-                      <div>
+                      <div className={isMobile ? 'text-center' : ''}>
                         <p className="text-gray-500 text-sm">File Size</p>
                         <p className="font-medium">{formatFileSize(uploadStatus.file_info.file_size)}</p>
                       </div>
-                      <div>
+                      <div className={isMobile ? 'text-center' : ''}>
                         <p className="text-gray-500 text-sm">Total Rows</p>
                         <p className="font-medium">{uploadStatus.file_info.total_rows}</p>
                       </div>
@@ -321,20 +444,28 @@ export function TherapeuticUploadModal({ isOpen, onClose, onUploadSuccess }: The
                   </div>
                 )}
 
-                {/* Summary */}
+                {/* Summary - Mobile optimized */}
                 {uploadStatus.summary && (
-                  <div className="mt-6 p-4 bg-green-50 rounded-lg border border-green-200">
-                    <h4 className="font-medium text-green-900 mb-3">Processing Summary</h4>
-                    <div className="grid grid-cols-3 gap-4">
-                      <div>
+                  <div className={`mt-6 bg-green-50 rounded-lg border border-green-200 ${
+                    isMobile ? 'p-3' : 'p-4'
+                  }`}>
+                    <h4 className={`font-medium text-green-900 mb-3 ${
+                      isMobile ? 'text-center' : ''
+                    }`}>Processing Summary</h4>
+                    <div className={`gap-4 ${
+                      isMobile 
+                        ? 'space-y-3' 
+                        : 'grid grid-cols-3 gap-4'
+                    }`}>
+                      <div className={isMobile ? 'text-center' : ''}>
                         <p className="text-green-700 text-sm">Total Transactions</p>
                         <p className="font-medium text-green-900">{uploadStatus.summary.total_transactions}</p>
                       </div>
-                      <div>
+                      <div className={isMobile ? 'text-center' : ''}>
                         <p className="text-green-700 text-sm">Successfully Categorized</p>
                         <p className="font-medium text-green-900">{uploadStatus.summary.successfully_categorized}</p>
                       </div>
-                      <div>
+                      <div className={isMobile ? 'text-center' : ''}>
                         <p className="text-green-700 text-sm">Success Rate</p>
                         <p className="font-medium text-green-900">{uploadStatus.summary.overall_success_rate}%</p>
                       </div>
@@ -342,10 +473,14 @@ export function TherapeuticUploadModal({ isOpen, onClose, onUploadSuccess }: The
                   </div>
                 )}
 
-                {/* Parsing Results */}
+                {/* Parsing Results - Mobile optimized */}
                 {uploadStatus.parsing_results && (
-                  <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                    <h4 className="font-medium text-blue-900 mb-3">Data Processing Results</h4>
+                  <div className={`mt-6 bg-blue-50 rounded-lg border border-blue-200 ${
+                    isMobile ? 'p-3' : 'p-4'
+                  }`}>
+                    <h4 className={`font-medium text-blue-900 mb-3 ${
+                      isMobile ? 'text-center' : ''
+                    }`}>Data Processing Results</h4>
                     <div className="space-y-2">
                       <div className="flex justify-between">
                         <span className="text-blue-700 text-sm">Successfully processed:</span>
@@ -367,10 +502,14 @@ export function TherapeuticUploadModal({ isOpen, onClose, onUploadSuccess }: The
                   </div>
                 )}
 
-                {/* Database Results */}
+                {/* Database Results - Mobile optimized */}
                 {uploadStatus.database_results && (
-                  <div className="mt-6 p-4 bg-purple-50 rounded-lg border border-purple-200">
-                    <h4 className="font-medium text-purple-900 mb-3">Database Processing</h4>
+                  <div className={`mt-6 bg-purple-50 rounded-lg border border-purple-200 ${
+                    isMobile ? 'p-3' : 'p-4'
+                  }`}>
+                    <h4 className={`font-medium text-purple-900 mb-3 ${
+                      isMobile ? 'text-center' : ''
+                    }`}>Database Processing</h4>
                     <div className="space-y-2">
                       <div className="flex justify-between">
                         <span className="text-purple-700 text-sm">Processed:</span>
@@ -384,10 +523,14 @@ export function TherapeuticUploadModal({ isOpen, onClose, onUploadSuccess }: The
                   </div>
                 )}
 
-                {/* Categorization Results */}
+                {/* Categorization Results - Mobile optimized */}
                 {uploadStatus.categorization_results && (
-                  <div className="mt-6 p-4 bg-orange-50 rounded-lg border border-orange-200">
-                    <h4 className="font-medium text-orange-900 mb-3">AI Categorization</h4>
+                  <div className={`mt-6 bg-orange-50 rounded-lg border border-orange-200 ${
+                    isMobile ? 'p-3' : 'p-4'
+                  }`}>
+                    <h4 className={`font-medium text-orange-900 mb-3 ${
+                      isMobile ? 'text-center' : ''
+                    }`}>AI Categorization</h4>
                     <div className="space-y-2">
                       <div className="flex justify-between">
                         <span className="text-orange-700 text-sm">Categorized:</span>
@@ -401,18 +544,22 @@ export function TherapeuticUploadModal({ isOpen, onClose, onUploadSuccess }: The
                   </div>
                 )}
 
-                {/* Errors */}
+                {/* Errors - Mobile optimized */}
                 {uploadStatus.errors && uploadStatus.errors.length > 0 && (
                   <div className="mt-6">
                     <button
                       onClick={() => setShowDetails(!showDetails)}
-                      className="text-blue-600 hover:text-blue-800 text-sm font-medium therapeutic-transition"
+                      className={`text-blue-600 hover:text-blue-800 text-sm font-medium therapeutic-transition ${
+                        isMobile ? 'w-full text-center py-2' : ''
+                      }`}
                     >
                       {showDetails ? 'Hide' : 'Show'} Error Details ({uploadStatus.errors.length})
                     </button>
                     
                     {showDetails && (
-                      <div className="mt-4 space-y-2">
+                      <div className={`mt-4 space-y-2 ${
+                        isMobile ? 'max-h-60 overflow-y-auto' : ''
+                      }`}>
                         {uploadStatus.errors.map((error, index) => (
                           <div key={index} className="p-3 bg-red-50 rounded-lg border border-red-200">
                             <div className="flex items-start gap-2">
@@ -431,18 +578,22 @@ export function TherapeuticUploadModal({ isOpen, onClose, onUploadSuccess }: The
                   </div>
                 )}
 
-                {/* Warnings */}
+                {/* Warnings - Mobile optimized */}
                 {uploadStatus.warnings && uploadStatus.warnings.length > 0 && (
                   <div className="mt-6">
                     <button
                       onClick={() => setShowDetails(!showDetails)}
-                      className="text-yellow-600 hover:text-yellow-800 text-sm font-medium therapeutic-transition"
+                      className={`text-yellow-600 hover:text-yellow-800 text-sm font-medium therapeutic-transition ${
+                        isMobile ? 'w-full text-center py-2' : ''
+                      }`}
                     >
                       {showDetails ? 'Hide' : 'Show'} Warning Details ({uploadStatus.warnings.length})
                     </button>
                     
                     {showDetails && (
-                      <div className="mt-4 space-y-2">
+                      <div className={`mt-4 space-y-2 ${
+                        isMobile ? 'max-h-60 overflow-y-auto' : ''
+                      }`}>
                         {uploadStatus.warnings.map((warning, index) => (
                           <div key={index} className="p-3 bg-yellow-50 rounded-lg border border-yellow-200">
                             <div className="flex items-start gap-2">
@@ -462,17 +613,28 @@ export function TherapeuticUploadModal({ isOpen, onClose, onUploadSuccess }: The
                 )}
               </div>
 
-              <div className="flex justify-end gap-3">
+              {/* Action buttons - Mobile optimized */}
+              <div className={`flex gap-3 ${
+                isMobile ? 'flex-col' : 'justify-end'
+              }`}>
                 <button
                   onClick={onClose}
-                  className="px-4 py-2 text-gray-600 hover:text-gray-800 therapeutic-transition"
+                  className={`text-gray-600 hover:text-gray-800 therapeutic-transition ${
+                    isMobile 
+                      ? 'w-full py-3 px-4 border border-gray-300 rounded-lg' 
+                      : 'px-4 py-2'
+                  }`}
                 >
                   Close
                 </button>
                 {uploadStatus.success && (
                   <button
                     onClick={onClose}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 therapeutic-transition therapeutic-hover"
+                    className={`bg-blue-600 text-white rounded-lg hover:bg-blue-700 therapeutic-transition therapeutic-hover ${
+                      isMobile 
+                        ? 'w-full py-3 px-4 font-medium' 
+                        : 'px-4 py-2'
+                    }`}
                   >
                     View Your Data
                   </button>
