@@ -48,7 +48,6 @@ export function ForecastingDashboard({ className = '' }: ForecastingDashboardPro
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: 1,
     retryDelay: 1000,
-    enabled: false, // Disable until backend is ready
   })
 
   // Fetch available horizons
@@ -58,7 +57,6 @@ export function ForecastingDashboard({ className = '' }: ForecastingDashboardPro
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: 1,
     retryDelay: 1000,
-    enabled: false, // Disable until backend is ready
   })
 
   // Fetch accuracy history
@@ -68,7 +66,6 @@ export function ForecastingDashboard({ className = '' }: ForecastingDashboardPro
     staleTime: 10 * 60 * 1000, // 10 minutes
     retry: 1,
     retryDelay: 1000,
-    enabled: false, // Disable until backend is ready
   })
 
   // Generate forecast mutation
@@ -102,15 +99,21 @@ export function ForecastingDashboard({ className = '' }: ForecastingDashboardPro
   })
 
   const handleGenerateForecast = () => {
-    // Disabled until backend is ready
-    console.log('Forecast generation disabled - backend not implemented yet')
-    return
+    setIsGenerating(true)
+    const request: ForecastRequest = {
+      forecast_type: selectedForecastType as any,
+      horizon: selectedHorizon as any,
+      custom_days: selectedHorizon === 'custom' ? customDays : undefined,
+      category_filter: categoryFilter || undefined,
+      confidence_level: confidenceLevel,
+    }
+    generateForecastMutation.mutate(request)
   }
 
   const handleRefresh = () => {
-    // Disabled until backend is ready
-    console.log('Refresh disabled - backend not implemented yet')
-    return
+    queryClient.invalidateQueries({ queryKey: ['forecast-accuracy'] })
+    queryClient.invalidateQueries({ queryKey: ['forecast-types'] })
+    queryClient.invalidateQueries({ queryKey: ['forecast-horizons'] })
   }
 
   if (typesLoading || horizonsLoading) {
@@ -126,7 +129,7 @@ export function ForecastingDashboard({ className = '' }: ForecastingDashboardPro
   }
 
   // Show backend not ready message - since queries are disabled, backend is not ready
-  const backendNotReady = true // TODO: Change to false when backend Task B4.1 is implemented
+  const backendNotReady = false // Backend Task B4.1 is implemented and available
   if (backendNotReady) {
     return (
       <div className={`space-y-6 ${className}`}>
