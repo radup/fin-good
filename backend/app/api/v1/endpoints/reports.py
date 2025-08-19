@@ -37,7 +37,7 @@ import redis
 import os
 
 from app.core.database import get_db
-from app.core.auth import get_current_user
+from app.core.cookie_auth import get_current_user_from_cookie
 from app.core.exceptions import ValidationException, SystemException
 from app.core.config import settings
 from app.models.user import User
@@ -744,7 +744,7 @@ async def generate_report(
     definition: ReportDefinition,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user_from_cookie)
 ):
     """
     Generate a dynamic report based on the provided definition.
@@ -788,7 +788,7 @@ async def generate_report(
 
 @router.get("/templates")
 async def get_report_templates(
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user_from_cookie)
 ):
     """
     Get available report templates with pre-configured settings.
@@ -850,7 +850,7 @@ async def get_report_templates(
 async def clear_report_cache(
     report_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user_from_cookie)
 ):
     """
     Clear cached report data for a specific report ID.
@@ -903,7 +903,7 @@ async def create_report_job_v2(
     report_request: Dict[str, Any],
     background_tasks: BackgroundTasks,
     request: Request,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user_from_cookie),
     db: Session = Depends(get_db)
 ):
     """
@@ -965,7 +965,7 @@ async def create_report_job_v2(
 
 @router.get("/v2/templates", response_model=List[Dict[str, Any]])
 async def get_report_templates_v2(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user_from_cookie),
     db: Session = Depends(get_db)
 ):
     """
@@ -988,7 +988,7 @@ async def get_report_templates_v2(
 @router.get("/v2/progress/{job_id}", response_model=Dict[str, Any])
 async def get_report_progress_v2(
     job_id: str,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user_from_cookie),
     db: Session = Depends(get_db)
 ):
     """
@@ -1063,7 +1063,7 @@ async def download_report_v2(
 @router.get("/v2/history", response_model=List[Dict[str, Any]])
 async def get_report_history_v2(
     limit: int = Query(default=50, ge=1, le=100),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user_from_cookie),
     db: Session = Depends(get_db)
 ):
     """
@@ -1086,7 +1086,7 @@ async def get_report_history_v2(
 @router.post("/v2/schedule", response_model=Dict[str, Any])
 async def schedule_report_v2(
     schedule_request: Dict[str, Any],
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user_from_cookie),
     db: Session = Depends(get_db)
 ):
     """
@@ -1116,7 +1116,7 @@ async def schedule_report_v2(
 @router.delete("/v2/cancel/{job_id}")
 async def cancel_report_job_v2(
     job_id: str,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user_from_cookie),
     db: Session = Depends(get_db)
 ):
     """

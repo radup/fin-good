@@ -31,6 +31,10 @@ from app.core.financial_validators import validate_and_secure_sort_parameters
 from app.core.exceptions import ValidationException
 from app.core.rate_limiter import get_rate_limiter, RateLimitType, RateLimitTier, rate_limit
 from app.core.audit_logger import security_audit_logger
+from app.services.transaction_operations import (
+    TransactionBulkOperations, BulkUpdateRequest, BulkOperationType, 
+    BulkOperationStatus, BusinessLogicException, BulkOperationLimits
+)
 from fastapi import Request
 
 router = APIRouter()
@@ -1454,6 +1458,232 @@ async def download_export(
             error_category=ErrorCategory.SYSTEM_ERROR,
             correlation_id=str(uuid.uuid4()),
             user_message="Failed to download export file. Please try again."
+        )
+        
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=error_detail.user_message
+        )
+
+
+# ====================== BULK OPERATIONS ENDPOINTS ======================
+
+@router.post("/bulk/update")
+@rate_limit(requests_per_hour=50, requests_per_minute=5)  # Strict limits for bulk operations
+async def bulk_update_transactions(
+    request: BulkUpdateRequest,
+    current_user: User = Depends(get_current_user_from_cookie),
+    db: Session = Depends(get_db)
+):
+    """
+    Execute bulk update operations on multiple transactions
+    
+    Supports operations like:
+    - Bulk categorization
+    - Bulk description updates
+    - Bulk vendor updates
+    - Bulk amount corrections
+    """
+    try:
+        bulk_ops = TransactionBulkOperations(db, current_user)
+        result = await bulk_ops.execute_bulk_update(request)
+        
+        return {
+            "operation_id": result.operation_id,
+            "status": result.status.value,
+            "successful_count": result.successful_count,
+            "failed_count": result.failed_count,
+            "total_transactions": result.total_transactions,
+            "affected_transaction_ids": result.affected_transaction_ids,
+            "execution_time_ms": result.execution_time_ms,
+            "errors": result.errors
+        }
+        
+    except (ValidationException, BusinessLogicException) as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception as e:
+        error_detail = create_secure_error_response(
+            exception=e,
+            error_code="BULK_UPDATE_FAILED",
+            error_category=ErrorCategory.SYSTEM_ERROR,
+            correlation_id=str(uuid.uuid4()),
+            user_message="Failed to execute bulk update operation. Please try again."
+        )
+        
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=error_detail.user_message
+        )
+
+
+@router.delete("/bulk/delete")
+@rate_limit(requests_per_hour=20, requests_per_minute=2)  # Very strict limits for bulk delete
+async def bulk_delete_transactions(
+    transaction_ids: List[int],
+    current_user: User = Depends(get_current_user_from_cookie),
+    db: Session = Depends(get_db)
+):
+    """
+    Delete multiple transactions in bulk
+    
+    WARNING: This operation cannot be undone!
+    Use with caution.
+    """
+    try:
+        if not transaction_ids:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Transaction IDs list cannot be empty"
+            )
+        
+        if len(transaction_ids) > BulkOperationLimits.MAX_TRANSACTIONS_DELETE:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Maximum {BulkOperationLimits.MAX_TRANSACTIONS_DELETE} transactions can be deleted at once"
+            )
+        
+        request = BulkUpdateRequest(
+            transaction_ids=transaction_ids,
+            operation_type=BulkOperationType.DELETE,
+            updates={},
+            create_backup=False  # Delete operations can't be undone
+        )
+        
+        bulk_ops = TransactionBulkOperations(db, current_user)
+        result = await bulk_ops.execute_bulk_update(request)
+        
+        return {
+            "operation_id": result.operation_id,
+            "status": result.status.value,
+            "deleted_count": result.successful_count,
+            "failed_count": result.failed_count,
+            "total_transactions": result.total_transactions,
+            "execution_time_ms": result.execution_time_ms,
+            "errors": result.errors
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        error_detail = create_secure_error_response(
+            exception=e,
+            error_code="BULK_DELETE_FAILED",
+            error_category=ErrorCategory.SYSTEM_ERROR,
+            correlation_id=str(uuid.uuid4()),
+            user_message="Failed to execute bulk delete operation. Please try again."
+        )
+        
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=error_detail.user_message
+        )
+
+
+@router.post("/bulk/undo")
+@rate_limit(requests_per_hour=30, requests_per_minute=5)
+async def undo_bulk_operation(
+    current_user: User = Depends(get_current_user_from_cookie),
+    db: Session = Depends(get_db)
+):
+    """
+    Undo the last bulk operation
+    
+    Restores transactions to their previous state before the last bulk operation.
+    Note: Delete operations cannot be undone.
+    """
+    try:
+        bulk_ops = TransactionBulkOperations(db, current_user)
+        result = await bulk_ops.undo_last_operation()
+        
+        return {
+            "operation_id": result.operation_id,
+            "status": result.status.value,
+            "restored_count": result.successful_count,
+            "failed_count": result.failed_count,
+            "total_transactions": result.total_transactions,
+            "affected_transaction_ids": result.affected_transaction_ids,
+            "execution_time_ms": result.execution_time_ms,
+            "errors": result.errors
+        }
+        
+    except BusinessLogicException as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception as e:
+        error_detail = create_secure_error_response(
+            exception=e,
+            error_code="BULK_UNDO_FAILED",
+            error_category=ErrorCategory.SYSTEM_ERROR,
+            correlation_id=str(uuid.uuid4()),
+            user_message="Failed to undo bulk operation. Please try again."
+        )
+        
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=error_detail.user_message
+        )
+
+
+@router.get("/bulk/history")
+@rate_limit(requests_per_hour=100, requests_per_minute=10)
+async def get_bulk_operation_history(
+    limit: int = Query(10, ge=1, le=50),
+    current_user: User = Depends(get_current_user_from_cookie),
+    db: Session = Depends(get_db)
+):
+    """
+    Get history of bulk operations that can be undone
+    """
+    try:
+        bulk_ops = TransactionBulkOperations(db, current_user)
+        history = bulk_ops.get_undo_history(limit)
+        
+        return {
+            "history": history,
+            "total_operations": len(history)
+        }
+        
+    except Exception as e:
+        error_detail = create_secure_error_response(
+            exception=e,
+            error_code="BULK_HISTORY_FAILED",
+            error_category=ErrorCategory.SYSTEM_ERROR,
+            correlation_id=str(uuid.uuid4()),
+            user_message="Failed to retrieve bulk operation history."
+        )
+        
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=error_detail.user_message
+        )
+
+
+@router.get("/bulk/stats")
+async def get_bulk_operation_stats(
+    current_user: User = Depends(get_current_user_from_cookie),
+    db: Session = Depends(get_db)
+):
+    """
+    Get statistics about bulk operations for the current user
+    """
+    try:
+        bulk_ops = TransactionBulkOperations(db, current_user)
+        stats = await bulk_ops.get_bulk_operation_stats()
+        
+        return stats
+        
+    except Exception as e:
+        error_detail = create_secure_error_response(
+            exception=e,
+            error_code="BULK_STATS_FAILED",
+            error_category=ErrorCategory.SYSTEM_ERROR,
+            correlation_id=str(uuid.uuid4()),
+            user_message="Failed to retrieve bulk operation statistics."
         )
         
         raise HTTPException(
