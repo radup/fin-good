@@ -1,0 +1,102 @@
+{
+  "scan_date": "2025-08-19",
+  "project": "FinGood AI-Powered Financial Intelligence Platform",
+  "analysis_complete": true,
+  "vulnerabilities_found": 4,
+  "critical_count": 1,
+  "high_count": 2,
+  "medium_count": 1,
+  "low_count": 0,
+  "overall_security_score": 7.5,
+  "vulnerabilities": [
+    {
+      "id": "CRIT-001",
+      "title": "Hardcoded Fallback Secret Keys",
+      "severity": "CRITICAL",
+      "cvss": 9.1,
+      "status": "OPEN",
+      "files": [
+        "backend/app/core/security.py:68",
+        "backend/app/core/csrf.py:49"
+      ],
+      "fixed": false,
+      "fix_priority": 1,
+      "estimated_fix_time": "2 hours"
+    },
+    {
+      "id": "HIGH-001", 
+      "title": "Duplicate Authentication Endpoints",
+      "severity": "HIGH",
+      "cvss": 7.5,
+      "status": "OPEN",
+      "files": [
+        "backend/app/api/v1/endpoints/auth.py:410-578"
+      ],
+      "fixed": false,
+      "fix_priority": 2,
+      "estimated_fix_time": "1 hour"
+    },
+    {
+      "id": "HIGH-002",
+      "title": "WebSocket Token Security Bypass", 
+      "severity": "HIGH",
+      "cvss": 7.2,
+      "status": "OPEN",
+      "files": [
+        "backend/app/api/v1/endpoints/auth.py:590-605"
+      ],
+      "fixed": false,
+      "fix_priority": 3,
+      "estimated_fix_time": "3 hours"
+    },
+    {
+      "id": "MED-001",
+      "title": "Incomplete Mass Token Revocation",
+      "severity": "MEDIUM", 
+      "cvss": 5.1,
+      "status": "OPEN",
+      "files": [
+        "backend/app/core/security.py:320-332"
+      ],
+      "fixed": false,
+      "fix_priority": 4,
+      "estimated_fix_time": "8 hours"
+    }
+  ],
+  "positive_findings": [
+    "Excellent configuration security with comprehensive validation",
+    "Strong file upload security with malware scanning and sandboxing",
+    "Robust SQL injection prevention using SQLAlchemy ORM",
+    "Comprehensive audit logging throughout the application",
+    "Well-implemented CSRF protection (when properly configured)",
+    "Secure cookie handling with HttpOnly, Secure, SameSite flags"
+  ],
+  "remediation_phases": {
+    "phase_1_immediate": {
+      "timeline": "24-48 hours",
+      "items": ["CRIT-001", "HIGH-001"],
+      "estimated_time": "3 hours",
+      "completed": false
+    },
+    "phase_2_urgent": {
+      "timeline": "1 week", 
+      "items": ["HIGH-002"],
+      "estimated_time": "3 hours",
+      "completed": false
+    },
+    "phase_3_recommended": {
+      "timeline": "2-4 weeks",
+      "items": ["MED-001"],
+      "estimated_time": "8 hours", 
+      "completed": false
+    }
+  },
+  "next_actions": [
+    "Fix hardcoded secret fallbacks in security.py and csrf.py",
+    "Remove duplicate authentication endpoints", 
+    "Update WebSocket token creation to use jwt_manager",
+    "Implement mass token revocation functionality"
+  ],
+  "session_resumable": true,
+  "last_updated": "2025-08-19T12:00:00Z"
+}

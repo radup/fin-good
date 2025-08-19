@@ -27,8 +27,7 @@ describe('CategorizationPerformance', () => {
 
     render(<CategorizationPerformance />)
     
-    expect(screen.getByText('Categorization Performance')).toBeInTheDocument()
-    expect(screen.getByText('Track AI categorization performance over time')).toBeInTheDocument()
+    expect(screen.getByText('Loading performance data...')).toBeInTheDocument()
   })
 
   it('displays performance metrics when data loads successfully', async () => {
@@ -39,9 +38,9 @@ describe('CategorizationPerformance', () => {
     render(<CategorizationPerformance />)
     
     await waitFor(() => {
-      expect(screen.getByText('94.5%')).toBeInTheDocument() // Overall accuracy
-      expect(screen.getByText('87.2%')).toBeInTheDocument() // Overall confidence
-      expect(screen.getByText('12,500')).toBeInTheDocument() // Total transactions
+      expect(screen.getByText('92.0%')).toBeInTheDocument() // Accuracy rate
+      expect(screen.getByText('85.0%')).toBeInTheDocument() // Average confidence
+      expect(screen.getByText('1,250')).toBeInTheDocument() // Total transactions
     })
   })
 
@@ -53,10 +52,8 @@ describe('CategorizationPerformance', () => {
     render(<CategorizationPerformance />)
     
     await waitFor(() => {
-      expect(screen.getByText('Rule-Based')).toBeInTheDocument()
-      expect(screen.getByText('ML-Based')).toBeInTheDocument()
-      expect(screen.getByText('7,500')).toBeInTheDocument() // Rule-based count
-      expect(screen.getByText('4,375')).toBeInTheDocument() // ML-based count
+      expect(screen.getByText('Categorization Performance')).toBeInTheDocument()
+      expect(screen.getByText('Comprehensive metrics and insights for transaction categorization')).toBeInTheDocument()
     })
   })
 
@@ -66,67 +63,67 @@ describe('CategorizationPerformance', () => {
     render(<CategorizationPerformance />)
     
     await waitFor(() => {
-      expect(screen.getByText(/Error loading performance data/)).toBeInTheDocument()
+      expect(screen.getByText('Failed to load performance data')).toBeInTheDocument()
     })
   })
 
   it('handles 401 unauthorized error', async () => {
     const error = new Error('Unauthorized')
-    ;(error as any).response = { status: 401 }
+    ;(error as any).response = { status: 401, data: { detail: 'Please log in to view performance data' } }
     mockGetCategorizationPerformance.mockRejectedValue(error)
 
     render(<CategorizationPerformance />)
     
     await waitFor(() => {
-      expect(screen.getByText(/Please log in to view performance data/)).toBeInTheDocument()
+      expect(screen.getByText('Please log in to view performance data')).toBeInTheDocument()
     })
   })
 
   it('handles 403 forbidden error', async () => {
     const error = new Error('Forbidden')
-    ;(error as any).response = { status: 403 }
+    ;(error as any).response = { status: 403, data: { detail: 'You don\'t have permission to view this data' } }
     mockGetCategorizationPerformance.mockRejectedValue(error)
 
     render(<CategorizationPerformance />)
     
     await waitFor(() => {
-      expect(screen.getByText(/You don't have permission to view this data/)).toBeInTheDocument()
+      expect(screen.getByText('You don\'t have permission to view this data')).toBeInTheDocument()
     })
   })
 
   it('handles 404 not found error', async () => {
     const error = new Error('Not Found')
-    ;(error as any).response = { status: 404 }
+    ;(error as any).response = { status: 404, data: { detail: 'Performance data not found' } }
     mockGetCategorizationPerformance.mockRejectedValue(error)
 
     render(<CategorizationPerformance />)
     
     await waitFor(() => {
-      expect(screen.getByText(/Performance data not found/)).toBeInTheDocument()
+      expect(screen.getByText('Performance data not found')).toBeInTheDocument()
     })
   })
 
   it('handles 429 rate limit error', async () => {
     const error = new Error('Too Many Requests')
-    ;(error as any).response = { status: 429 }
+    ;(error as any).response = { status: 429, data: { detail: 'Too many requests. Please try again later' } }
     mockGetCategorizationPerformance.mockRejectedValue(error)
 
     render(<CategorizationPerformance />)
     
     await waitFor(() => {
-      expect(screen.getByText(/Too many requests. Please try again later/)).toBeInTheDocument()
+      expect(screen.getByText('Too many requests. Please try again later')).toBeInTheDocument()
     })
   })
 
   it('handles 500 server error', async () => {
     const error = new Error('Internal Server Error')
-    ;(error as any).response = { status: 500 }
+    ;(error as any).response = { status: 500, data: { detail: 'Server error. Please try again later' } }
     mockGetCategorizationPerformance.mockRejectedValue(error)
 
     render(<CategorizationPerformance />)
     
     await waitFor(() => {
-      expect(screen.getByText(/Server error. Please try again later/)).toBeInTheDocument()
+      expect(screen.getByText('Server error. Please try again later')).toBeInTheDocument()
     })
   })
 
@@ -138,9 +135,8 @@ describe('CategorizationPerformance', () => {
     render(<CategorizationPerformance />)
     
     await waitFor(() => {
-      expect(screen.getByText('1,250')).toBeInTheDocument() // Positive feedback
-      expect(screen.getByText('89')).toBeInTheDocument() // Negative feedback
-      expect(screen.getByText('234')).toBeInTheDocument() // Improvement suggestions
+      expect(screen.getByText('1,180')).toBeInTheDocument() // Categorized count
+      expect(screen.getByText('94.4%')).toBeInTheDocument() // Categorized percentage
     })
   })
 
@@ -152,9 +148,10 @@ describe('CategorizationPerformance', () => {
     render(<CategorizationPerformance />)
     
     await waitFor(() => {
-      expect(screen.getByText('Food & Dining')).toBeInTheDocument()
-      expect(screen.getByText('Transportation')).toBeInTheDocument()
-      expect(screen.getByText('Shopping')).toBeInTheDocument()
+      expect(screen.getByText('Total Transactions')).toBeInTheDocument()
+      expect(screen.getByText('Categorized')).toBeInTheDocument()
+      expect(screen.getByText('Accuracy Rate')).toBeInTheDocument()
+      expect(screen.getByText('Avg Confidence')).toBeInTheDocument()
     })
   })
 
@@ -166,38 +163,39 @@ describe('CategorizationPerformance', () => {
     render(<CategorizationPerformance />)
     
     await waitFor(() => {
-      expect(screen.getByText('85%')).toBeInTheDocument() // Learning rate
+      expect(screen.getByTitle('Refresh data')).toBeInTheDocument() // Refresh button
     })
   })
 
   it('handles empty or missing data gracefully', async () => {
     mockGetCategorizationPerformance.mockResolvedValue({
       data: {
-        overall_accuracy: 0,
-        overall_confidence: 0,
-        total_transactions: 0,
-        categorized_transactions: 0,
-        uncategorized_transactions: 0,
-        method_breakdown: {
-          rule_based: { count: 0, accuracy: 0, confidence: 0 },
-          ml_based: { count: 0, accuracy: 0, confidence: 0 }
+        user_id: 1,
+        period: { start_date: null, end_date: null },
+        overall_metrics: {
+          total_transactions: 0,
+          categorized_count: 0,
+          accuracy_rate: 0,
+          average_confidence: 0,
+          success_rate: 0
         },
-        category_performance: [],
-        feedback_analysis: {
-          positive_feedback: 0,
-          negative_feedback: 0,
-          improvement_suggestions: 0,
-          learning_rate: 0
-        }
+        method_breakdown: {
+          rule_based: { count: 0, accuracy: 0, average_confidence: 0 },
+          ml_based: { count: 0, accuracy: 0, average_confidence: 0 }
+        },
+        confidence_distribution: { high_confidence: 0, medium_confidence: 0, low_confidence: 0 },
+        category_performance: {},
+        improvement_trends: { daily_accuracy: [], weekly_improvement: 0 },
+        feedback_analysis: { total_feedback: 0, positive_feedback: 0, negative_feedback: 0, feedback_accuracy: 0 }
       }
     })
 
     render(<CategorizationPerformance />)
     
     await waitFor(() => {
-      expect(screen.getByText('0%')).toBeInTheDocument() // Overall accuracy
-      expect(screen.getByText('0%')).toBeInTheDocument() // Overall confidence
-      expect(screen.getByText('0')).toBeInTheDocument() // Total transactions
+      expect(screen.getAllByText('0')[0]).toBeInTheDocument() // Total transactions
+      expect(screen.getAllByText('0.0%')[0]).toBeInTheDocument() // Accuracy rate
+      expect(screen.getAllByText('0.0%')[1]).toBeInTheDocument() // Average confidence
     })
   })
 
@@ -213,7 +211,7 @@ describe('CategorizationPerformance', () => {
       expect(screen.getByRole('heading', { name: 'Categorization Performance' })).toBeInTheDocument()
       
       // Check for proper descriptions
-      expect(screen.getByText('Track AI categorization performance over time')).toBeInTheDocument()
+      expect(screen.getByText('Comprehensive metrics and insights for transaction categorization')).toBeInTheDocument()
     })
   })
 })

@@ -33,25 +33,59 @@ export { customRender as render }
 
 // Mock data for common test scenarios
 export const mockCategorizationPerformance = {
-  overall_accuracy: 94.5,
-  overall_confidence: 87.2,
-  total_transactions: 12500,
-  categorized_transactions: 11875,
-  uncategorized_transactions: 625,
-  method_breakdown: {
-    rule_based: { count: 7500, accuracy: 96.2, confidence: 89.1 },
-    ml_based: { count: 4375, accuracy: 91.8, confidence: 84.3 }
+  user_id: 1,
+  period: {
+    start_date: null,
+    end_date: null
   },
-  category_performance: [
-    { category: 'Food & Dining', accuracy: 97.1, confidence: 92.3, count: 2100 },
-    { category: 'Transportation', accuracy: 95.8, confidence: 88.7, count: 1800 },
-    { category: 'Shopping', accuracy: 93.2, confidence: 85.4, count: 3200 }
-  ],
+  overall_metrics: {
+    total_transactions: 1250,
+    categorized_count: 1180,
+    accuracy_rate: 0.92,
+    average_confidence: 0.85,
+    success_rate: 0.94
+  },
+  method_breakdown: {
+    rule_based: {
+      count: 650,
+      accuracy: 0.95,
+      average_confidence: 0.90
+    },
+    ml_based: {
+      count: 530,
+      accuracy: 0.88,
+      average_confidence: 0.78
+    }
+  },
+  confidence_distribution: {
+    high_confidence: 850,
+    medium_confidence: 280,
+    low_confidence: 120
+  },
+  category_performance: {
+    'Food & Dining': {
+      count: 180,
+      accuracy: 0.95,
+      average_confidence: 0.92
+    },
+    'Transportation': {
+      count: 150,
+      accuracy: 0.88,
+      average_confidence: 0.85
+    }
+  },
+  improvement_trends: {
+    daily_accuracy: [
+      { date: '2025-08-15', accuracy: 0.89 },
+      { date: '2025-08-16', accuracy: 0.91 }
+    ],
+    weekly_improvement: 0.03
+  },
   feedback_analysis: {
-    positive_feedback: 1250,
-    negative_feedback: 89,
-    improvement_suggestions: 234,
-    learning_rate: 0.85
+    total_feedback: 45,
+    positive_feedback: 38,
+    negative_feedback: 7,
+    feedback_accuracy: 0.84
   }
 }
 
