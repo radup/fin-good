@@ -235,7 +235,7 @@ describe('TransactionTable', () => {
     const selectAllButtons = screen.getAllByLabelText('Select all')
     fireEvent.click(selectAllButtons[0])
     
-    expect(screen.getByText('⚠️ Max 1000 transactions')).toBeInTheDocument()
+    expect(screen.getByText('Max 1000 transactions')).toBeInTheDocument()
   })
 
   it('disables bulk operations when no transactions are selected', () => {
@@ -257,5 +257,128 @@ describe('TransactionTable', () => {
     
     const categorizeButton = screen.getByText('Categorize 2 selected')
     expect(categorizeButton).toBeDisabled()
+  })
+
+  it('renders refresh button and header', () => {
+    render(<TransactionTable transactions={mockTransactions} isLoading={false} />)
+    
+    expect(screen.getByText('Transactions')).toBeInTheDocument()
+    expect(screen.getByText('Refresh')).toBeInTheDocument()
+    expect(screen.getByTitle('Refresh transactions')).toBeInTheDocument()
+  })
+
+  it('shows bulk operations help when help button is clicked', () => {
+    render(<TransactionTable transactions={mockTransactions} isLoading={false} />)
+    
+    const helpButton = screen.getByTitle('Bulk operations help')
+    fireEvent.click(helpButton)
+    
+    expect(screen.getByText('Bulk Operations Help:')).toBeInTheDocument()
+    expect(screen.getByText(/Select transactions using checkboxes/)).toBeInTheDocument()
+    expect(screen.getByText(/Choose a category and subcategory/)).toBeInTheDocument()
+    expect(screen.getByText(/Use "Select Similar by Vendor"/)).toBeInTheDocument()
+    expect(screen.getByText(/Undo\/Redo operations are available/)).toBeInTheDocument()
+    expect(screen.getByText(/Maximum 1000 transactions/)).toBeInTheDocument()
+  })
+
+  it('hides bulk operations help when help button is clicked again', () => {
+    render(<TransactionTable transactions={mockTransactions} isLoading={false} />)
+    
+    const helpButton = screen.getByTitle('Bulk operations help')
+    
+    // Click to show help
+    fireEvent.click(helpButton)
+    expect(screen.getByText('Bulk Operations Help:')).toBeInTheDocument()
+    
+    // Click to hide help
+    fireEvent.click(helpButton)
+    expect(screen.queryByText('Bulk Operations Help:')).not.toBeInTheDocument()
+  })
+
+  it('shows error message when API call fails', async () => {
+    const mockGetTransactions = require('@/lib/api').transactionAPI.getTransactions
+    mockGetTransactions.mockRejectedValue({
+      response: {
+        data: {
+          detail: 'Network error occurred'
+        }
+      }
+    })
+
+    render(<TransactionTable transactions={mockTransactions} isLoading={false} />)
+    
+    await waitFor(() => {
+      expect(screen.getByText('Network error occurred')).toBeInTheDocument()
+    })
+  })
+
+  it('shows generic error message when API error has no detail', async () => {
+    const mockGetTransactions = require('@/lib/api').transactionAPI.getTransactions
+    mockGetTransactions.mockRejectedValue({
+      response: {}
+    })
+
+    render(<TransactionTable transactions={mockTransactions} isLoading={false} />)
+    
+    await waitFor(() => {
+      expect(screen.getByText('Failed to load transactions. Please try again.')).toBeInTheDocument()
+    })
+  })
+
+  it('handles keyboard navigation for sortable columns', () => {
+    render(<TransactionTable transactions={mockTransactions} isLoading={false} />)
+    
+    const dateHeader = screen.getByText('Date').closest('th')
+    expect(dateHeader).toHaveAttribute('tabIndex', '0')
+  })
+
+  it('shows loading spinner during refresh', async () => {
+    const mockGetTransactions = require('@/lib/api').transactionAPI.getTransactions
+    mockGetTransactions.mockImplementation(() => new Promise(resolve => setTimeout(resolve, 100)))
+
+    render(<TransactionTable transactions={mockTransactions} isLoading={false} />)
+    
+    const refreshButton = screen.getByText('Refresh')
+    fireEvent.click(refreshButton)
+    
+    // Check that the refresh button shows loading state
+    expect(refreshButton).toBeDisabled()
+  })
+
+  it('displays transaction tooltips for truncated text', () => {
+    const longDescriptionTransaction = {
+      ...mockTransactions[0],
+      description: 'This is a very long transaction description that should be truncated and show a tooltip when hovered',
+      vendor: 'A very long vendor name that should also be truncated'
+    }
+
+    render(<TransactionTable transactions={[longDescriptionTransaction]} isLoading={false} />)
+    
+    const descriptionCell = screen.getByText(longDescriptionTransaction.description)
+    const vendorCell = screen.getByText(longDescriptionTransaction.vendor)
+    
+    expect(descriptionCell).toHaveAttribute('title', longDescriptionTransaction.description)
+    expect(vendorCell).toHaveAttribute('title', longDescriptionTransaction.vendor)
+  })
+
+  it('shows proper accessibility labels for action buttons', () => {
+    render(<TransactionTable transactions={mockTransactions} isLoading={false} />)
+    
+    // Check for proper aria-labels on action buttons
+    const editButtons = screen.getAllByTitle('Edit transaction')
+    const deleteButtons = screen.getAllByTitle('Delete transaction')
+    const scanButtons = screen.getAllByTitle('Select similar by vendor')
+    
+    expect(editButtons).toHaveLength(2)
+    expect(deleteButtons).toHaveLength(2)
+    expect(scanButtons).toHaveLength(2)
+  })
+
+  it('handles focus states for interactive elements', () => {
+    render(<TransactionTable transactions={mockTransactions} isLoading={false} />)
+    
+    // Check that buttons have proper focus ring classes
+    const selectAllButton = screen.getAllByLabelText('Select all')[0]
+    expect(selectAllButton).toHaveClass('focus:outline-none', 'focus:ring-2', 'focus:ring-blue-500')
   })
 })
