@@ -87,6 +87,24 @@ export interface CategorySuggestions {
   confidence_threshold: number
 }
 
+// Types for feedback
+export interface FeedbackResult {
+  message: string
+  feedback_id: string
+  transaction_id: number
+  feedback_type: 'correct' | 'incorrect' | 'suggest_alternative'
+  impact: string
+  ml_learning: boolean
+}
+
+// Types for rate limit handling
+export interface RateLimitInfo {
+  retry_after: number
+  limit: number
+  reset_time: string
+  message: string
+}
+
 // Global CSRF token storage
 let globalCsrfToken: string | null = null
 
@@ -242,6 +260,17 @@ export const transactionAPI = {
     include_rules?: boolean
   }): Promise<{ data: CategorySuggestions }> =>
     api.get(`/api/v1/transactions/categorize/suggestions/${transactionId}`, { params }),
+
+  // Submit categorization feedback
+  submitFeedback: (transactionId: number, params: {
+    feedback_type: 'correct' | 'incorrect' | 'suggest_alternative'
+    suggested_category?: string
+    suggested_subcategory?: string
+    feedback_comment?: string
+  }): Promise<{ data: FeedbackResult }> =>
+    api.post(`/api/v1/transactions/categorize/feedback`, null, { 
+      params: { transaction_id: transactionId, ...params }
+    }),
 
   // List import batches (files)
   listImportBatches: () => 
