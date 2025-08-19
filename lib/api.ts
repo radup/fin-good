@@ -381,9 +381,11 @@ api.interceptors.response.use(
       
       // Don't redirect if we're already on the login page or if it's a login request
       const isLoginRequest = error.config?.url?.includes('/auth/login')
+      const isAuthCheckRequest = error.config?.url?.includes('/auth/me')
+      const isRefreshCsrfRequest = error.config?.url?.includes('/auth/refresh-csrf')
       const isOnLoginPage = typeof window !== 'undefined' && window.location.pathname === '/login'
       
-      if (!isLoginRequest && !isOnLoginPage) {
+      if (!isLoginRequest && !isAuthCheckRequest && !isRefreshCsrfRequest && !isOnLoginPage) {
         window.location.href = '/login'
       }
     } else if (error.response?.status === 429) {
