@@ -66,6 +66,27 @@ export interface AutoImprovementResult {
   processing_time: number
 }
 
+// Types for category suggestions
+export interface CategorySuggestion {
+  category: string
+  subcategory?: string
+  confidence: number
+  source: 'rule' | 'ml'
+  reasoning?: string
+}
+
+export interface CategorySuggestions {
+  transaction_id: number
+  description: string
+  amount: number
+  current_category: string
+  current_subcategory?: string
+  suggestions: CategorySuggestion[]
+  rule_matches: CategorySuggestion[]
+  ml_predictions: CategorySuggestion[]
+  confidence_threshold: number
+}
+
 // Global CSRF token storage
 let globalCsrfToken: string | null = null
 
@@ -214,6 +235,13 @@ export const transactionAPI = {
     max_transactions?: number
   }): Promise<{ data: AutoImprovementResult }> =>
     api.post('/api/v1/transactions/categorize/auto-improve', null, { params }),
+
+  // Get category suggestions for a transaction
+  getCategorySuggestions: (transactionId: number, params?: {
+    include_ml?: boolean
+    include_rules?: boolean
+  }): Promise<{ data: CategorySuggestions }> =>
+    api.get(`/api/v1/transactions/categorize/suggestions/${transactionId}`, { params }),
 
   // List import batches (files)
   listImportBatches: () => 
