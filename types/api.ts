@@ -419,21 +419,152 @@ export interface AnalyticsSummary {
     category: string
     transaction_count: number
     total_amount: number
-    percentage_of_total: number
+    percentage: number
   }>
-  vendor_breakdown: Array<{
+  vendor_analysis: Array<{
     vendor: string
     transaction_count: number
     total_amount: number
-    percentage_of_total: number
+    average_amount: number
   }>
-  insights: Array<{
-    type: string
-    title: string
-    description: string
-    impact: 'positive' | 'negative' | 'neutral'
-    confidence: number
+  trends: {
+    spending_trend: 'increasing' | 'decreasing' | 'stable'
+    transaction_frequency: 'increasing' | 'decreasing' | 'stable'
+    category_distribution: Record<string, number>
+  }
+}
+
+// Forecasting Types
+export interface ForecastRequest {
+  forecast_type: 'cash_flow' | 'revenue' | 'expenses' | 'net_income' | 'category_specific'
+  horizon: '7_days' | '30_days' | '60_days' | '90_days' | 'custom'
+  custom_days?: number
+  category_filter?: string
+  confidence_level?: number
+}
+
+export interface PredictionPoint {
+  date: string
+  value: number
+  confidence_lower: number
+  confidence_upper: number
+  trend_component?: number
+  seasonal_component?: number
+}
+
+export interface ForecastResponse {
+  forecast_id: string
+  user_id: number
+  forecast_type: string
+  horizon_days: number
+  predictions: PredictionPoint[]
+  confidence_score: number
+  seasonal_pattern: string
+  trend_direction: string
+  model_accuracy: number
+  created_at: string
+  metadata: {
+    seasonal_strength: number
+    trend_strength: number
+    volatility: number
+    data_points: number
+    category_filter?: string
+  }
+}
+
+export interface AccuracyHistoryResponse {
+  user_id: number
+  period_days: number
+  average_accuracy: number
+  forecast_count: number
+  accuracy_trend: string
+  best_forecast_type: string
+  accuracy_by_horizon: {
+    '7_days': number
+    '30_days': number
+    '60_days': number
+    '90_days': number
+  }
+}
+
+export interface ModelPerformance {
+  model_type: string
+  mae: number
+  mse: number
+  rmse: number
+  mape: number
+  r2: number
+  training_samples: number
+  test_samples: number
+}
+
+export interface EnsembleAnalysisResponse {
+  ensemble_confidence: number
+  model_weights: Record<string, number>
+  individual_predictions: Array<{
+    value: number
+    confidence_lower: number
+    confidence_upper: number
+    model_type: string
+    confidence_score: number
   }>
+  model_performances: Record<string, ModelPerformance>
+  ensemble_confidence: number
+}
+
+export interface BatchForecastRequest {
+  forecasts: Array<{
+    forecast_type: string
+    horizon: string
+    custom_days?: number
+    category_filter?: string
+  }>
+}
+
+export interface BatchForecastResponse {
+  batch_id: string
+  total_forecasts: number
+  successful_forecasts: number
+  failed_forecasts: number
+  processing_time: number
+  results: ForecastResponse[]
+  errors: Array<{
+    index: number
+    error: string
+  }>
+}
+
+export interface ForecastTypeInfo {
+  value: string
+  label: string
+  description: string
+  supported_horizons: string[]
+}
+
+export interface ForecastHorizonInfo {
+  value: string
+  label: string
+  days: number
+  description: string
+  recommended_for: string[]
+}
+
+export interface ForecastingHealth {
+  status: 'healthy' | 'degraded' | 'unhealthy'
+  model_status: {
+    ensemble_model: 'ready' | 'training' | 'error'
+    individual_models: Record<string, 'ready' | 'training' | 'error'>
+  }
+  performance_metrics: {
+    average_response_time: number
+    success_rate: number
+    error_rate: number
+  }
+  system_resources: {
+    memory_usage: number
+    cpu_usage: number
+    active_forecasts: number
+  }
 }
 
 // Report Builder Response

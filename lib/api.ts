@@ -14,7 +14,16 @@ import {
   AnalyticsSummary,
   ReportTemplate,
   ReportJob,
-  ReportSchedule
+  ReportSchedule,
+  ForecastRequest,
+  ForecastResponse,
+  AccuracyHistoryResponse,
+  EnsembleAnalysisResponse,
+  BatchForecastRequest,
+  BatchForecastResponse,
+  ForecastTypeInfo,
+  ForecastHorizonInfo,
+  ForecastingHealth
 } from '@/types/api'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
@@ -660,4 +669,35 @@ export const reportBuilderAPI = {
 
   // Cancel report job
   cancelJob: (jobId: string) => api.delete(`/api/v1/reports/v2/cancel/${jobId}`),
+}
+
+// Forecasting API
+export const forecastingAPI = {
+  // Generate forecast
+  generateForecast: (data: ForecastRequest) => 
+    api.post<ForecastResponse>('/api/v1/forecasting/generate', data),
+
+  // Get forecast accuracy history
+  getAccuracyHistory: (params?: {
+    days?: number
+  }) => api.get<AccuracyHistoryResponse>('/api/v1/forecasting/accuracy-history', { params }),
+
+  // Get model analysis
+  getModelAnalysis: (params?: {
+    forecast_type?: string
+    horizon?: string
+  }) => api.get<EnsembleAnalysisResponse>('/api/v1/forecasting/model-analysis', { params }),
+
+  // Batch forecast
+  batchForecast: (data: BatchForecastRequest) =>
+    api.post<BatchForecastResponse>('/api/v1/forecasting/batch-forecast', data),
+
+  // Get available forecast types
+  getForecastTypes: () => api.get<ForecastTypeInfo[]>('/api/v1/forecasting/forecast-types'),
+
+  // Get available horizons
+  getHorizons: () => api.get<ForecastHorizonInfo[]>('/api/v1/forecasting/horizons'),
+
+  // Get forecasting health status
+  getHealth: () => api.get<ForecastingHealth>('/api/v1/forecasting/health'),
 }
