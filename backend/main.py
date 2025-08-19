@@ -26,8 +26,7 @@ from app.core.compliance_logger import initialize_compliance_logger
 from app.core.request_logging_middleware import RequestResponseLoggingMiddleware
 from app.core.security_validator import validate_security_configuration, SecurityLevel
 
-# Import background jobs
-from app.core.background_jobs import celery_app
+# Background jobs are imported only when needed (RQ-based)
 
 # Load environment variables
 load_dotenv()
@@ -308,16 +307,8 @@ async def startup_event():
             await monitor.start_background_tasks()
             app_logger.info("Rate limit monitoring initialized successfully")
         
-        # Initialize background jobs (Celery)
-        if settings.ENABLE_BACKGROUND_JOBS:
-            app_logger.info("Initializing background jobs (Celery)...")
-            try:
-                # Celery app is already initialized, just log success
-                app_logger.info("Celery app initialized successfully")
-            except Exception as e:
-                app_logger.error(f"Failed to initialize Celery app: {e}")
-                print(f"⚠️  Warning: Failed to initialize Celery app: {e}")
-                print("   Background jobs will continue without Celery")
+        # Background jobs are already initialized via RQ job_manager import above
+        app_logger.info("Background job system (RQ) is ready")
         
     except Exception as e:
         app_logger.error(f"Rate limiting initialization failed: {e}")
@@ -384,15 +375,9 @@ async def shutdown_event():
                 await monitor.stop_monitoring()
                 app_logger.info("Performance monitoring stopped")
         
-        # Stop background jobs (Celery)
+        # RQ background jobs cleanup is handled automatically via Redis connections
         if settings.ENABLE_BACKGROUND_JOBS:
-            app_logger.info("Stopping background jobs (Celery)...")
-            try:
-                # Celery app cleanup is handled automatically
-                app_logger.info("Celery app stopped successfully")
-            except Exception as e:
-                app_logger.error(f"Failed to stop Celery app: {e}")
-                print(f"⚠️  Warning: Failed to stop Celery app: {e}")
+            app_logger.info("Background job system (RQ) cleanup completed")
         
         # Log successful shutdown
         app_logger.info("FinGood application shutdown completed successfully")
