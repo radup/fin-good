@@ -486,9 +486,7 @@ async def categorize_transactions(
     """Re-run categorization on all uncategorized transactions with ML fallback"""
     categorization_service = CategorizationService(db)
     result = await categorization_service.categorize_user_transactions(
-        current_user.id,
-        batch_id=batch_id,
-        use_ml_fallback=use_ml_fallback
+        current_user.id, batch_id, use_ml_fallback
     )
     
     return {
@@ -497,8 +495,264 @@ async def categorize_transactions(
         "rule_categorized": result['rule_categorized'],
         "ml_categorized": result['ml_categorized'],
         "failed_categorizations": result['failed_categorizations'],
+        "success_rate": result['success_rate']
+    }
+
+@router.post("/categorize/bulk")
+async def bulk_categorize_transactions(
+    transaction_ids: List[int],
+    use_ml_fallback: bool = Query(True, description="Use ML categorization for transactions not matched by rules"),
+    current_user: User = Depends(get_current_user_from_cookie),
+    db: Session = Depends(get_db)
+):
+    """
+    Bulk categorize specific transactions by ID
+    
+    This endpoint allows users to categorize multiple specific transactions at once,
+    providing better control over the categorization process.
+    """
+    if not transaction_ids:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="At least one transaction ID must be provided"
+        )
+    
+    if len(transaction_ids) > 1000:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Maximum 1000 transactions can be categorized at once"
+        )
+    
+    # Verify all transactions belong to the user
+    transactions = db.query(Transaction).filter(
+        Transaction.id.in_(transaction_ids),
+        Transaction.user_id == current_user.id
+    ).all()
+    
+    if len(transactions) != len(transaction_ids):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Some transaction IDs are invalid or do not belong to the user"
+        )
+    
+    categorization_service = CategorizationService(db)
+    result = await categorization_service.categorize_transactions_by_ids(
+        current_user.id, transaction_ids, use_ml_fallback
+    )
+    
+    return {
+        "message": f"Bulk categorization completed: {result['rule_categorized'] + result['ml_categorized']} of {result['total_transactions']} transactions categorized",
+        "total_transactions": result['total_transactions'],
+        "rule_categorized": result['rule_categorized'],
+        "ml_categorized": result['ml_categorized'],
+        "failed_categorizations": result['failed_categorizations'],
         "success_rate": result['success_rate'],
-        "failed_details": result['failed_details']
+        "processing_time": result.get('processing_time', 0)
+    }
+
+@router.get("/categorize/confidence/{transaction_id}")
+async def get_categorization_confidence(
+    transaction_id: int,
+    current_user: User = Depends(get_current_user_from_cookie),
+    db: Session = Depends(get_db)
+):
+    """
+    Get categorization confidence score and alternatives for a specific transaction
+    
+    This endpoint provides detailed information about the categorization confidence
+    and alternative categories that could be applied.
+    """
+    transaction = db.query(Transaction).filter(
+        Transaction.id == transaction_id,
+        Transaction.user_id == current_user.id
+    ).first()
+    
+    if not transaction:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Transaction not found"
+        )
+    
+    categorization_service = CategorizationService(db)
+    confidence_data = await categorization_service.get_categorization_confidence(
+        transaction
+    )
+    
+    return {
+        "transaction_id": transaction_id,
+        "current_category": transaction.category,
+        "current_subcategory": transaction.subcategory,
+        "confidence_score": transaction.confidence_score,
+        "categorization_method": transaction.meta_data.get('categorization_method', 'unknown') if transaction.meta_data else 'unknown',
+        "confidence_breakdown": confidence_data.get('confidence_breakdown', {}),
+        "alternative_categories": confidence_data.get('alternatives', []),
+        "ml_reasoning": transaction.meta_data.get('ml_reasoning') if transaction.meta_data else None,
+        "rule_applied": confidence_data.get('rule_applied'),
+        "last_categorized": transaction.updated_at.isoformat() if transaction.updated_at else None
+    }
+
+@router.post("/categorize/feedback")
+async def submit_categorization_feedback(
+    transaction_id: int,
+    feedback_type: str = Query(..., description="Type of feedback: correct, incorrect, suggest_alternative"),
+    suggested_category: Optional[str] = Query(None, description="Suggested category if feedback_type is suggest_alternative"),
+    suggested_subcategory: Optional[str] = Query(None, description="Suggested subcategory if feedback_type is suggest_alternative"),
+    feedback_comment: Optional[str] = Query(None, description="Additional feedback comment"),
+    current_user: User = Depends(get_current_user_from_cookie),
+    db: Session = Depends(get_db)
+):
+    """
+    Submit feedback on categorization accuracy
+    
+    This endpoint allows users to provide feedback on categorization results,
+    which helps improve the ML model and rule-based categorization.
+    """
+    if feedback_type not in ['correct', 'incorrect', 'suggest_alternative']:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid feedback_type. Must be one of: correct, incorrect, suggest_alternative"
+        )
+    
+    if feedback_type == 'suggest_alternative' and not suggested_category:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="suggested_category is required when feedback_type is suggest_alternative"
+        )
+    
+    transaction = db.query(Transaction).filter(
+        Transaction.id == transaction_id,
+        Transaction.user_id == current_user.id
+    ).first()
+    
+    if not transaction:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Transaction not found"
+        )
+    
+    categorization_service = CategorizationService(db)
+    feedback_result = await categorization_service.submit_categorization_feedback(
+        transaction_id=transaction_id,
+        user_id=current_user.id,
+        feedback_type=feedback_type,
+        suggested_category=suggested_category,
+        suggested_subcategory=suggested_subcategory,
+        feedback_comment=feedback_comment
+    )
+    
+    return {
+        "message": "Categorization feedback submitted successfully",
+        "feedback_id": feedback_result['feedback_id'],
+        "transaction_id": transaction_id,
+        "feedback_type": feedback_type,
+        "impact": feedback_result.get('impact', 'feedback_recorded'),
+        "ml_learning": feedback_result.get('ml_learning', False)
+    }
+
+@router.get("/categorize/suggestions/{transaction_id}")
+async def get_category_suggestions(
+    transaction_id: int,
+    include_ml: bool = Query(True, description="Include ML-based suggestions"),
+    include_rules: bool = Query(True, description="Include rule-based suggestions"),
+    current_user: User = Depends(get_current_user_from_cookie),
+    db: Session = Depends(get_db)
+):
+    """
+    Get category suggestions for a specific transaction
+    
+    This endpoint provides intelligent category suggestions based on both
+    rule-based matching and ML predictions.
+    """
+    transaction = db.query(Transaction).filter(
+        Transaction.id == transaction_id,
+        Transaction.user_id == current_user.id
+    ).first()
+    
+    if not transaction:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Transaction not found"
+        )
+    
+    categorization_service = CategorizationService(db)
+    suggestions = await categorization_service.get_category_suggestions(
+        transaction, include_ml=include_ml, include_rules=include_rules
+    )
+    
+    return {
+        "transaction_id": transaction_id,
+        "description": transaction.description,
+        "amount": transaction.amount,
+        "current_category": transaction.category,
+        "current_subcategory": transaction.subcategory,
+        "suggestions": suggestions.get('suggestions', []),
+        "rule_matches": suggestions.get('rule_matches', []),
+        "ml_predictions": suggestions.get('ml_predictions', []),
+        "confidence_threshold": suggestions.get('confidence_threshold', 0.6)
+    }
+
+@router.post("/categorize/auto-improve")
+async def auto_improve_categorization(
+    batch_id: Optional[str] = Query(None, description="Improve categorization for specific batch"),
+    min_confidence_threshold: float = Query(0.5, ge=0.0, le=1.0, description="Minimum confidence threshold for improvements"),
+    current_user: User = Depends(get_current_user_from_cookie),
+    db: Session = Depends(get_db)
+):
+    """
+    Automatically improve categorization based on user feedback and patterns
+    
+    This endpoint analyzes user feedback and transaction patterns to
+    automatically improve categorization rules and ML model performance.
+    """
+    categorization_service = CategorizationService(db)
+    improvement_result = await categorization_service.auto_improve_categorization(
+        user_id=current_user.id,
+        batch_id=batch_id,
+        min_confidence_threshold=min_confidence_threshold
+    )
+    
+    return {
+        "message": "Categorization auto-improvement completed",
+        "rules_created": improvement_result.get('rules_created', 0),
+        "rules_updated": improvement_result.get('rules_updated', 0),
+        "ml_model_improvements": improvement_result.get('ml_improvements', 0),
+        "transactions_reprocessed": improvement_result.get('transactions_reprocessed', 0),
+        "improvement_score": improvement_result.get('improvement_score', 0.0),
+        "processing_time": improvement_result.get('processing_time', 0)
+    }
+
+@router.get("/categorize/performance")
+async def get_categorization_performance(
+    start_date: Optional[datetime] = Query(None, description="Start date for performance analysis"),
+    end_date: Optional[datetime] = Query(None, description="End date for performance analysis"),
+    current_user: User = Depends(get_current_user_from_cookie),
+    db: Session = Depends(get_db)
+):
+    """
+    Get categorization performance metrics
+    
+    This endpoint provides detailed performance metrics for categorization,
+    including accuracy rates, confidence distributions, and improvement trends.
+    """
+    categorization_service = CategorizationService(db)
+    performance_data = await categorization_service.get_categorization_performance(
+        user_id=current_user.id,
+        start_date=start_date,
+        end_date=end_date
+    )
+    
+    return {
+        "user_id": current_user.id,
+        "period": {
+            "start_date": start_date.isoformat() if start_date else None,
+            "end_date": end_date.isoformat() if end_date else None
+        },
+        "overall_metrics": performance_data.get('overall', {}),
+        "method_breakdown": performance_data.get('methods', {}),
+        "confidence_distribution": performance_data.get('confidence_distribution', {}),
+        "category_performance": performance_data.get('categories', {}),
+        "improvement_trends": performance_data.get('trends', {}),
+        "feedback_analysis": performance_data.get('feedback', {})
     }
 
 @router.get("/categories/available")
