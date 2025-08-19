@@ -52,6 +52,6 @@ fi
 echo ""
 echo "🎯 Quick Actions:"
 echo "  Start development: ./dev-setup.sh"
-echo "  Start servers: ./dev-start.sh"
+echo "  Start servers: ./dev-start.sh (enhanced with health checks)"
 echo "  Stop services: ./dev-stop.sh"
 echo "  View logs: docker-compose -f docker-compose.db-only.yml logs -f"

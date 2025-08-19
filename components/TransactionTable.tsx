@@ -10,6 +10,7 @@ import { useCategoryOptions } from '@/hooks/useCategories'
 import { transactionAPI } from '@/lib/api'
 import { useQueryClient } from '@tanstack/react-query'
 import AIConfidenceDisplay from './AIConfidenceDisplay'
+import type { BulkCategorizationResponse } from '@/types/api'
 
 interface Transaction {
 	id: number
@@ -258,53 +259,61 @@ export function TransactionTable({ transactions: initialTransactions, isLoading,
 		})
 	}
 
-	// Bulk apply categorization
+	// Bulk apply categorization using new API
 	const applyBulkCategorization = async () => {
 		if (selectedIds.size === 0) {
 			setBulkMessage('Please select at least one transaction')
 			return
 		}
-		if (!bulkCategory.trim()) {
-			setBulkMessage('Please choose a category to apply')
+		
+		// Check transaction limit (backend allows max 1000)
+		if (selectedIds.size > 1000) {
+			setBulkMessage('Maximum 1000 transactions can be categorized at once. Please select fewer transactions.')
 			return
 		}
+		
 		setBulkMessage(null)
 		setIsApplyingBulk(true)
 		
-		// Capture previous values for undo
-		const changes = transactions
-			.filter(t => selectedIds.has(t.id))
-			.map(t => ({ id: t.id, prevCategory: t.category, prevSubcategory: t.subcategory }))
-		
-		let successCount = 0
-		let failureCount = 0
-		const ids = Array.from(selectedIds)
-		const concurrency = 5
-		let index = 0
-		
-		const worker = async () => {
-			while (index < ids.length) {
-				const current = index++
-				const id = ids[current]
-				try {
-					await transactionAPI.updateCategory(id, bulkCategory, bulkSubcategory || undefined)
-					successCount += 1
-				} catch (e) {
-					console.error('Bulk update failed for id', id, e)
-					failureCount += 1
-				}
+		try {
+			// Use new bulk categorization API
+			const response = await transactionAPI.bulkCategorize(
+				Array.from(selectedIds),
+				true // use ML fallback
+			)
+			
+			const result = response.data
+			
+			// Display detailed results from new API
+			setBulkMessage(
+				`Bulk categorization completed: ${result.rule_categorized + result.ml_categorized} of ${result.total_transactions} transactions categorized. ` +
+				`Rules: ${result.rule_categorized}, ML: ${result.ml_categorized}, Failed: ${result.failed_categorizations}. ` +
+				`Processing time: ${result.processing_time.toFixed(2)}s`
+			)
+			
+			// Clear selection and refresh data
+			setSelectedIds(new Set())
+			setBulkCategory('')
+			setBulkSubcategory('')
+			fetchTransactions()
+			
+		} catch (error: any) {
+			console.error('Bulk categorization failed:', error)
+			
+			if (error.response?.status === 429) {
+				// Rate limit exceeded
+				const retryAfter = error.response.data?.retry_after || 60
+				setBulkMessage(`Rate limit exceeded. Please wait ${retryAfter} seconds before trying again.`)
+			} else if (error.response?.status === 400) {
+				// Bad request - show specific error
+				setBulkMessage(`Bulk categorization failed: ${error.response.data?.detail || 'Invalid request'}`)
+			} else {
+				// Generic error
+				setBulkMessage('Bulk categorization failed. Please try again.')
 			}
+		} finally {
+			setIsApplyingBulk(false)
 		}
-		
-		await Promise.all(Array.from({ length: Math.min(concurrency, ids.length) }, () => worker()))
-		
-		setLastBulkAction({ changes })
-		setBulkMessage(`Applied to ${successCount} transaction(s).${failureCount ? ` ${failureCount} failed.` : ''}`)
-		setIsApplyingBulk(false)
-		setSelectedIds(new Set())
-		setBulkCategory('')
-		setBulkSubcategory('')
-		fetchTransactions()
 	}
 
 	const undoLastBulk = async () => {
@@ -380,34 +389,18 @@ export function TransactionTable({ transactions: initialTransactions, isLoading,
 				</div>
 
 				<div className="flex items-center gap-2">
-					<ComboBox
-						options={allCategories}
-						value={bulkCategory}
-						onChange={setBulkCategory}
-						placeholder="Bulk category"
-						className="w-40"
-					/>
-					<ComboBox
-						options={bulkCategory ? getSubcategories(bulkCategory) : []}
-						value={bulkSubcategory}
-						onChange={setBulkSubcategory}
-						placeholder="Bulk subcategory"
-						className="w-44"
-					/>
 					<button
 						onClick={applyBulkCategorization}
-						disabled={isApplyingBulk}
+						disabled={isApplyingBulk || selectedIds.size === 0}
 						className="btn-primary disabled:opacity-50"
 					>
-						{isApplyingBulk ? 'Applying...' : 'Apply to selected'}
+						{isApplyingBulk ? 'Categorizing...' : `Categorize ${selectedIds.size} selected`}
 					</button>
-					<button
-						onClick={undoLastBulk}
-						disabled={!lastBulkAction || isApplyingBulk}
-						className="btn-secondary disabled:opacity-50"
-					>
-						Undo last bulk
-					</button>
+					{selectedIds.size > 1000 && (
+						<span className="text-sm text-orange-600">
+							⚠️ Max 1000 transactions
+						</span>
+					)}
 				</div>
 			</div>
 
