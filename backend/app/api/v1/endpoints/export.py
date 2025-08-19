@@ -14,7 +14,7 @@ import logging
 import os
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status, BackgroundTasks, Query
 from fastapi.responses import FileResponse, JSONResponse
@@ -26,7 +26,7 @@ from app.core.audit_logger import security_audit_logger
 from app.core.background_jobs import JobPriority
 from app.core.config import settings
 from app.core.error_handlers import create_error_response
-from app.core.rate_limiter import RateLimiter
+from app.core.rate_limiter import RateLimiter, get_rate_limiter
 from app.core.security_utils import input_sanitizer
 from app.models.export_job import ExportJob, ExportTemplate
 from app.models.user import User
@@ -40,18 +40,7 @@ from app.services.export_engine import EnhancedExportEngine
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
-# Rate limiting for export operations
-export_rate_limiter = RateLimiter(
-    max_requests=10,  # 10 export requests
-    window_seconds=300,  # per 5 minutes
-    key_func=lambda request: f"export:{request.state.user.id}"
-)
-
-download_rate_limiter = RateLimiter(
-    max_requests=50,  # 50 downloads
-    window_seconds=300,  # per 5 minutes
-    key_func=lambda request: f"export_download:{request.client.host}"
-)
+# Rate limiting for export operations - will be handled by dependency injection
 
 
 @router.post("/create", response_model=ExportJobResponse)
@@ -60,7 +49,8 @@ async def create_export_job(
     background_tasks: BackgroundTasks,
     request: Request,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    rate_limiter: RateLimiter = Depends(get_rate_limiter)
 ):
     """
     Create a new export job for background processing.
@@ -603,7 +593,7 @@ async def get_export_stats(
 
 
 # Admin endpoints (require appropriate permissions)
-@router.get("/admin/queue-stats", response_model=Dict[str, any])
+@router.get("/admin/queue-stats", response_model=Dict[str, Any])
 async def get_export_queue_stats(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -638,14 +628,4 @@ async def get_export_queue_stats(
         )
 
 
-# Error handlers for this router
-@router.exception_handler(Exception)
-async def export_exception_handler(request: Request, exc: Exception):
-    """Handle export-specific exceptions."""
-    logger.error(f"Export API error: {exc}", extra={"path": str(request.url)})
-    
-    return create_error_response(
-        error_code="EXPORT_ERROR",
-        message="An error occurred during export processing",
-        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
-    )
+# Note: Exception handling is done at the application level in main.py

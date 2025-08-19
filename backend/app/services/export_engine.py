@@ -32,7 +32,7 @@ from reportlab.lib.units import inch
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak
 from reportlab.platypus.tableofcontents import TableOfContents
 from sqlalchemy.orm import Session
-from weasyprint import HTML, CSS
+# from weasyprint import HTML, CSS  # Temporarily disabled due to system dependencies
 
 from app.core.audit_logger import security_audit_logger
 from app.core.background_jobs import job_manager, JobType, JobState, JobProgress, JobResult, JobPriority
