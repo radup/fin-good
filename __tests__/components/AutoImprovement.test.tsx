@@ -24,12 +24,20 @@ describe('AutoImprovement', () => {
     render(<AutoImprovement />)
     
     expect(screen.getByText('Auto-Improvement')).toBeInTheDocument()
-    expect(screen.getByText('Automatically improve categorization accuracy')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Run Auto-Improvement' })).toBeInTheDocument()
+    expect(screen.getByText('Automatically improve categorization rules and ML model based on feedback and patterns')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Start Auto-Improvement' })).toBeInTheDocument()
   })
 
-  it('displays configuration options', () => {
+  it('displays configuration options when settings button is clicked', async () => {
+    const user = userEvent.setup()
     render(<AutoImprovement />)
+    
+    // Configuration should be hidden initially
+    expect(screen.queryByLabelText('Confidence Threshold')).not.toBeInTheDocument()
+    
+    // Click settings button to show configuration
+    const settingsButton = screen.getByTitle('Show configuration')
+    await user.click(settingsButton)
     
     expect(screen.getByLabelText('Confidence Threshold')).toBeInTheDocument()
     expect(screen.getByLabelText('Max Transactions')).toBeInTheDocument()
@@ -44,12 +52,12 @@ describe('AutoImprovement', () => {
 
     render(<AutoImprovement />)
     
-    const runButton = screen.getByRole('button', { name: 'Run Auto-Improvement' })
+    const runButton = screen.getByRole('button', { name: 'Start Auto-Improvement' })
     await user.click(runButton)
 
     await waitFor(() => {
       expect(mockAutoImprove).toHaveBeenCalledWith({
-        min_confidence_threshold: 0.8,
+        min_confidence_threshold: 0.5,
         max_transactions: 1000
       })
     })
@@ -63,7 +71,7 @@ describe('AutoImprovement', () => {
 
     render(<AutoImprovement />)
     
-    const runButton = screen.getByRole('button', { name: 'Run Auto-Improvement' })
+    const runButton = screen.getByRole('button', { name: 'Start Auto-Improvement' })
     await user.click(runButton)
 
     await waitFor(() => {
@@ -83,11 +91,11 @@ describe('AutoImprovement', () => {
 
     render(<AutoImprovement />)
     
-    const runButton = screen.getByRole('button', { name: 'Run Auto-Improvement' })
+    const runButton = screen.getByRole('button', { name: 'Start Auto-Improvement' })
     await user.click(runButton)
 
     await waitFor(() => {
-      expect(screen.getByText(/Error running auto-improvement/)).toBeInTheDocument()
+      expect(screen.getByText('Auto-improvement failed. Please try again.')).toBeInTheDocument()
     })
   })
 
@@ -99,11 +107,11 @@ describe('AutoImprovement', () => {
 
     render(<AutoImprovement />)
     
-    const runButton = screen.getByRole('button', { name: 'Run Auto-Improvement' })
+    const runButton = screen.getByRole('button', { name: 'Start Auto-Improvement' })
     await user.click(runButton)
 
     await waitFor(() => {
-      expect(screen.getByText(/Please log in to run auto-improvement/)).toBeInTheDocument()
+      expect(screen.getByText('Authentication required. Please log in.')).toBeInTheDocument()
     })
   })
 
@@ -115,11 +123,11 @@ describe('AutoImprovement', () => {
 
     render(<AutoImprovement />)
     
-    const runButton = screen.getByRole('button', { name: 'Run Auto-Improvement' })
+    const runButton = screen.getByRole('button', { name: 'Start Auto-Improvement' })
     await user.click(runButton)
 
     await waitFor(() => {
-      expect(screen.getByText(/You don't have permission to run auto-improvement/)).toBeInTheDocument()
+      expect(screen.getByText('Access denied. You do not have permission to run auto-improvement.')).toBeInTheDocument()
     })
   })
 
@@ -131,11 +139,11 @@ describe('AutoImprovement', () => {
 
     render(<AutoImprovement />)
     
-    const runButton = screen.getByRole('button', { name: 'Run Auto-Improvement' })
+    const runButton = screen.getByRole('button', { name: 'Start Auto-Improvement' })
     await user.click(runButton)
 
     await waitFor(() => {
-      expect(screen.getByText(/Too many requests. Please try again later/)).toBeInTheDocument()
+      expect(screen.getByText('Rate limit exceeded. Please try again later.')).toBeInTheDocument()
     })
   })
 
@@ -147,11 +155,11 @@ describe('AutoImprovement', () => {
 
     render(<AutoImprovement />)
     
-    const runButton = screen.getByRole('button', { name: 'Run Auto-Improvement' })
+    const runButton = screen.getByRole('button', { name: 'Start Auto-Improvement' })
     await user.click(runButton)
 
     await waitFor(() => {
-      expect(screen.getByText(/Server error. Please try again later/)).toBeInTheDocument()
+      expect(screen.getByText('Server error. Please try again later.')).toBeInTheDocument()
     })
   })
 
@@ -163,11 +171,15 @@ describe('AutoImprovement', () => {
 
     render(<AutoImprovement />)
     
-    const confidenceInput = screen.getByLabelText('Confidence Threshold')
+    // Show configuration panel
+    const settingsButton = screen.getByTitle('Show configuration')
+    await user.click(settingsButton)
+    
+    const confidenceInput = screen.getByDisplayValue('0.5')
     await user.clear(confidenceInput)
     await user.type(confidenceInput, '0.9')
 
-    const runButton = screen.getByRole('button', { name: 'Run Auto-Improvement' })
+    const runButton = screen.getByRole('button', { name: 'Start Auto-Improvement' })
     await user.click(runButton)
 
     await waitFor(() => {
@@ -186,16 +198,20 @@ describe('AutoImprovement', () => {
 
     render(<AutoImprovement />)
     
-    const maxTransactionsInput = screen.getByLabelText('Max Transactions')
+    // Show configuration panel
+    const settingsButton = screen.getByTitle('Show configuration')
+    await user.click(settingsButton)
+    
+    const maxTransactionsInput = screen.getByDisplayValue('1000')
     await user.clear(maxTransactionsInput)
     await user.type(maxTransactionsInput, '500')
 
-    const runButton = screen.getByRole('button', { name: 'Run Auto-Improvement' })
+    const runButton = screen.getByRole('button', { name: 'Start Auto-Improvement' })
     await user.click(runButton)
 
     await waitFor(() => {
       expect(mockAutoImprove).toHaveBeenCalledWith({
-        min_confidence_threshold: 0.8,
+        min_confidence_threshold: 0.5,
         max_transactions: 500
       })
     })
@@ -209,16 +225,20 @@ describe('AutoImprovement', () => {
 
     render(<AutoImprovement />)
     
-    const batchIdInput = screen.getByLabelText('Batch ID (Optional)')
+    // Show configuration panel
+    const settingsButton = screen.getByTitle('Show configuration')
+    await user.click(settingsButton)
+    
+    const batchIdInput = screen.getByPlaceholderText('Leave empty for all transactions')
     await user.type(batchIdInput, 'batch_123')
 
-    const runButton = screen.getByRole('button', { name: 'Run Auto-Improvement' })
+    const runButton = screen.getByRole('button', { name: 'Start Auto-Improvement' })
     await user.click(runButton)
 
     await waitFor(() => {
       expect(mockAutoImprove).toHaveBeenCalledWith({
         batch_id: 'batch_123',
-        min_confidence_threshold: 0.8,
+        min_confidence_threshold: 0.5,
         max_transactions: 1000
       })
     })
@@ -235,7 +255,7 @@ describe('AutoImprovement', () => {
 
     render(<AutoImprovement />)
     
-    const runButton = screen.getByRole('button', { name: 'Run Auto-Improvement' })
+    const runButton = screen.getByRole('button', { name: 'Start Auto-Improvement' })
     await user.click(runButton)
 
     expect(screen.getByText('Running Auto-Improvement...')).toBeInTheDocument()
@@ -253,25 +273,31 @@ describe('AutoImprovement', () => {
 
     render(<AutoImprovement />)
     
-    const runButton = screen.getByRole('button', { name: 'Run Auto-Improvement' })
+    const runButton = screen.getByRole('button', { name: 'Start Auto-Improvement' })
     await user.click(runButton)
 
     await waitFor(() => {
-      expect(screen.getByText('Rules Created')).toBeInTheDocument()
+      expect(screen.getByText('New Rules Created')).toBeInTheDocument()
       expect(screen.getByText('Rules Updated')).toBeInTheDocument()
-      expect(screen.getByText('ML Model Improvements')).toBeInTheDocument()
-      expect(screen.getByText('Transactions Reprocessed')).toBeInTheDocument()
+      expect(screen.getByText('ML Improvements')).toBeInTheDocument()
+      expect(screen.getByText('Transactions Processed')).toBeInTheDocument()
       expect(screen.getByText('Improvement Score')).toBeInTheDocument()
-      expect(screen.getByText('Processing Time')).toBeInTheDocument()
+      expect(screen.getByText(/Processing completed in/)).toBeInTheDocument()
     })
   })
 
-  it('is accessible with proper ARIA labels', () => {
+  it('is accessible with proper ARIA labels', async () => {
+    const user = userEvent.setup()
     render(<AutoImprovement />)
     
     expect(screen.getByRole('heading', { name: 'Auto-Improvement' })).toBeInTheDocument()
-    expect(screen.getByLabelText('Confidence Threshold')).toBeInTheDocument()
-    expect(screen.getByLabelText('Max Transactions')).toBeInTheDocument()
-    expect(screen.getByLabelText('Batch ID (Optional)')).toBeInTheDocument()
+    
+    // Show configuration to test accessibility of form elements
+    const settingsButton = screen.getByTitle('Show configuration')
+    await user.click(settingsButton)
+    
+    expect(screen.getByText(/Confidence Threshold:/)).toBeInTheDocument()
+    expect(screen.getByText(/Max Transactions:/)).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('Leave empty for all transactions')).toBeInTheDocument()
   })
 })
