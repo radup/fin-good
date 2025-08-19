@@ -2,6 +2,59 @@ import axios from 'axios'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001'
 
+// Types for categorization performance
+export interface CategorizationPerformance {
+  user_id: number
+  period: {
+    start_date: string | null
+    end_date: string | null
+  }
+  overall_metrics: {
+    total_transactions: number
+    categorized_count: number
+    accuracy_rate: number
+    average_confidence: number
+    success_rate: number
+  }
+  method_breakdown: {
+    rule_based: {
+      count: number
+      accuracy: number
+      average_confidence: number
+    }
+    ml_based: {
+      count: number
+      accuracy: number
+      average_confidence: number
+    }
+  }
+  confidence_distribution: {
+    high_confidence: number
+    medium_confidence: number
+    low_confidence: number
+  }
+  category_performance: {
+    [category: string]: {
+      count: number
+      accuracy: number
+      average_confidence: number
+    }
+  }
+  improvement_trends: {
+    daily_accuracy: Array<{
+      date: string
+      accuracy: number
+    }>
+    weekly_improvement: number
+  }
+  feedback_analysis: {
+    total_feedback: number
+    positive_feedback: number
+    negative_feedback: number
+    feedback_accuracy: number
+  }
+}
+
 // Global CSRF token storage
 let globalCsrfToken: string | null = null
 
@@ -135,6 +188,13 @@ export const transactionAPI = {
     api.put(`/api/v1/transactions/${id}/category`, null, {
       params: { category, subcategory }
     }),
+
+  // Get categorization performance metrics
+  getCategorizationPerformance: (params?: {
+    start_date?: string
+    end_date?: string
+  }): Promise<{ data: CategorizationPerformance }> =>
+    api.get('/api/v1/transactions/categorize/performance', { params }),
 
   // List import batches (files)
   listImportBatches: () => 
