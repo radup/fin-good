@@ -59,13 +59,14 @@ export function ForecastingDashboard({ className = '' }: ForecastingDashboardPro
     retryDelay: 1000,
   })
 
-  // Fetch accuracy history
+  // Fetch accuracy history - disabled due to CORS/backend issues
   const { data: accuracyHistory, isLoading: accuracyLoading, error: accuracyError } = useQuery({
     queryKey: ['forecast-accuracy'],
     queryFn: () => forecastingAPI.getAccuracyHistory({ days: 30 }),
     staleTime: 10 * 60 * 1000, // 10 minutes
     retry: 1,
     retryDelay: 1000,
+    enabled: false, // Disable until CORS is fixed
   })
 
   // Generate forecast mutation
