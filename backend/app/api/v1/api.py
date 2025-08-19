@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.v1.endpoints import auth, transactions, categories, categorization_rules, upload, analytics, monitoring, rate_limit_admin, cache, reports, export, duplicates, patterns, forecasting
+from app.api.v1.endpoints import auth, transactions, categories, categorization_rules, upload, analytics, monitoring, rate_limit_admin, cache, reports, export, duplicates, patterns, forecasting, budget
 
 api_router = APIRouter()
 
@@ -18,3 +18,4 @@ api_router.include_router(rate_limit_admin.router, prefix="/admin/rate-limits", 
 api_router.include_router(duplicates.router, prefix="/duplicates", tags=["duplicate detection"])
 api_router.include_router(patterns.router, prefix="/patterns", tags=["pattern recognition"])
 api_router.include_router(forecasting.router, prefix="/forecasting", tags=["forecasting & predictions"])
+api_router.include_router(budget.router, prefix="/budget", tags=["budget management"])
