@@ -325,28 +325,28 @@ The backend has been significantly enhanced with advanced categorization APIs, b
 ---
 
 ### **Task F2.6: Export Engine Integration**
-- **Status**: `❌ NOT STARTED`
+- **Status**: `✅ COMPLETED`
 - **Priority**: P1 High
 - **Effort**: 2-3 days
 - **Dependencies**: Task F1.1 (API Client Integration), Task F2.4 (WebSocket Integration)
 - **Description**: Integrate new export engine for multi-format data export
 
 **Implementation Steps:**
-- [ ] **Add export API integration** - Connect to export endpoints
-  - [ ] Integrate `/api/v1/export/*` endpoints
-  - [ ] Add export job creation and management
-  - [ ] Implement secure download token system
-  - [ ] Add export history and tracking
-- [ ] **Create export interface** - User-friendly export options
-  - [ ] Multi-format export selection (CSV, Excel, PDF, JSON)
-  - [ ] Export configuration options (columns, filters, formatting)
-  - [ ] Background export job management
-  - [ ] Export progress tracking via WebSocket
-- [ ] **Add export features** - Advanced export capabilities
-  - [ ] Template-based PDF report generation
-  - [ ] Custom Excel formatting and charts
-  - [ ] Streaming CSV exports for large datasets
-  - [ ] Export scheduling and automation
+- [x] **Add export API integration** - Connect to export endpoints
+  - [x] Integrate `/api/v1/export/*` endpoints
+  - [x] Add export job creation and management
+  - [x] Implement secure download token system
+  - [x] Add export history and tracking
+- [x] **Create export interface** - User-friendly export options
+  - [x] Multi-format export selection (CSV, Excel, PDF, JSON)
+  - [x] Export configuration options (columns, filters, formatting)
+  - [x] Background export job management
+  - [x] Export progress tracking via WebSocket
+- [x] **Add export features** - Advanced export capabilities
+  - [x] Template-based PDF report generation
+  - [x] Custom Excel formatting and charts
+  - [x] Streaming CSV exports for large datasets
+  - [x] Export scheduling and automation
 
 **Files to Create:**
 - `lib/export.ts` - Export API client functions
@@ -363,28 +363,28 @@ The backend has been significantly enhanced with advanced categorization APIs, b
 ---
 
 ### **Task F2.7: Report Builder Integration**
-- **Status**: `❌ NOT STARTED`
+- **Status**: `✅ COMPLETED`
 - **Priority**: P1 High
 - **Effort**: 3-4 days
 - **Dependencies**: Task F1.1 (API Client Integration)
 - **Description**: Integrate report builder API for dynamic report generation
 
 **Implementation Steps:**
-- [ ] **Add report API integration** - Connect to report endpoints
-  - [ ] Integrate `/api/v1/reports/*` endpoints
-  - [ ] Add dynamic report generation capabilities
-  - [ ] Implement report template management
-  - [ ] Add report caching and performance optimization
-- [ ] **Create report interface** - User-friendly report builder
-  - [ ] 8 pre-configured report types (cash flow, spending analysis, etc.)
-  - [ ] Custom filtering and grouping options
-  - [ ] Report preview and customization
-  - [ ] Report scheduling and automation
-- [ ] **Add report features** - Advanced reporting capabilities
-  - [ ] Interactive report charts and visualizations
-  - [ ] Report sharing and collaboration
-  - [ ] Report export in multiple formats
-  - [ ] Report versioning and history
+- [x] **Add report API integration** - Connect to report endpoints
+  - [x] Integrate `/api/v1/reports/*` endpoints
+  - [x] Add dynamic report generation capabilities
+  - [x] Implement report template management
+  - [x] Add report caching and performance optimization
+- [x] **Create report interface** - User-friendly report builder
+  - [x] 8 pre-configured report types (cash flow, spending analysis, etc.)
+  - [x] Custom filtering and grouping options
+  - [x] Report preview and customization
+  - [x] Report scheduling and automation
+- [x] **Add report features** - Advanced reporting capabilities
+  - [x] Interactive report charts and visualizations
+  - [x] Report sharing and collaboration
+  - [x] Report export in multiple formats
+  - [x] Report versioning and history
 
 **Files to Create:**
 - `lib/reports.ts` - Report API client functions
