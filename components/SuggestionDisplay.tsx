@@ -124,9 +124,8 @@ export default function SuggestionDisplay({
         setError('Rate limit exceeded. Please try again later.')
       } else if (err.response?.status >= 500) {
         setError('Server error. Please try again later.')
-            } else {
+      } else {
         setError(err.response?.data?.detail || 'Failed to load suggestions. Please try again.')
-      }
       }
     } finally {
       setLoading(false)
