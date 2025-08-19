@@ -58,10 +58,14 @@ export default function ConfidenceDistribution({ data = mockData, className = ''
   }
 
   const totalTransactions = data.reduce((sum, item) => sum + item.count, 0)
-  const averageConfidence = data.reduce((sum, item) => {
-    const midPoint = parseInt(item.range.split('-')[0]) + (parseInt(item.range.split('-')[1].replace('%', '')) - parseInt(item.range.split('-')[0])) / 2
+  
+  const averageConfidence = totalTransactions > 0 ? data.reduce((sum, item) => {
+    const rangeParts = item.range.split('-')
+    const start = parseInt(rangeParts[0])
+    const end = parseInt(rangeParts[1].replace('%', ''))
+    const midPoint = start + (end - start) / 2
     return sum + (midPoint * item.count)
-  }, 0) / totalTransactions
+  }, 0) / totalTransactions : 0
 
   return (
     <div className={`bg-white rounded-lg shadow-sm border p-6 ${className}`}>
@@ -134,13 +138,13 @@ export default function ConfidenceDistribution({ data = mockData, className = ''
         <div>
           <p className="text-sm text-gray-600">Average Confidence</p>
           <p className="text-lg font-semibold text-blue-600">
-            {formatPercentage(averageConfidence.toFixed(1))}
+            {formatPercentage(Number(averageConfidence.toFixed(1)))}
           </p>
         </div>
         <div>
-          <p className="text-sm text-gray-600">High Confidence (>80%)</p>
+                      <p className="text-sm text-gray-600">High Confidence (&gt;80%)</p>
           <p className="text-lg font-semibold text-green-600">
-            {formatPercentage(((data[0].count + data[1].count) / totalTransactions * 100).toFixed(1))}
+            {formatPercentage(Number(((data[0].count + data[1].count) / totalTransactions * 100).toFixed(1)))}
           </p>
         </div>
       </div>
@@ -176,7 +180,7 @@ export default function ConfidenceDistribution({ data = mockData, className = ''
         <h4 className="text-sm font-medium text-gray-900 mb-3">Quality Indicators</h4>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <p className="text-xs text-gray-600">Excellent (>90%)</p>
+            <p className="text-xs text-gray-600">Excellent (&gt;90%)</p>
             <p className="text-sm font-medium text-green-600">
               {formatNumber(data[0].count)} transactions
             </p>
@@ -188,7 +192,7 @@ export default function ConfidenceDistribution({ data = mockData, className = ''
             </p>
           </div>
           <div>
-            <p className="text-xs text-gray-600">Needs Review (<70%)</p>
+            <p className="text-xs text-gray-600">Needs Review (&lt;70%)</p>
             <p className="text-sm font-medium text-red-600">
               {formatNumber(data.slice(3).reduce((sum, item) => sum + item.count, 0))} transactions
             </p>

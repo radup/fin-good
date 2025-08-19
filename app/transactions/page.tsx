@@ -1,10 +1,12 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import DashboardLayout from '@/components/DashboardLayout'
-import TransactionTable from '@/components/TransactionTable'
+import { TransactionTable } from '@/components/TransactionTable'
 
 export default function TransactionsPage() {
+  const [refreshKey, setRefreshKey] = useState(0)
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -15,7 +17,11 @@ export default function TransactionsPage() {
           </p>
         </div>
         
-        <TransactionTable />
+        <TransactionTable 
+          transactions={[]}
+          isLoading={false}
+          refreshKey={refreshKey}
+        />
       </div>
     </DashboardLayout>
   )

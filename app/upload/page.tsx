@@ -1,11 +1,19 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import DashboardLayout from '@/components/DashboardLayout'
-import UploadModal from '@/components/UploadModal'
-import ImportBatchManager from '@/components/ImportBatchManager'
+import { UploadModal } from '@/components/UploadModal'
+import { ImportBatchManager } from '@/components/ImportBatchManager'
 
 export default function UploadPage() {
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
+  const [refreshKey, setRefreshKey] = useState(0)
+
+  const handleUploadSuccess = () => {
+    setIsUploadModalOpen(false)
+    setRefreshKey(prev => prev + 1)
+  }
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -20,13 +28,23 @@ export default function UploadPage() {
           {/* Upload Modal */}
           <div>
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Upload New File</h2>
-            <UploadModal />
+            <button
+              onClick={() => setIsUploadModalOpen(true)}
+              className="btn-primary"
+            >
+              Upload CSV File
+            </button>
+            <UploadModal 
+              isOpen={isUploadModalOpen}
+              onClose={() => setIsUploadModalOpen(false)}
+              onUploadSuccess={handleUploadSuccess}
+            />
           </div>
           
           {/* Import Batch Manager */}
           <div>
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Import History</h2>
-            <ImportBatchManager />
+            <ImportBatchManager refreshKey={refreshKey} />
           </div>
         </div>
       </div>
