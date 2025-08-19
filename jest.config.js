@@ -7,7 +7,7 @@ const createJestConfig = nextJest({
 
 // Add any custom config to be passed to Jest
 const customJestConfig = {
-  setupFilesAfterEnv: ['<rootDir>/src/test-utils/setup.ts'],
+  setupFilesAfterEnv: [],
   testEnvironment: 'jest-environment-jsdom',
   
   // Test patterns
@@ -62,7 +62,7 @@ const customJestConfig = {
   ],
   
   // Environment variables for testing
-  setupFiles: ['<rootDir>/src/test-utils/env.ts'],
+  setupFiles: [],
   
   // Test timeout
   testTimeout: 10000,

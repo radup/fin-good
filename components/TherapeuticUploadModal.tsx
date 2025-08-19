@@ -309,7 +309,7 @@ export function TherapeuticUploadModal({ isOpen, onClose, onUploadSuccess }: The
                     <button
                       type="button"
                       className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium therapeutic-transition therapeutic-hover"
-                      onClick={() => document.querySelector('input[type="file"]')?.click()}
+                      onClick={() => (document.querySelector('input[type="file"]') as HTMLInputElement)?.click()}
                     >
                       <div className="flex items-center justify-center gap-2">
                         <FolderIcon className="w-5 h-5" />

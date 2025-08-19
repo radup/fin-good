@@ -35,7 +35,7 @@ from contextlib import asynccontextmanager
 import redis
 from rq import Queue, Worker, Connection, get_current_job
 from rq.job import Job, JobStatus
-from rq.exceptions import WorkerLostError, InvalidJobOperation
+from rq.exceptions import InvalidJobOperation
 import pandas as pd
 import io
 
@@ -164,7 +164,7 @@ class BackgroundJobManager:
             logger.error(f"Failed to connect to Redis: {e}")
             raise SystemException(
                 message="Failed to initialize background job system",
-                error_code="REDIS_CONNECTION_ERROR"
+                code="REDIS_CONNECTION_ERROR"
             )
     
     def _get_job_status_key(self, job_id: str) -> str:
@@ -281,7 +281,7 @@ class BackgroundJobManager:
             logger.error(f"Failed to queue CSV upload job: {e}")
             raise SystemException(
                 message="Failed to queue upload job",
-                error_code="JOB_QUEUE_ERROR"
+                code="JOB_QUEUE_ERROR"
             )
     
     async def _store_job_progress(self, progress: JobProgress) -> None:

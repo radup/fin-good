@@ -78,7 +78,7 @@ export interface ErrorBoundaryProps {
   children: React.ReactNode
   fallback?: React.ComponentType<{ error?: EnhancedError; onRetry?: () => void; onReport?: () => void }>
   name?: string
-  level?: 'page' | 'component' | 'critical'
+  level?: 'page' | 'component' | 'critical' | 'transaction' | 'upload' | 'auth'
   maxRetries?: number
   retryDelay?: number
   onError?: (error: EnhancedError, errorInfo: React.ErrorInfo) => void
@@ -87,6 +87,13 @@ export interface ErrorBoundaryProps {
   enableRetry?: boolean
   enableReporting?: boolean
   preserveState?: boolean
+  financialContext?: {
+    pendingTransactions?: any[]
+    unsavedChanges?: Record<string, any>
+    uploadProgress?: number
+    batchId?: string
+  }
+  onDataPreservation?: (context: any) => void
 }
 
 // Financial data preservation service
@@ -416,16 +423,16 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     // Preserve financial data before processing error
     if (this.props.financialContext) {
-      if (this.props.financialContext.currentTransactionData) {
-        financialDataManager.preserveTransactionData(this.props.financialContext.currentTransactionData)
+      if (this.props.financialContext.pendingTransactions) {
+        financialDataManager.preserveTransactionData(this.props.financialContext.pendingTransactions)
       }
-      if (this.props.financialContext.pendingChanges) {
-        Object.entries(this.props.financialContext.pendingChanges).forEach(([key, value]) => {
+      if (this.props.financialContext.unsavedChanges) {
+        Object.entries(this.props.financialContext.unsavedChanges).forEach(([key, value]) => {
           financialDataManager.preserveUnsavedChanges(key, value)
         })
       }
-      if (this.props.financialContext.uploadBatchId) {
-        financialDataManager.preserveUploadState(this.props.financialContext.uploadBatchId, {
+      if (this.props.financialContext.batchId) {
+        financialDataManager.preserveUploadState(this.props.financialContext.batchId, {
           timestamp: Date.now(),
           error: error.message
         })
@@ -437,7 +444,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
     }
     
     const enhancedError = classifyError(error, {
-      componentStack: errorInfo.componentStack,
+      componentStack: errorInfo.componentStack || undefined,
       errorBoundary: this.props.name || 'Unknown',
       transactionData: this.props.financialContext,
       additionalData: {
@@ -799,11 +806,11 @@ export function TransactionErrorBoundary({ children, transactionData, onDataLoss
       preserveState={true}
       maxRetries={3}
       financialContext={{
-        currentTransactionData: transactionData
+        pendingTransactions: transactionData
       }}
       onDataPreservation={(data) => {
-        if (onDataLoss && data.currentTransactionData) {
-          onDataLoss(data.currentTransactionData)
+        if (onDataLoss && data.pendingTransactions) {
+          onDataLoss(data.pendingTransactions)
         }
       }}
     >
@@ -827,7 +834,7 @@ export function UploadErrorBoundary({ children, batchId, onUploadFailure }: {
       maxRetries={5}
       retryDelay={2000}
       financialContext={{
-        uploadBatchId: batchId
+        batchId: batchId
       }}
       onError={(error) => {
         if (onUploadFailure && batchId) {

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
-import { Upload, BarChart3, DollarSign, TrendingUp, TrendingDown, FileText, Trash2, ChevronDown, ChevronRight, HelpCircle, Info, Lightbulb, Target, AlertCircle } from 'lucide-react'
+import { Upload, BarChart3, DollarSign, TrendingUp, TrendingDown, FileText, Trash2, ChevronDown, ChevronRight, HelpCircle, Info, Lightbulb, Target, AlertCircle, Heart, Brain } from 'lucide-react'
 import { TransactionTable } from '@/components/TransactionTable'
 import { DESIGN_TOKENS, getBadgeColorClasses } from '@/lib/design-system'
 import { TherapeuticUploadModal } from '@/components/TherapeuticUploadModal'
@@ -9,6 +9,8 @@ import { DashboardStats } from '@/components/DashboardStats'
 import { ImportBatchManager } from '@/components/ImportBatchManager'
 import { ErrorBoundary, ErrorFallback } from '@/components/ErrorBoundary'
 import DrSigmundSpendAvatar from '@/components/DrSigmundSpendAvatar'
+import EmotionalCheckIn from '@/components/EmotionalCheckIn'
+import AdvancedAIExplanation from '@/components/AdvancedAIExplanation'
 import { authAPI, transactionAPI, analyticsAPI } from '@/lib/api'
 
 // Progressive Disclosure Section Component
@@ -180,7 +182,75 @@ export default function DashboardComponent() {
     wellness: false,
     actions: false,
     transactions: true,
-    insights: false
+    insights: false,
+    emotional: false,
+    aiExplanation: false
+  })
+
+  // Emotional check-in state
+  const [userMood, setUserMood] = useState<any>(null)
+  const [achievements, setAchievements] = useState<any[]>([])
+
+  // AI Explanation state
+  const [aiReasoning, setAiReasoning] = useState({
+    id: 'demo_reasoning',
+    category: 'Food & Dining',
+    confidence: 87,
+    reasoning: [
+      'Transaction description contains "STARBUCKS" which is a known coffee chain',
+      'Amount ($4.50) is typical for a coffee purchase',
+      'Previous transactions with this vendor were categorized as Food & Dining',
+      'Time of transaction (9:30 AM) is consistent with morning coffee purchases'
+    ],
+    factors: [
+      {
+        name: 'Vendor Name',
+        weight: 35,
+        description: 'Starbucks is a well-known coffee chain with high confidence mapping',
+        impact: 'positive' as const
+      },
+      {
+        name: 'Transaction Amount',
+        weight: 25,
+        description: '$4.50 is within typical coffee price range ($3-7)',
+        impact: 'positive' as const
+      },
+      {
+        name: 'Time Pattern',
+        weight: 20,
+        description: 'Morning transaction aligns with coffee consumption patterns',
+        impact: 'positive' as const
+      },
+      {
+        name: 'Historical Data',
+        weight: 15,
+        description: 'Previous Starbucks transactions were correctly categorized',
+        impact: 'positive' as const
+      },
+      {
+        name: 'Location Data',
+        weight: 5,
+        description: 'GPS coordinates match known Starbucks location',
+        impact: 'neutral' as const
+      }
+    ],
+    alternatives: [
+      {
+        category: 'Entertainment',
+        confidence: 8,
+        reasoning: 'Could be a purchase at a Starbucks with entertainment venue'
+      },
+      {
+        category: 'Transportation',
+        confidence: 3,
+        reasoning: 'Unlikely given vendor type and amount'
+      }
+    ],
+    learningData: {
+      userCorrections: 12,
+      accuracy: 94.2,
+      lastUpdated: new Date('2024-01-15')
+    }
   })
 
   useEffect(() => {
@@ -297,6 +367,70 @@ export default function DashboardComponent() {
     } finally {
       setIsCategorizing(false)
     }
+  }
+
+  const handleMoodSubmit = (moodData: any) => {
+    setUserMood(moodData)
+    // In a real app, this would be sent to the backend
+    console.log('Mood submitted:', moodData)
+  }
+
+  // AI Explanation handlers
+  const handleAIFeedback = (feedback: any) => {
+    console.log('AI feedback received:', feedback)
+    // In a real app, this would be sent to the backend for model training
+    // For demo purposes, we'll simulate learning by adjusting confidence
+    setAiReasoning(prev => ({
+      ...prev,
+      confidence: Math.min(100, prev.confidence + (feedback.type === 'correct' ? 1 : -2))
+    }))
+  }
+
+  const handleAIConfidenceAdjust = (newConfidence: number) => {
+    console.log('AI confidence adjusted to:', newConfidence)
+    setAiReasoning(prev => ({
+      ...prev,
+      confidence: newConfidence
+    }))
+  }
+
+  // Generate mock achievements based on user activity
+  const generateAchievements = () => {
+    const mockAchievements = []
+    
+    if (summary?.categorized_count && summary.categorized_count > 0) {
+      mockAchievements.push({
+        id: 'categorization',
+        type: 'categorization' as const,
+        title: 'Organized Finances',
+        description: `You've categorized ${summary.categorized_count} transactions!`,
+        timestamp: new Date(),
+        value: summary.categorized_count
+      })
+    }
+    
+    if (wellnessMetrics?.savingsRate && wellnessMetrics.savingsRate > 20) {
+      mockAchievements.push({
+        id: 'savings',
+        type: 'savings' as const,
+        title: 'Savings Champion',
+        description: `You're saving ${wellnessMetrics.savingsRate.toFixed(0)}% of your income!`,
+        timestamp: new Date(),
+        value: wellnessMetrics.savingsRate
+      })
+    }
+    
+    if (wellnessMetrics?.categorizationRate && wellnessMetrics.categorizationRate > 90) {
+      mockAchievements.push({
+        id: 'consistency',
+        type: 'consistency' as const,
+        title: 'Financial Organization Pro',
+        description: 'You keep your finances well organized!',
+        timestamp: new Date()
+      })
+    }
+    
+    return mockAchievements
   }
 
   const toggleSection = (section: keyof typeof expandedSections) => {
@@ -677,6 +811,47 @@ export default function DashboardComponent() {
               </div>
             </div>
           </div>
+        </ProgressiveSection>
+
+        {/* Emotional Check-in Section */}
+        <ProgressiveSection
+          title="Emotional Wellness"
+          description="Track your financial mood and get personalized support"
+          isExpanded={expandedSections.emotional}
+          onToggle={() => toggleSection('emotional')}
+          icon={<Heart className="w-5 h-5" />}
+          helpText="Your emotional relationship with money matters. Regular check-ins help us provide better support and celebrate your achievements."
+          badge={userMood ? "Checked In" : "Ready"}
+          badgeColor={userMood ? "success" : "info"}
+        >
+          <ErrorBoundary fallback={ErrorFallback}>
+            <EmotionalCheckIn
+              onMoodSubmit={handleMoodSubmit}
+              achievements={generateAchievements()}
+              showNudges={true}
+            />
+          </ErrorBoundary>
+        </ProgressiveSection>
+
+        {/* AI Explanation Section */}
+        <ProgressiveSection
+          title="AI Explanation Interface"
+          description="Understand how AI categorizes your transactions"
+          isExpanded={expandedSections.aiExplanation}
+          onToggle={() => toggleSection('aiExplanation')}
+          icon={<Brain className="w-5 h-5" />}
+          helpText="See the reasoning behind AI categorization decisions, provide feedback to improve accuracy, and understand the learning process."
+          badge="Advanced"
+          badgeColor="warning"
+        >
+          <ErrorBoundary fallback={ErrorFallback}>
+            <AdvancedAIExplanation
+              reasoning={aiReasoning}
+              onFeedback={handleAIFeedback}
+              onConfidenceAdjust={handleAIConfidenceAdjust}
+              showLearning={true}
+            />
+          </ErrorBoundary>
         </ProgressiveSection>
       </main>
 
