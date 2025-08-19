@@ -20,12 +20,13 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status, Backgrou
 from fastapi.responses import FileResponse, JSONResponse
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user, get_db
+from app.core.cookie_auth import get_current_user_from_cookie as get_current_user
+from app.core.database import get_db
 from app.core.audit_logger import security_audit_logger
 from app.core.background_jobs import JobPriority
 from app.core.config import settings
 from app.core.error_handlers import create_error_response
-from app.core.rate_limiting import RateLimiter
+from app.core.rate_limiter import RateLimiter
 from app.core.security_utils import input_sanitizer
 from app.models.export_job import ExportJob, ExportTemplate
 from app.models.user import User

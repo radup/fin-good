@@ -35,7 +35,7 @@ from pydantic import BaseModel, Field, validator
 import redis
 
 from app.core.database import get_db
-from app.core.auth import get_current_user
+from app.core.cookie_auth import get_current_user_from_cookie as get_current_user
 from app.core.exceptions import ValidationException, SystemException
 from app.core.config import settings
 from app.models.user import User
