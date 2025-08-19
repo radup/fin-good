@@ -1,34 +1,36 @@
 # FinGood Frontend Implementation TODO
 
 **Created:** August 18, 2025  
+**Last Updated:** December 19, 2024  
 **Focus:** Frontend integration with enhanced backend capabilities  
 **Status:** P0 Critical - API Integration Required
 
 ## **🎯 Executive Summary**
 
-The backend has been significantly enhanced with advanced categorization APIs, but the frontend is **missing critical integrations**. This document outlines the frontend implementation tasks needed to fully leverage the sophisticated backend features.
+The backend has been significantly enhanced with advanced categorization APIs, bulk operations, duplicate detection, and pattern recognition. The frontend needs **critical integrations** to fully leverage these sophisticated backend features.
 
 **Current Gap:** Frontend has solid foundation but **missing 6 new API endpoints** and advanced features.
 
 ## **📊 Current Status**
 
-### **✅ Backend Capabilities (COMPLETED)**
-- ✅ **6 New Categorization Endpoints** - All implemented with rate limiting and audit logging
-- ✅ **Bulk Categorization** - `/categorize/bulk` with transaction limits
-- ✅ **Confidence Analysis** - `/categorize/confidence/{id}` with detailed breakdown
-- ✅ **User Feedback System** - `/categorize/feedback` with ML learning
-- ✅ **Category Suggestions** - `/categorize/suggestions/{id}` with rule-based and ML-based recommendations
-- ✅ **Auto-Improvement** - `/categorize/auto-improve` with scalability limits
-- ✅ **Performance Metrics** - `/categorize/performance` with comprehensive analytics
+### **✅ Backend Capabilities (COMPLETED - PR #22 Merged)**
+- ✅ **Bulk Transaction Operations** - `/transactions/bulk/*` endpoints with atomic operations
+- ✅ **Duplicate Detection System** - `/duplicates/*` endpoints with 6 fuzzy matching algorithms
+- ✅ **Pattern Recognition Engine** - `/patterns/*` endpoints with 7 pattern discovery algorithms
+- ✅ **Enhanced Analytics Engine** - `/analytics/v2/*` endpoints with predictive insights
+- ✅ **Report Builder System** - `/reports/v2/*` endpoints with template-based reports
+- ✅ **Export Engine** - `/export/*` endpoints with multi-format exports
 - ✅ **Rate Limiting** - All endpoints protected with appropriate limits
 - ✅ **Audit Logging** - Full financial compliance tracking
+- ✅ **48 Comprehensive Tests** - All backend features thoroughly tested
 
 ### **🔶 Frontend Status (70% Complete)**
 - ✅ **Basic UI Components** - Transaction table, upload, dashboard
 - ✅ **Basic API Integration** - CRUD operations, filtering, sorting
+- ✅ **Export Manager Component** - Basic export functionality implemented
 - 🔶 **Partial Bulk Operations** - UI exists but **missing new API integration**
 - 🔶 **Partial Feedback System** - `AIConfidenceDisplay` exists but **missing API calls**
-- ❌ **Missing Enhanced APIs** - No integration with 6 new backend endpoints
+- ❌ **Missing Enhanced APIs** - No integration with new backend endpoints
 - ❌ **Missing Advanced Features** - No performance dashboard, auto-improvement UI
 
 ## **🚨 P0 CRITICAL TASKS (Must Complete First)**
@@ -38,16 +40,16 @@ The backend has been significantly enhanced with advanced categorization APIs, b
 - **Priority**: P0 Critical
 - **Effort**: 2-3 days
 - **Dependencies**: None
-- **Description**: Update API client to integrate with all 6 new backend endpoints
+- **Description**: Update API client to integrate with all new backend endpoints
 
 **Implementation Steps:**
 - [ ] **Update `lib/api.ts`** - Add missing API endpoints
-  - [ ] `bulkCategorize()` - Bulk categorization with transaction IDs
-  - [ ] `getConfidence()` - Confidence analysis for individual transactions
-  - [ ] `submitFeedback()` - User feedback submission with ML learning
-  - [ ] `getSuggestions()` - Category suggestions with rule-based and ML-based recommendations
-  - [ ] `autoImprove()` - Auto-improvement with configurable limits
-  - [ ] `getPerformance()` - Categorization performance metrics
+  - [ ] `bulkOperations()` - Bulk transaction operations (categorize, update, delete, undo, redo)
+  - [ ] `duplicateDetection()` - Duplicate detection and management
+  - [ ] `patternRecognition()` - Pattern recognition and rule generation
+  - [ ] `enhancedAnalytics()` - Enhanced analytics with predictive insights
+  - [ ] `reportBuilder()` - Report builder with templates
+  - [ ] `exportEngine()` - Enhanced export engine (already partially implemented)
 - [ ] **Add TypeScript interfaces** for new API responses
 - [ ] **Add error handling** for rate limiting (429 responses)
 - [ ] **Add request/response validation** with Zod schemas
@@ -57,30 +59,32 @@ The backend has been significantly enhanced with advanced categorization APIs, b
 - `types/api.ts` - Add TypeScript interfaces (create if needed)
 
 **Success Criteria:**
-- All 6 new backend endpoints accessible from frontend
+- All new backend endpoints accessible from frontend
 - Proper TypeScript typing for all API responses
 - Rate limit error handling implemented
 - API client ready for component integration
 
 ---
 
-### **Task F1.2: Bulk Categorization Integration**
+### **Task F1.2: Bulk Operations Integration**
 - **Status**: `🔶 PARTIAL`
 - **Priority**: P0 Critical
 - **Effort**: 1-2 days
 - **Dependencies**: Task F1.1 (API Client Integration)
-- **Description**: Integrate existing bulk selection UI with new bulk categorization API
+- **Description**: Integrate existing bulk selection UI with new bulk operations API
 
 **Implementation Steps:**
 - [ ] **Update `TransactionTable.tsx`** - Replace existing bulk logic with new API
-  - [ ] Replace `applyBulkCategorization()` function to use new `bulkCategorize()` API
+  - [ ] Replace bulk operations to use new `bulkOperations()` API
   - [ ] Update success/error handling for new response format
   - [ ] Add processing time display from API response
   - [ ] Add rate limit handling for bulk operations
+  - [ ] Add undo/redo functionality for bulk operations
 - [ ] **Enhance bulk selection UI** - Add transaction count limits and warnings
   - [ ] Show warning when >1000 transactions selected
   - [ ] Add progress indicator during bulk processing
-  - [ ] Display detailed results (rule vs ML categorized counts)
+  - [ ] Display detailed results (success/failure counts)
+  - [ ] Add bulk operation history
 - [ ] **Add audit logging display** - Show bulk operation completion messages
 
 **Files to Modify:**
@@ -88,163 +92,170 @@ The backend has been significantly enhanced with advanced categorization APIs, b
 - `components/BulkOperations.tsx` - Create if needed for enhanced UI
 
 **Success Criteria:**
-- Bulk categorization uses new backend API
+- Bulk operations use new backend API
 - Proper error handling and user feedback
 - Transaction limits enforced in UI
 - Processing time and detailed results displayed
+- Undo/redo functionality working
 
 ---
 
-### **Task F1.3: Feedback System Integration**
-- **Status**: `🔶 PARTIAL`
+### **Task F1.3: Duplicate Detection Integration**
+- **Status**: `❌ NOT STARTED`
 - **Priority**: P0 Critical
 - **Effort**: 2-3 days
 - **Dependencies**: Task F1.1 (API Client Integration)
-- **Description**: Integrate AI confidence display with feedback submission API
+- **Description**: Integrate duplicate detection system with transaction management
 
 **Implementation Steps:**
-- [ ] **Update `AIConfidenceDisplay.tsx`** - Add API integration
-  - [ ] Add `useQuery` hook to fetch confidence data from `/categorize/confidence/{id}`
-  - [ ] Add `submitFeedback()` function to call `/categorize/feedback` API
-  - [ ] Display confidence breakdown and alternative categories
-  - [ ] Add feedback submission buttons (correct/incorrect/suggest alternative)
-  - [ ] Show feedback submission success/error messages
-- [ ] **Enhance feedback UI** - Add suggestion form for alternative categories
-  - [ ] Create feedback form component for alternative suggestions
-  - [ ] Add category/subcategory selection for suggestions
-  - [ ] Add feedback comment field
-  - [ ] Show ML learning status after feedback submission
-- [ ] **Add confidence visualization** - Enhanced confidence score display
-  - [ ] Add confidence breakdown charts
-  - [ ] Show alternative categories with confidence scores
-  - [ ] Display categorization method (rule vs ML)
+- [ ] **Create `DuplicateDetection.tsx`** - New duplicate detection component
+  - [ ] Add `useQuery` hook to fetch duplicate groups from `/duplicates/groups`
+  - [ ] Display duplicate groups with confidence scores
+  - [ ] Show duplicate comparison interface
+  - [ ] Add merge/resolve functionality
+  - [ ] Add dismiss functionality for false positives
+- [ ] **Enhance duplicate UI** - User-friendly duplicate management
+  - [ ] Create duplicate group display component
+  - [ ] Add side-by-side transaction comparison
+  - [ ] Show confidence breakdown for each duplicate
+  - [ ] Add bulk merge operations
+  - [ ] Show merge history and statistics
+- [ ] **Add duplicate scanning** - Automatic duplicate detection
+  - [ ] Add scan trigger button
+  - [ ] Show scanning progress
+  - [ ] Display scan results summary
+  - [ ] Add scheduled scanning options
 
-**Files to Modify:**
-- `components/AIConfidenceDisplay.tsx` - Add API integration
-- `components/FeedbackForm.tsx` - Create new component
-- `components/ConfidenceVisualization.tsx` - Create new component
+**Files to Create:**
+- `components/DuplicateDetection.tsx` - Main duplicate detection component
+- `components/DuplicateGroup.tsx` - Duplicate group display
+- `components/DuplicateComparison.tsx` - Side-by-side comparison
+- `components/DuplicateScan.tsx` - Scanning interface
 
 **Success Criteria:**
-- Confidence data fetched from backend API
-- Feedback submission working with ML learning
-- Enhanced confidence visualization
-- User-friendly feedback forms
+- Duplicate detection fully integrated
+- User-friendly duplicate management interface
+- Bulk merge operations working
+- Scan results and statistics displayed
 
 ---
 
 ## **📈 P1 HIGH PRIORITY TASKS**
 
-### **Task F2.1: Categorization Performance Dashboard**
+### **Task F2.1: Pattern Recognition Integration**
+- **Status**: `❌ NOT STARTED`
+- **Priority**: P1 High
+- **Effort**: 2-3 days
+- **Dependencies**: Task F1.1 (API Client Integration)
+- **Description**: Integrate pattern recognition engine for intelligent categorization
+
+**Implementation Steps:**
+- [ ] **Create `PatternRecognition.tsx`** - Pattern recognition component
+  - [ ] Fetch patterns from `/patterns/recognized` API
+  - [ ] Display discovered patterns with confidence scores
+  - [ ] Show pattern details and examples
+  - [ ] Add pattern-based rule generation
+  - [ ] Display pattern accuracy metrics
+- [ ] **Add pattern analysis** - Pattern discovery interface
+  - [ ] Add pattern analysis trigger
+  - [ ] Show analysis progress and results
+  - [ ] Display pattern categories (vendor, amount, frequency, etc.)
+  - [ ] Add pattern learning feedback
+- [ ] **Integrate with categorization** - Auto-apply patterns
+  - [ ] Auto-suggest categories based on patterns
+  - [ ] Show pattern-based confidence scores
+  - [ ] Add pattern override options
+  - [ ] Track pattern usage and accuracy
+
+**Files to Create:**
+- `components/PatternRecognition.tsx` - Main pattern recognition component
+- `components/PatternDisplay.tsx` - Pattern visualization
+- `components/PatternAnalysis.tsx` - Pattern analysis interface
+- `components/PatternRules.tsx` - Rule generation interface
+
+**Success Criteria:**
+- Pattern recognition fully integrated
+- Pattern discovery and analysis working
+- Auto-categorization based on patterns
+- Pattern accuracy tracking
+
+---
+
+### **Task F2.2: Enhanced Analytics Dashboard**
 - **Status**: `❌ NOT STARTED`
 - **Priority**: P1 High
 - **Effort**: 3-4 days
 - **Dependencies**: Task F1.1 (API Client Integration)
-- **Description**: Create comprehensive categorization performance dashboard
+- **Description**: Create comprehensive analytics dashboard with enhanced features
 
 **Implementation Steps:**
-- [ ] **Create `CategorizationPerformance.tsx`** - New performance dashboard component
-  - [ ] Fetch performance data from `/categorize/performance` API
-  - [ ] Display overall metrics (success rate, average confidence, total transactions)
-  - [ ] Show method breakdown (rule-based vs ML-based categorization)
-  - [ ] Display confidence distribution charts
-  - [ ] Show category performance breakdown
-  - [ ] Add improvement trends visualization
-- [ ] **Add performance charts** - Data visualization with Recharts
-  - [ ] Success rate over time chart
-  - [ ] Confidence distribution pie chart
-  - [ ] Category performance bar chart
-  - [ ] Method breakdown donut chart
-- [ ] **Add date range filtering** - Performance analysis by time period
-  - [ ] Date range picker component
-  - [ ] Real-time performance updates
-  - [ ] Export performance data
+- [ ] **Create `EnhancedAnalytics.tsx`** - Enhanced analytics dashboard
+  - [ ] Fetch enhanced analytics from `/analytics/v2/*` APIs
+  - [ ] Display predictive insights and trends
+  - [ ] Show enhanced vendor analysis
+  - [ ] Display performance metrics
+  - [ ] Add anomaly detection alerts
+- [ ] **Add predictive features** - Future insights
+  - [ ] Show spending predictions
+  - [ ] Display trend forecasting
+  - [ ] Add budget recommendations
+  - [ ] Show financial health indicators
+- [ ] **Add interactive analytics** - Drill-down capabilities
+  - [ ] Click-to-filter functionality on charts
+  - [ ] Date range selection for analytics
+  - [ ] Category-based analytics filtering
+  - [ ] Export analytics data and charts
 
 **Files to Create:**
-- `components/CategorizationPerformance.tsx` - Main performance dashboard
-- `components/PerformanceCharts.tsx` - Chart components
-- `components/DateRangePicker.tsx` - Date filtering component
+- `components/EnhancedAnalytics.tsx` - Enhanced analytics dashboard
+- `components/PredictiveInsights.tsx` - Predictive analytics component
+- `components/VendorAnalysis.tsx` - Enhanced vendor analysis
+- `components/AnomalyDetection.tsx` - Anomaly detection alerts
 
 **Success Criteria:**
-- Comprehensive performance dashboard
-- Interactive charts and visualizations
-- Date range filtering
-- Export functionality
+- Enhanced analytics fully integrated
+- Predictive insights working
+- Interactive analytics dashboard
+- Anomaly detection alerts
 
 ---
 
-### **Task F2.2: Auto-Improvement UI**
+### **Task F2.3: Report Builder Integration**
 - **Status**: `❌ NOT STARTED`
 - **Priority**: P1 High
-- **Effort**: 2-3 days
+- **Effort**: 3-4 days
 - **Dependencies**: Task F1.1 (API Client Integration)
-- **Description**: Create UI for automatic categorization improvement
+- **Description**: Integrate report builder API for dynamic report generation
 
 **Implementation Steps:**
-- [ ] **Create `AutoImprovement.tsx`** - Auto-improvement component
-  - [ ] Add auto-improvement trigger button
-  - [ ] Display improvement configuration options
-    - [ ] Batch ID selection (optional)
-    - [ ] Confidence threshold slider (0.0-1.0)
-    - [ ] Max transactions limit (1-10000)
-  - [ ] Show improvement progress and results
-  - [ ] Display rules created/updated counts
-  - [ ] Show ML model improvements
-  - [ ] Display processing time and improvement score
-- [ ] **Add improvement monitoring** - Real-time progress tracking
-  - [ ] Progress bar during improvement process
-  - [ ] Real-time status updates
-  - [ ] Success/error notifications
-- [ ] **Add improvement history** - Track improvement runs
-  - [ ] Improvement history list
-  - [ ] Improvement result comparison
-  - [ ] Rollback functionality (future)
+- [ ] **Create `ReportBuilder.tsx`** - Report builder component
+  - [ ] Integrate `/reports/v2/*` endpoints
+  - [ ] Add template-based report generation
+  - [ ] Implement report customization options
+  - [ ] Add report scheduling functionality
+  - [ ] Display report history and management
+- [ ] **Add report templates** - Pre-configured reports
+  - [ ] Cash flow analysis reports
+  - [ ] Spending analysis reports
+  - [ ] Vendor performance reports
+  - [ ] Custom report builder
+- [ ] **Add report features** - Advanced reporting
+  - [ ] Interactive report preview
+  - [ ] Report sharing and collaboration
+  - [ ] Report export in multiple formats
+  - [ ] Report versioning and history
 
 **Files to Create:**
-- `components/AutoImprovement.tsx` - Main auto-improvement component
-- `components/ImprovementConfig.tsx` - Configuration form
-- `components/ImprovementHistory.tsx` - History tracking
+- `components/ReportBuilder.tsx` - Main report builder interface
+- `components/ReportTemplates.tsx` - Report template selection
+- `components/ReportPreview.tsx` - Report preview and customization
+- `components/ReportScheduler.tsx` - Report scheduling interface
 
 **Success Criteria:**
-- Auto-improvement trigger UI
-- Configurable improvement parameters
-- Real-time progress tracking
-- Improvement results display
-
----
-
-### **Task F2.3: Category Suggestions Integration**
-- **Status**: `❌ NOT STARTED`
-- **Priority**: P1 High
-- **Effort**: 2-3 days
-- **Dependencies**: Task F1.1 (API Client Integration)
-- **Description**: Integrate category suggestions API with transaction editing
-
-**Implementation Steps:**
-- [ ] **Update transaction editing** - Add suggestions to category selection
-  - [ ] Fetch suggestions from `/categorize/suggestions/{id}` API
-  - [ ] Display suggestions in category dropdown
-  - [ ] Show confidence scores for each suggestion
-  - [ ] Distinguish between rule-based and ML-based suggestions
-- [ ] **Enhance category selection** - Smart category picker
-  - [ ] Auto-suggest categories based on transaction description
-  - [ ] Show reasoning for each suggestion
-  - [ ] Allow quick selection of suggested categories
-  - [ ] Add "Apply suggestion" buttons
-- [ ] **Add suggestion learning** - Track suggestion usage
-  - [ ] Log which suggestions users accept
-  - [ ] Improve suggestion accuracy over time
-  - [ ] Show suggestion accuracy metrics
-
-**Files to Modify:**
-- `components/TransactionTable.tsx` - Add suggestions to editing
-- `components/CategorySelector.tsx` - Create enhanced category picker
-- `components/SuggestionDisplay.tsx` - Create suggestion display component
-
-**Success Criteria:**
-- Category suggestions integrated into editing
-- Smart category picker with confidence scores
-- Suggestion learning and improvement
-- User-friendly suggestion interface
+- Report builder fully integrated
+- Template-based report generation
+- Report customization and scheduling
+- Report sharing and collaboration
 
 ---
 
@@ -261,11 +272,11 @@ The backend has been significantly enhanced with advanced categorization APIs, b
   - [ ] Add connection state management (connecting, connected, disconnected)
   - [ ] Handle reconnection logic with exponential backoff
   - [ ] Add connection error handling and user notifications
-- [ ] **Integrate with upload progress** - Real-time upload tracking
-  - [ ] Connect to `/ws/upload-progress/{job_id}` endpoints
-  - [ ] Display real-time upload progress bars
-  - [ ] Show processing status (parsing, categorizing, etc.)
-  - [ ] Handle upload completion and error states
+- [ ] **Integrate with bulk operations** - Real-time progress tracking
+  - [ ] Track bulk operation progress via WebSocket
+  - [ ] Display real-time progress bars
+  - [ ] Show processing status updates
+  - [ ] Handle operation completion and error states
 - [ ] **Add export progress tracking** - Real-time export monitoring
   - [ ] Track export job progress via WebSocket
   - [ ] Show export generation progress
@@ -276,127 +287,13 @@ The backend has been significantly enhanced with advanced categorization APIs, b
 - `lib/websocket.ts` - WebSocket client and connection management
 - `hooks/useWebSocket.ts` - React hook for WebSocket integration
 - `components/ProgressTracker.tsx` - Real-time progress display
-- `components/UploadProgress.tsx` - Upload-specific progress component
+- `components/BulkProgress.tsx` - Bulk operation progress component
 
 **Success Criteria:**
-- Real-time progress tracking for uploads and exports
+- Real-time progress tracking for bulk operations and exports
 - Reliable WebSocket connections with authentication
 - User-friendly progress indicators
 - Seamless real-time updates
-
----
-
-### **Task F2.5: Analytics Engine Integration**
-- **Status**: `❌ NOT STARTED`
-- **Priority**: P1 High
-- **Effort**: 3-4 days
-- **Dependencies**: Task F1.1 (API Client Integration)
-- **Description**: Integrate new analytics endpoints for enhanced financial insights
-
-**Implementation Steps:**
-- [ ] **Add analytics API integration** - Connect to new analytics endpoints
-  - [ ] Integrate `/api/v1/analytics/*` endpoints for KPIs
-  - [ ] Add time-series analysis data fetching
-  - [ ] Implement Redis-cached analytics data
-  - [ ] Add analytics data refresh mechanisms
-- [ ] **Create enhanced dashboard** - Financial KPIs and insights
-  - [ ] Display key financial metrics (revenue, expenses, profit margins)
-  - [ ] Show spending trends and patterns
-  - [ ] Add vendor performance analytics
-  - [ ] Display cash flow analysis
-- [ ] **Add interactive analytics** - Drill-down capabilities
-  - [ ] Click-to-filter functionality on charts
-  - [ ] Date range selection for analytics
-  - [ ] Category-based analytics filtering
-  - [ ] Export analytics data and charts
-
-**Files to Create:**
-- `lib/analytics.ts` - Analytics API client functions
-- `components/AnalyticsDashboard.tsx` - Enhanced analytics dashboard
-- `components/FinancialKPIs.tsx` - Key performance indicators
-- `components/AnalyticsCharts.tsx` - Analytics-specific chart components
-
-**Success Criteria:**
-- Complete analytics integration with backend
-- Enhanced financial insights and KPIs
-- Interactive analytics dashboard
-- Real-time analytics data updates
-
----
-
-### **Task F2.6: Export Engine Integration**
-- **Status**: `❌ NOT STARTED`
-- **Priority**: P1 High
-- **Effort**: 2-3 days
-- **Dependencies**: Task F1.1 (API Client Integration), Task F2.4 (WebSocket Integration)
-- **Description**: Integrate new export engine for multi-format data export
-
-**Implementation Steps:**
-- [ ] **Add export API integration** - Connect to export endpoints
-  - [ ] Integrate `/api/v1/export/*` endpoints
-  - [ ] Add export job creation and management
-  - [ ] Implement secure download token system
-  - [ ] Add export history and tracking
-- [ ] **Create export interface** - User-friendly export options
-  - [ ] Multi-format export selection (CSV, Excel, PDF, JSON)
-  - [ ] Export configuration options (columns, filters, formatting)
-  - [ ] Background export job management
-  - [ ] Export progress tracking via WebSocket
-- [ ] **Add export features** - Advanced export capabilities
-  - [ ] Template-based PDF report generation
-  - [ ] Custom Excel formatting and charts
-  - [ ] Streaming CSV exports for large datasets
-  - [ ] Export scheduling and automation
-
-**Files to Create:**
-- `lib/export.ts` - Export API client functions
-- `components/ExportManager.tsx` - Export job management interface
-- `components/ExportOptions.tsx` - Export configuration component
-- `components/ExportHistory.tsx` - Export history and tracking
-
-**Success Criteria:**
-- Complete export engine integration
-- Multi-format export capabilities
-- Background export job management
-- Professional export functionality
-
----
-
-### **Task F2.7: Report Builder Integration**
-- **Status**: `❌ NOT STARTED`
-- **Priority**: P1 High
-- **Effort**: 3-4 days
-- **Dependencies**: Task F1.1 (API Client Integration)
-- **Description**: Integrate report builder API for dynamic report generation
-
-**Implementation Steps:**
-- [ ] **Add report API integration** - Connect to report endpoints
-  - [ ] Integrate `/api/v1/reports/*` endpoints
-  - [ ] Add dynamic report generation capabilities
-  - [ ] Implement report template management
-  - [ ] Add report caching and performance optimization
-- [ ] **Create report interface** - User-friendly report builder
-  - [ ] 8 pre-configured report types (cash flow, spending analysis, etc.)
-  - [ ] Custom filtering and grouping options
-  - [ ] Report preview and customization
-  - [ ] Report scheduling and automation
-- [ ] **Add report features** - Advanced reporting capabilities
-  - [ ] Interactive report charts and visualizations
-  - [ ] Report sharing and collaboration
-  - [ ] Report export in multiple formats
-  - [ ] Report versioning and history
-
-**Files to Create:**
-- `lib/reports.ts` - Report API client functions
-- `components/ReportBuilder.tsx` - Main report builder interface
-- `components/ReportTemplates.tsx` - Report template selection
-- `components/ReportPreview.tsx` - Report preview and customization
-
-**Success Criteria:**
-- Complete report builder integration
-- Dynamic report generation capabilities
-- Professional reporting interface
-- Report sharing and collaboration features
 
 ---
 
@@ -450,9 +347,11 @@ The backend has been significantly enhanced with advanced categorization APIs, b
 - [ ] **Create page structure** - Multi-page application
   - [ ] `/dashboard` - Main dashboard with overview
   - [ ] `/transactions` - Full transaction management
-  - [ ] `/categorization` - Categorization performance and tools
+  - [ ] `/duplicates` - Duplicate detection and management
+  - [ ] `/patterns` - Pattern recognition and analysis
+  - [ ] `/analytics` - Enhanced analytics dashboard
+  - [ ] `/reports` - Report builder and templates
   - [ ] `/upload` - File upload and mapping
-  - [ ] `/reports` - Analytics and reporting
   - [ ] `/settings` - User settings and preferences
 - [ ] **Add navigation component** - Sidebar navigation
   - [ ] Responsive sidebar with main navigation
@@ -468,9 +367,11 @@ The backend has been significantly enhanced with advanced categorization APIs, b
 **Files to Create:**
 - `app/(dashboard)/page.tsx` - Main dashboard page
 - `app/(dashboard)/transactions/page.tsx` - Transactions page
-- `app/(dashboard)/categorization/page.tsx` - Categorization page
-- `app/(dashboard)/upload/page.tsx` - Upload page
+- `app/(dashboard)/duplicates/page.tsx` - Duplicates page
+- `app/(dashboard)/patterns/page.tsx` - Patterns page
+- `app/(dashboard)/analytics/page.tsx` - Analytics page
 - `app/(dashboard)/reports/page.tsx` - Reports page
+- `app/(dashboard)/upload/page.tsx` - Upload page
 - `app/(dashboard)/settings/page.tsx` - Settings page
 - `components/Navigation.tsx` - Navigation component
 - `components/Breadcrumbs.tsx` - Breadcrumb component
@@ -487,7 +388,7 @@ The backend has been significantly enhanced with advanced categorization APIs, b
 - **Status**: `🔶 PARTIAL`
 - **Priority**: P2 Medium
 - **Effort**: 5-8 days
-- **Dependencies**: Task F2.1 (Performance Dashboard)
+- **Dependencies**: Task F2.1 (Enhanced Analytics Dashboard)
 - **Description**: Enhance data visualization with comprehensive charts
 
 **Implementation Steps:**
@@ -496,12 +397,13 @@ The backend has been significantly enhanced with advanced categorization APIs, b
   - [ ] Create reusable chart components
   - [ ] Add responsive chart layouts
   - [ ] Implement chart theming
-- [ ] **Create financial charts** - Transaction and categorization charts
+- [ ] **Create financial charts** - Transaction and analytics charts
   - [ ] Spending trends over time
   - [ ] Category distribution pie charts
   - [ ] Income vs expenses comparison
-  - [ ] Categorization accuracy trends
-  - [ ] Confidence score distributions
+  - [ ] Duplicate detection accuracy trends
+  - [ ] Pattern recognition confidence scores
+  - [ ] Predictive analytics forecasts
 - [ ] **Add interactive features** - Enhanced chart interactions
   - [ ] Chart tooltips with detailed information
   - [ ] Click-to-filter functionality
@@ -516,8 +418,9 @@ The backend has been significantly enhanced with advanced categorization APIs, b
 - `components/charts/SpendingTrends.tsx` - Spending trends chart
 - `components/charts/CategoryDistribution.tsx` - Category distribution chart
 - `components/charts/IncomeExpenses.tsx` - Income vs expenses chart
-- `components/charts/CategorizationAccuracy.tsx` - Accuracy trends chart
-- `components/charts/ConfidenceDistribution.tsx` - Confidence distribution chart
+- `components/charts/DuplicateAccuracy.tsx` - Duplicate accuracy trends chart
+- `components/charts/PatternConfidence.tsx` - Pattern confidence scores chart
+- `components/charts/PredictiveForecast.tsx` - Predictive analytics chart
 
 **Success Criteria:**
 - Comprehensive chart library
@@ -548,6 +451,8 @@ The backend has been significantly enhanced with advanced categorization APIs, b
   - [ ] Amount range filtering
   - [ ] Category and subcategory filtering
   - [ ] Confidence score filtering
+  - [ ] Duplicate status filtering
+  - [ ] Pattern match filtering
 - [ ] **Filter persistence** - Save and restore filters
   - [ ] URL-based filter state
   - [ ] Saved filter presets
@@ -571,7 +476,7 @@ The backend has been significantly enhanced with advanced categorization APIs, b
 - **Status**: `🔶 PARTIAL`
 - **Priority**: P3 Low
 - **Effort**: 4-6 days
-- **Dependencies**: Task F2.1 (Performance Dashboard)
+- **Dependencies**: Task F2.1 (Enhanced Analytics Dashboard)
 - **Description**: Enhance export and reporting capabilities
 
 **Implementation Steps:**
@@ -646,15 +551,12 @@ The backend has been significantly enhanced with advanced categorization APIs, b
 | Priority | Task | Effort | Business Impact | Technical Complexity | Dependencies |
 |----------|------|--------|-----------------|---------------------|--------------|
 | **P0** | F1.1: API Client Integration | 2-3 days | High | Low | None |
-| **P0** | F1.2: Bulk Categorization Integration | 1-2 days | High | Low | F1.1 |
-| **P0** | F1.3: Feedback System Integration | 2-3 days | High | Medium | F1.1 |
-| **P1** | F2.1: Performance Dashboard | 3-4 days | High | Medium | F1.1 |
-| **P1** | F2.2: Auto-Improvement UI | 2-3 days | Medium | Medium | F1.1 |
-| **P1** | F2.3: Category Suggestions | 2-3 days | Medium | Medium | F1.1 |
+| **P0** | F1.2: Bulk Operations Integration | 1-2 days | High | Low | F1.1 |
+| **P0** | F1.3: Duplicate Detection Integration | 2-3 days | High | Medium | F1.1 |
+| **P1** | F2.1: Pattern Recognition Integration | 2-3 days | High | Medium | F1.1 |
+| **P1** | F2.2: Enhanced Analytics Dashboard | 3-4 days | High | Medium | F1.1 |
+| **P1** | F2.3: Report Builder Integration | 3-4 days | High | Medium | F1.1 |
 | **P1** | F2.4: WebSocket Integration for Real-time Features | 2-3 days | Medium | Medium | F1.1 |
-| **P1** | F2.5: Analytics Engine Integration | 3-4 days | High | Medium | F1.1 |
-| **P1** | F2.6: Export Engine Integration | 2-3 days | Medium | Medium | F1.1, F2.4 |
-| **P1** | F2.7: Report Builder Integration | 3-4 days | High | Medium | F1.1 |
 | **P2** | F3.1: Rate Limit Handling | 1-2 days | Medium | Low | F1.1 |
 | **P2** | F3.2: Navigation & Pages | 3-5 days | Medium | Low | None |
 | **P2** | F3.3: Data Visualization | 5-8 days | High | High | F2.1 |
@@ -667,16 +569,16 @@ The backend has been significantly enhanced with advanced categorization APIs, b
 ## **🎯 Success Metrics**
 
 ### **Phase 1 (P0 Tasks) - Week 1-2**
-- ✅ All 6 new backend APIs integrated
-- ✅ Bulk categorization working with new API
-- ✅ Feedback system fully functional
+- ✅ All new backend APIs integrated
+- ✅ Bulk operations working with new API
+- ✅ Duplicate detection fully functional
 - ✅ Rate limit handling implemented
 
 ### **Phase 2 (P1 Tasks) - Week 3-4**
-- ✅ Performance dashboard operational
-- ✅ Auto-improvement UI functional
-- ✅ Category suggestions integrated
-- ✅ Enhanced user experience
+- ✅ Pattern recognition operational
+- ✅ Enhanced analytics dashboard functional
+- ✅ Report builder integrated
+- ✅ Real-time features working
 
 ### **Phase 3 (P2 Tasks) - Week 5-6**
 - ✅ Multi-page navigation implemented
@@ -695,9 +597,31 @@ The backend has been significantly enhanced with advanced categorization APIs, b
 ## **🚀 Next Steps**
 
 1. **Start with P0 Tasks** - API integration is critical
-2. **Focus on user value** - Bulk operations and feedback system
+2. **Focus on user value** - Bulk operations and duplicate detection
 3. **Build incrementally** - Each task should be independently testable
 4. **Test thoroughly** - Ensure all new features work with backend
 5. **Document changes** - Update component documentation
 
 **🎉 Target: Complete frontend-backend integration by end of Week 2!**
+
+## **🔄 Implementation Strategy**
+
+### **Branch Strategy:**
+- **Per Phase Branching** - Create feature branches for each phase (P0, P1, P2, P3)
+- **Task-Level Commits** - Commit at the end of each task
+- **PR Strategy** - Create PR at the end of each phase or earlier if needed
+
+### **Parallelization:**
+- **P0 Tasks** - Sequential (dependencies)
+- **P1 Tasks** - Parallel after P0 completion
+- **P2/P3 Tasks** - Parallel development
+
+### **Testing Strategy:**
+- **Unit Tests** - For each new component
+- **Integration Tests** - For API integration
+- **E2E Tests** - For critical user flows
+
+### **Code Review:**
+- **Self-Review** - Before each commit
+- **Peer Review** - For each PR
+- **Automated Checks** - TypeScript, linting, tests
