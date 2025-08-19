@@ -280,6 +280,21 @@ async def startup_event():
         await websocket_manager.start()
         app_logger.info("WebSocket manager initialized successfully")
         
+        # Initialize background job manager if enabled
+        if settings.ENABLE_BACKGROUND_JOBS:
+            try:
+                from app.core.background_jobs import job_manager
+                app_logger.info("Background job manager initialized successfully")
+                app_logger.info(f"Job queue configuration: timeout={settings.JOB_TIMEOUT_MINUTES}min, "
+                               f"retries={settings.MAX_JOB_RETRIES}, "
+                               f"concurrent_per_user={settings.MAX_CONCURRENT_JOBS_PER_USER}")
+            except Exception as e:
+                app_logger.error(f"Background job manager initialization failed: {e}")
+                print(f"⚠️  Warning: Background job manager failed to initialize: {e}")
+                print("   Background job processing will not be available")
+        else:
+            app_logger.info("Background job processing is disabled by configuration")
+        
         # Initialize rate limiter
         from app.core.rate_limiter import get_rate_limiter
         from app.core.rate_limit_monitoring import get_rate_limit_monitor
@@ -342,6 +357,15 @@ async def shutdown_event():
         app_logger.info("WebSocket manager stopped")
     except Exception as e:
         app_logger.warning(f"Warning during WebSocket manager shutdown: {e}")
+    
+    try:
+        # Clean up background job manager if enabled
+        if settings.ENABLE_BACKGROUND_JOBS:
+            # Background job manager doesn't need explicit cleanup
+            # Redis connections are handled by connection pooling
+            app_logger.info("Background job manager cleanup completed")
+    except Exception as e:
+        app_logger.warning(f"Warning during background job manager shutdown: {e}")
     
     try:
         # Clean up rate limiter

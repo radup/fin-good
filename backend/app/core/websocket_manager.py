@@ -15,16 +15,21 @@ Features:
 import json
 import asyncio
 import logging
-from datetime import datetime
-from typing import Dict, List, Optional, Set
+from datetime import datetime, timedelta
+from typing import Dict, List, Optional, Set, Union, Any, Callable
 import uuid
 import weakref
 from contextlib import asynccontextmanager
+from enum import Enum
+from dataclasses import dataclass, asdict
+import threading
+import time
 
 from fastapi import WebSocket, WebSocketDisconnect, HTTPException, status
 from sqlalchemy.orm import Session
 import jwt
 from jwt.exceptions import InvalidTokenError
+import redis
 
 from app.core.config import settings
 from app.models.user import User
@@ -34,46 +39,180 @@ from app.core.audit_logger import security_audit_logger
 logger = logging.getLogger(__name__)
 
 
+# Enhanced message types and status enums
+class MessageType(str, Enum):
+    """Types of WebSocket messages"""
+    PROGRESS_UPDATE = "progress_update"
+    JOB_STATUS = "job_status"
+    BATCH_UPDATE = "batch_update"
+    SYSTEM_STATUS = "system_status"
+    CONNECTION_STATUS = "connection_status"
+    ERROR_NOTIFICATION = "error_notification"
+    HEARTBEAT = "heartbeat"
+    QUEUE_STATS = "queue_stats"
+
+class ProgressStatus(str, Enum):
+    """Progress status values"""
+    QUEUED = "queued"
+    STARTING = "starting"
+    PROCESSING = "processing"
+    COMPLETED = "completed"
+    ERROR = "error"
+    CANCELLED = "cancelled"
+    PAUSED = "paused"
+
+class ProgressStage(str, Enum):
+    """Upload processing stages"""
+    INITIALIZATION = "initialization"
+    VALIDATION = "validation"
+    SCANNING = "scanning"
+    PARSING = "parsing"
+    DATABASE = "database"
+    CATEGORIZATION = "categorization"
+    COMPLETION = "completion"
+    CLEANUP = "cleanup"
+
+@dataclass
+class ProgressDetails:
+    """Structured progress details"""
+    processed_items: Optional[int] = None
+    total_items: Optional[int] = None
+    errors_count: Optional[int] = None
+    warnings_count: Optional[int] = None
+    current_file: Optional[str] = None
+    processing_rate: Optional[float] = None  # items per second
+    estimated_remaining: Optional[float] = None  # seconds
+    retry_count: Optional[int] = None
+    queue_position: Optional[int] = None
+    additional_info: Optional[Dict[str, Any]] = None
+
 class ProgressMessage:
-    """Represents a progress update message."""
+    """Enhanced progress update message with comprehensive tracking."""
     
     def __init__(
         self,
+        message_type: MessageType,
         batch_id: str,
         progress: float,
-        status: str,
-        stage: str,
+        status: ProgressStatus,
+        stage: ProgressStage,
         message: str,
-        details: Optional[Dict] = None,
-        error: Optional[str] = None
+        details: Optional[ProgressDetails] = None,
+        error: Optional[str] = None,
+        job_id: Optional[str] = None,
+        user_id: Optional[str] = None,
+        correlation_id: Optional[str] = None
     ):
+        self.message_type = message_type
         self.batch_id = batch_id
+        self.job_id = job_id
+        self.user_id = user_id
         self.progress = min(100.0, max(0.0, progress))  # Clamp between 0-100
-        self.status = status  # processing|completed|error
-        self.stage = stage    # validation|scanning|parsing|database|categorization
+        self.status = status
+        self.stage = stage
         self.message = message
-        self.details = details or {}
+        self.details = details or ProgressDetails()
         self.error = error
-        self.timestamp = datetime.utcnow().isoformat()
+        self.correlation_id = correlation_id or str(uuid.uuid4())
+        self.timestamp = datetime.utcnow()
+        self.sequence_number = int(time.time() * 1000000)  # Microsecond precision for ordering
     
     def to_dict(self) -> Dict:
         """Convert message to dictionary for JSON serialization."""
         data = {
+            "message_type": self.message_type.value,
             "batch_id": self.batch_id,
             "progress": self.progress,
-            "status": self.status,
-            "stage": self.stage,
+            "status": self.status.value,
+            "stage": self.stage.value,
             "message": self.message,
-            "details": self.details,
-            "timestamp": self.timestamp
+            "details": asdict(self.details) if self.details else {},
+            "timestamp": self.timestamp.isoformat(),
+            "correlation_id": self.correlation_id,
+            "sequence_number": self.sequence_number
         }
+        
+        if self.job_id:
+            data["job_id"] = self.job_id
+        if self.user_id:
+            data["user_id"] = self.user_id
         if self.error:
             data["error"] = self.error
+            
         return data
     
     def to_json(self) -> str:
         """Convert message to JSON string."""
-        return json.dumps(self.to_dict())
+        return json.dumps(self.to_dict(), default=str)
+    
+    @classmethod
+    def create_progress_update(
+        cls,
+        batch_id: str,
+        progress: float,
+        stage: ProgressStage,
+        message: str,
+        user_id: str,
+        details: Optional[ProgressDetails] = None,
+        job_id: Optional[str] = None
+    ) -> 'ProgressMessage':
+        """Factory method for progress updates"""
+        status = ProgressStatus.COMPLETED if progress >= 100.0 else ProgressStatus.PROCESSING
+        return cls(
+            message_type=MessageType.PROGRESS_UPDATE,
+            batch_id=batch_id,
+            progress=progress,
+            status=status,
+            stage=stage,
+            message=message,
+            details=details,
+            job_id=job_id,
+            user_id=user_id
+        )
+    
+    @classmethod
+    def create_error_notification(
+        cls,
+        batch_id: str,
+        stage: ProgressStage,
+        error_message: str,
+        user_id: str,
+        job_id: Optional[str] = None,
+        correlation_id: Optional[str] = None
+    ) -> 'ProgressMessage':
+        """Factory method for error notifications"""
+        return cls(
+            message_type=MessageType.ERROR_NOTIFICATION,
+            batch_id=batch_id,
+            progress=0.0,
+            status=ProgressStatus.ERROR,
+            stage=stage,
+            message="An error occurred during processing",
+            error=error_message,
+            job_id=job_id,
+            user_id=user_id,
+            correlation_id=correlation_id
+        )
+    
+    @classmethod
+    def create_heartbeat(
+        cls,
+        connection_id: str,
+        user_id: str,
+        stats: Optional[Dict[str, Any]] = None
+    ) -> 'ProgressMessage':
+        """Factory method for heartbeat messages"""
+        details = ProgressDetails(additional_info=stats or {})
+        return cls(
+            message_type=MessageType.HEARTBEAT,
+            batch_id=connection_id,
+            progress=0.0,
+            status=ProgressStatus.PROCESSING,
+            stage=ProgressStage.INITIALIZATION,
+            message="Connection heartbeat",
+            details=details,
+            user_id=user_id
+        )
 
 
 class WebSocketConnection:

@@ -1,635 +1,905 @@
 """
-Background Job Queue Infrastructure
+Background Job System for FinGood Financial Platform
 
-This module provides async job processing capabilities for file uploads and other
-long-running tasks using Celery with Redis as the message broker.
+This module implements a production-ready async job queue system using RQ (Redis Queue)
+for processing file uploads and other background tasks. The system maintains all existing
+security features while providing scalable async processing.
 
-Features:
-- Async file upload processing
-- Job status tracking
+Key Features:
+- Redis-based job queue with RQ
+- Comprehensive job status tracking and progress updates
+- Full security pipeline preservation (validation, malware scanning, etc.)
 - Error handling and retry logic
-- Progress monitoring via WebSocket
-- Security audit logging
+- WebSocket progress notifications
+- Job monitoring and management
+- Production-ready logging and monitoring
+
+Architecture:
+- Job Queue: RQ with Redis backend
+- Job Status: Redis-based with structured data
+- Progress Tracking: Real-time updates via WebSocket
+- Error Handling: Comprehensive retry and failure management
+- Security: Full preservation of existing validation pipeline
 """
 
-import logging
-import hashlib
+import asyncio
 import json
-from datetime import datetime, timedelta
-from typing import Dict, Any, Optional, List
-from enum import Enum
+import logging
 import uuid
+from datetime import datetime, timedelta
+from enum import Enum
+from typing import Dict, Any, Optional, List, Callable
+from dataclasses import dataclass, asdict
+from contextlib import asynccontextmanager
 
-from celery import Celery, states
-from celery.result import AsyncResult
-from celery.exceptions import CeleryError
-from sqlalchemy.orm import Session
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+import redis
+from rq import Queue, Worker, Connection, get_current_job
+from rq.job import Job, JobStatus
+from rq.exceptions import InvalidJobOperation
+import pandas as pd
+import io
 
 from app.core.config import settings
+from app.core.database import get_db
 from app.core.audit_logger import security_audit_logger
 from app.core.error_sanitizer import error_sanitizer, create_secure_error_response
 from app.schemas.error import ErrorCategory, ErrorSeverity
-from app.models.user import User
-from app.models.transaction import Transaction
+from app.core.exceptions import ValidationException, SystemException
 from app.services.categorization import CategorizationService
 from app.services.csv_parser import CSVParser, ParsingResult
 from app.services.file_validator import FileValidator, ValidationResult, ThreatLevel
 from app.services.malware_scanner import scan_file_for_malware
+from app.services.upload_monitor import check_upload_allowed, record_upload
 from app.services.content_sanitizer import sanitize_csv_content, SanitizationLevel
 from app.services.simple_sandbox_analyzer import analyze_file_in_sandbox, AnalysisType
+from app.models.user import User
+from app.models.transaction import Transaction
 from app.core.websocket_manager import (
     emit_validation_progress,
     emit_scanning_progress,
     emit_parsing_progress,
     emit_database_progress,
-    emit_categorization_progress,
-    emit_job_status_update
+    emit_categorization_progress
 )
 
 logger = logging.getLogger(__name__)
 
-# Constants for secure hash handling
-HASH_DISPLAY_LENGTH = 16
+# Job Status and Types
+class JobType(str, Enum):
+    """Supported background job types"""
+    CSV_UPLOAD = "csv_upload"
+    BULK_CATEGORIZATION = "bulk_categorization"
+    DATA_EXPORT = "data_export"
+    BATCH_DELETE = "batch_delete"
 
-class JobStatus(Enum):
-    """Job status enumeration"""
-    PENDING = "pending"
+class JobState(str, Enum):
+    """Job execution states"""
+    QUEUED = "queued"
+    STARTED = "started"
     PROCESSING = "processing"
     COMPLETED = "completed"
     FAILED = "failed"
     CANCELLED = "cancelled"
     RETRYING = "retrying"
 
-class JobType(Enum):
-    """Job type enumeration"""
-    FILE_UPLOAD = "file_upload"
-    BULK_CATEGORIZATION = "bulk_categorization"
-    EXPORT_GENERATION = "export_generation"
-    ANALYTICS_CALCULATION = "analytics_calculation"
+class JobPriority(str, Enum):
+    """Job priority levels"""
+    LOW = "low"
+    NORMAL = "normal"
+    HIGH = "high"
+    CRITICAL = "critical"
 
-# Initialize Celery app
-celery_app = Celery(
-    "fintech_backend",
-    broker=settings.REDIS_URL,
-    backend=settings.REDIS_URL,
-    include=["app.core.background_jobs"]
-)
+@dataclass
+class JobProgress:
+    """Structured job progress tracking"""
+    job_id: str
+    job_type: JobType
+    state: JobState
+    progress_percentage: float
+    current_step: str
+    message: str
+    details: Dict[str, Any]
+    user_id: str
+    created_at: datetime
+    updated_at: datetime
+    started_at: Optional[datetime] = None
+    completed_at: Optional[datetime] = None
+    error_info: Optional[Dict[str, Any]] = None
+    retry_count: int = 0
+    max_retries: int = 3
 
-# Celery configuration
-celery_app.conf.update(
-    task_serializer="json",
-    accept_content=["json"],
-    result_serializer="json",
-    timezone="UTC",
-    enable_utc=True,
-    task_track_started=True,
-    task_time_limit=30 * 60,  # 30 minutes
-    task_soft_time_limit=25 * 60,  # 25 minutes
-    worker_prefetch_multiplier=1,
-    worker_max_tasks_per_child=1000,
-    broker_connection_retry_on_startup=True,
-    result_expires=3600,  # 1 hour
-    task_routes={
-        "app.core.background_jobs.process_file_upload": {"queue": "file_processing"},
-        "app.core.background_jobs.process_bulk_categorization": {"queue": "categorization"},
-        "app.core.background_jobs.generate_export": {"queue": "export"},
-        "app.core.background_jobs.calculate_analytics": {"queue": "analytics"},
-    },
-    task_annotations={
-        "app.core.background_jobs.process_file_upload": {
-            "rate_limit": "10/m",  # 10 tasks per minute
-            "max_retries": 3,
-            "default_retry_delay": 60,  # 1 minute
-        },
-        "app.core.background_jobs.process_bulk_categorization": {
-            "rate_limit": "20/m",
-            "max_retries": 2,
-            "default_retry_delay": 30,
-        },
-    }
-)
+@dataclass
+class JobResult:
+    """Structured job result data"""
+    success: bool
+    data: Optional[Dict[str, Any]] = None
+    error_message: Optional[str] = None
+    error_code: Optional[str] = None
+    correlation_id: Optional[str] = None
+    processing_time: Optional[float] = None
+    statistics: Optional[Dict[str, Any]] = None
 
-def calculate_file_hash_streaming(file_content: bytes, chunk_size: int = 8192) -> str:
-    """Calculate SHA256 hash with streaming for memory efficiency"""
-    hash_obj = hashlib.sha256()
-    for i in range(0, len(file_content), chunk_size):
-        chunk = file_content[i:i + chunk_size]
-        hash_obj.update(chunk)
-    return hash_obj.hexdigest()
-
-def truncate_hash_for_display(hash_value: str) -> str:
-    """Truncate hash for secure display in logs and responses"""
-    return f"{hash_value[:HASH_DISPLAY_LENGTH]}..."
-
-def get_database_session() -> Session:
-    """Get database session for background tasks"""
-    engine = create_engine(settings.DATABASE_URL)
-    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-    return SessionLocal()
-
-def update_job_status(job_id: str, status: JobStatus, progress: float = 0.0, 
-                     message: str = "", details: Optional[Dict[str, Any]] = None):
-    """Update job status in Redis for tracking"""
-    try:
-        status_data = {
-            "status": status.value,
-            "progress": progress,
-            "message": message,
-            "details": details or {},
-            "updated_at": datetime.utcnow().isoformat()
-        }
-        
-        # Store in Redis with 1 hour expiration
-        celery_app.backend.set(
-            f"job_status:{job_id}",
-            json.dumps(status_data),
-            ex=3600
-        )
-        
-        logger.info(f"Job {job_id} status updated: {status.value} ({progress}%)")
-        
-    except Exception as e:
-        logger.error(f"Failed to update job status for {job_id}: {str(e)}")
-
-@celery_app.task(bind=True, name="app.core.background_jobs.process_file_upload")
-def process_file_upload(self, file_data: Dict[str, Any], user_id: str) -> Dict[str, Any]:
+class BackgroundJobManager:
     """
-    Process file upload asynchronously
+    Production-ready background job manager for FinGood platform.
     
-    Args:
-        file_data: Dictionary containing file information and content
-        user_id: User ID who uploaded the file
-    
-    Returns:
-        Dictionary with processing results
+    Handles job queuing, status tracking, progress updates, and comprehensive
+    error handling while maintaining all existing security features.
     """
-    job_id = self.request.id
-    start_time = datetime.utcnow()
     
-    # Extract file data
-    file_content = file_data.get("content")
-    filename = file_data.get("filename")
-    file_size = file_data.get("file_size", 0)
-    batch_id = file_data.get("batch_id")
-    
-    if not file_content or not filename:
-        error_msg = "Missing file content or filename"
-        update_job_status(job_id, JobStatus.FAILED, 0.0, error_msg)
-        raise ValueError(error_msg)
-    
-    # Initialize database session
-    db = get_database_session()
-    
-    try:
-        # Update job status to processing
-        update_job_status(job_id, JobStatus.PROCESSING, 5.0, "Starting file processing")
-        
-        # Emit initial progress via WebSocket (commented out for now - will be implemented later)
-        # emit_job_status_update(
-        #     job_id=job_id,
-        #     user_id=user_id,
-        #     status=JobStatus.PROCESSING.value,
-        #     progress=5.0,
-        #     message="Starting file processing"
-        # )
-        
-        # Step 1: File validation
-        update_job_status(job_id, JobStatus.PROCESSING, 10.0, "Validating file")
-        # emit_validation_progress(
-        #     batch_id=batch_id,
-        #     progress=10.0,
-        #     message="Validating file format and structure",
-        #     user_id=user_id
-        # )
-        
-        file_validator = FileValidator()
-        validation_result = file_validator.validate_file(
-            file_content=file_content,
-            filename=filename,
-            user_id=user_id
-        )
-        
-        if validation_result.validation_result == ValidationResult.REJECTED:
-            error_msg = "File failed security validation"
-            update_job_status(job_id, JobStatus.FAILED, 0.0, error_msg)
-            raise ValueError(error_msg)
-        
-        update_job_status(job_id, JobStatus.PROCESSING, 20.0, "File validation completed")
-        
-        # Step 2: Malware scanning
-        update_job_status(job_id, JobStatus.PROCESSING, 25.0, "Scanning for malware")
-        # emit_scanning_progress(
-        #     batch_id=batch_id,
-        #     progress=25.0,
-        #     message="Scanning file for malware and threats",
-        #     user_id=user_id
-        # )
-        
-        malware_scan_result = scan_file_for_malware(
-            file_content=file_content,
-            filename=filename,
-            user_id=user_id
-        )
-        
-        if not malware_scan_result.is_clean:
-            error_msg = "Malware detected in file"
-            update_job_status(job_id, JobStatus.FAILED, 0.0, error_msg)
-            raise ValueError(error_msg)
-        
-        update_job_status(job_id, JobStatus.PROCESSING, 40.0, "Malware scan completed")
-        
-        # Step 3: Content sanitization and parsing
-        update_job_status(job_id, JobStatus.PROCESSING, 45.0, "Parsing CSV content")
-        # emit_parsing_progress(
-        #     batch_id=batch_id,
-        #     progress=45.0,
-        #     message="Parsing CSV data and validating structure",
-        #     user_id=user_id
-        # )
-        
-        # Decode and sanitize content
+    def __init__(self):
+        """Initialize the job manager with Redis connection and RQ queues"""
         try:
-            content_str = file_content.decode('utf-8')
-        except UnicodeDecodeError:
-            try:
-                content_str = file_content.decode('latin-1')
-            except UnicodeDecodeError:
-                error_msg = "File encoding error"
-                update_job_status(job_id, JobStatus.FAILED, 0.0, error_msg)
-                raise ValueError(error_msg)
+            # Initialize Redis connection
+            self.redis_client = redis.from_url(
+                settings.REDIS_URL,
+                decode_responses=True,
+                socket_timeout=30,
+                socket_connect_timeout=30,
+                socket_keepalive=True,
+                socket_keepalive_options={},
+                health_check_interval=30
+            )
+            
+            # Test Redis connection
+            self.redis_client.ping()
+            logger.info("Successfully connected to Redis for background jobs")
+            
+            # Initialize RQ queues with different priorities
+            self.queues = {
+                JobPriority.CRITICAL: Queue('critical', connection=self.redis_client),
+                JobPriority.HIGH: Queue('high', connection=self.redis_client),
+                JobPriority.NORMAL: Queue('default', connection=self.redis_client),
+                JobPriority.LOW: Queue('low', connection=self.redis_client)
+            }
+            
+            # Job status tracking keys
+            self.job_status_key_prefix = "fingood:job:status"
+            self.job_progress_key_prefix = "fingood:job:progress"
+            self.user_jobs_key_prefix = "fingood:user:jobs"
+            
+            logger.info(f"Background job manager initialized with {len(self.queues)} priority queues")
+            
+        except redis.RedisError as e:
+            logger.error(f"Failed to connect to Redis: {e}")
+            raise SystemException(
+                message="Failed to initialize background job system",
+                code="REDIS_CONNECTION_ERROR"
+            )
+    
+    def _get_job_status_key(self, job_id: str) -> str:
+        """Get Redis key for job status"""
+        return f"{self.job_status_key_prefix}:{job_id}"
+    
+    def _get_job_progress_key(self, job_id: str) -> str:
+        """Get Redis key for job progress"""
+        return f"{self.job_progress_key_prefix}:{job_id}"
+    
+    def _get_user_jobs_key(self, user_id: str) -> str:
+        """Get Redis key for user's jobs"""
+        return f"{self.user_jobs_key_prefix}:{user_id}"
+    
+    async def queue_csv_upload_job(
+        self,
+        user_id: str,
+        file_content: bytes,
+        filename: str,
+        file_size: int,
+        batch_id: Optional[str] = None,
+        client_ip: Optional[str] = None,
+        user_agent: Optional[str] = None,
+        priority: JobPriority = JobPriority.NORMAL
+    ) -> str:
+        """
+        Queue a CSV upload job for background processing.
         
-        # Sanitize content
-        sanitization_result = sanitize_csv_content(
-            content=content_str,
-            filename=filename,
-            user_id=user_id,
-            level=SanitizationLevel.STRICT
-        )
-        
-        if not sanitization_result.is_safe:
-            error_msg = "Content sanitization failed"
-            update_job_status(job_id, JobStatus.FAILED, 0.0, error_msg)
-            raise ValueError(error_msg)
-        
-        # Parse CSV
-        import pandas as pd
-        import io
-        
+        Args:
+            user_id: User ID for the upload
+            file_content: Raw file content bytes
+            filename: Original filename
+            file_size: File size in bytes
+            batch_id: Optional batch ID (will generate if not provided)
+            client_ip: Client IP address for audit logging
+            user_agent: Client user agent for audit logging
+            priority: Job priority level
+            
+        Returns:
+            str: Job ID for tracking
+            
+        Raises:
+            ValidationException: If job parameters are invalid
+            SystemException: If job queueing fails
+        """
         try:
-            df = pd.read_csv(io.StringIO(sanitization_result.sanitized_content))
+            # Generate job ID and batch ID if needed
+            job_id = str(uuid.uuid4())
+            if not batch_id:
+                import hashlib
+                file_hash = hashlib.sha256(file_content).hexdigest()
+                batch_id = file_hash
+            
+            # Prepare job data
+            job_data = {
+                'job_id': job_id,
+                'user_id': user_id,
+                'file_content': file_content.hex(),  # Convert to hex for JSON serialization
+                'filename': filename,
+                'file_size': file_size,
+                'batch_id': batch_id,
+                'client_ip': client_ip,
+                'user_agent': user_agent,
+                'created_at': datetime.utcnow().isoformat()
+            }
+            
+            # Initialize job progress
+            progress = JobProgress(
+                job_id=job_id,
+                job_type=JobType.CSV_UPLOAD,
+                state=JobState.QUEUED,
+                progress_percentage=0.0,
+                current_step="queued",
+                message="Upload job queued for processing",
+                details={'filename': filename, 'file_size': file_size, 'batch_id': batch_id},
+                user_id=user_id,
+                created_at=datetime.utcnow(),
+                updated_at=datetime.utcnow()
+            )
+            
+            # Store initial progress
+            await self._store_job_progress(progress)
+            
+            # Queue the job
+            queue = self.queues[priority]
+            rq_job = queue.enqueue(
+                process_csv_upload_job,
+                job_data,
+                job_id=job_id,
+                job_timeout='30m',  # 30 minute timeout for large files
+                retry_count=3,
+                meta={'user_id': user_id, 'filename': filename, 'priority': priority.value}
+            )
+            
+            # Track job for user
+            user_jobs_key = self._get_user_jobs_key(user_id)
+            self.redis_client.sadd(user_jobs_key, job_id)
+            self.redis_client.expire(user_jobs_key, 86400)  # 24 hour expiry
+            
+            logger.info(f"Queued CSV upload job {job_id} for user {user_id} with priority {priority.value}")
+            
+            # Log audit event
+            security_audit_logger.log_file_upload_attempt(
+                user_id=user_id,
+                filename=filename,
+                file_size=file_size,
+                timestamp=datetime.utcnow(),
+                request=None  # Will be available in the background job
+            )
+            
+            return job_id
+            
         except Exception as e:
-            error_msg = f"CSV parsing failed: {str(e)}"
-            update_job_status(job_id, JobStatus.FAILED, 0.0, error_msg)
-            raise ValueError(error_msg)
-        
-        if df.empty:
-            error_msg = "CSV file is empty"
-            update_job_status(job_id, JobStatus.FAILED, 0.0, error_msg)
-            raise ValueError(error_msg)
-        
-        # Parse transactions
-        parser = CSVParser()
-        parsing_result: ParsingResult = parser.parse_dataframe(df)
-        
-        update_job_status(job_id, JobStatus.PROCESSING, 60.0, "CSV parsing completed")
-        
-        # Step 4: Database insertion
-        update_job_status(job_id, JobStatus.PROCESSING, 65.0, "Inserting into database")
-        # emit_database_progress(
-        #     batch_id=batch_id,
-        #     progress=65.0,
-        #     message="Starting database insertion of transactions",
-        #     user_id=user_id,
-        #     details={"total": len(parsing_result.transactions)}
-        # )
-        
-        processed_count = 0
-        db_errors = []
-        total_transactions = len(parsing_result.transactions)
-        
-        for transaction_data in parsing_result.transactions:
-            try:
-                transaction = Transaction(
-                    user_id=user_id,
-                    date=transaction_data['date'],
-                    amount=transaction_data['amount'],
-                    description=transaction_data['description'],
-                    vendor=transaction_data.get('vendor'),
-                    source='csv',
-                    import_batch=batch_id,
-                    raw_data=transaction_data.get('raw_data', {}),
-                    meta_data={
-                        'filename': filename,
-                        'import_date': datetime.utcnow().isoformat(),
-                        'validation_passed': True,
-                        'malware_scan_clean': True,
-                        'job_id': job_id
-                    },
-                    is_income=transaction_data.get('is_income', False)
+            logger.error(f"Failed to queue CSV upload job: {e}")
+            raise SystemException(
+                message="Failed to queue upload job",
+                code="JOB_QUEUE_ERROR"
+            )
+    
+    async def _store_job_progress(self, progress: JobProgress) -> None:
+        """Store job progress in Redis"""
+        try:
+            progress_key = self._get_job_progress_key(progress.job_id)
+            progress_data = asdict(progress)
+            
+            # Convert datetime objects to ISO format for JSON serialization
+            for key, value in progress_data.items():
+                if isinstance(value, datetime):
+                    progress_data[key] = value.isoformat() if value else None
+            
+            # Store with 24 hour expiry
+            self.redis_client.setex(
+                progress_key,
+                86400,  # 24 hours
+                json.dumps(progress_data, default=str)
+            )
+            
+            # Emit WebSocket update if user is connected
+            if progress.state == JobState.PROCESSING:
+                await self._emit_websocket_progress(progress)
+                
+        except Exception as e:
+            logger.error(f"Failed to store job progress for {progress.job_id}: {e}")
+    
+    async def _emit_websocket_progress(self, progress: JobProgress) -> None:
+        """Emit progress update via WebSocket"""
+        try:
+            # Map job progress to appropriate WebSocket event based on current step
+            step = progress.current_step.lower()
+            
+            if 'validation' in step:
+                await emit_validation_progress(
+                    batch_id=progress.details.get('batch_id', progress.job_id),
+                    progress=progress.progress_percentage,
+                    message=progress.message,
+                    user_id=progress.user_id,
+                    details=progress.details
+                )
+            elif 'scanning' in step or 'malware' in step:
+                await emit_scanning_progress(
+                    batch_id=progress.details.get('batch_id', progress.job_id),
+                    progress=progress.progress_percentage,
+                    message=progress.message,
+                    user_id=progress.user_id,
+                    details=progress.details
+                )
+            elif 'parsing' in step:
+                await emit_parsing_progress(
+                    batch_id=progress.details.get('batch_id', progress.job_id),
+                    progress=progress.progress_percentage,
+                    message=progress.message,
+                    user_id=progress.user_id,
+                    details=progress.details
+                )
+            elif 'database' in step:
+                await emit_database_progress(
+                    batch_id=progress.details.get('batch_id', progress.job_id),
+                    progress=progress.progress_percentage,
+                    message=progress.message,
+                    user_id=progress.user_id,
+                    details=progress.details
+                )
+            elif 'categorization' in step:
+                await emit_categorization_progress(
+                    batch_id=progress.details.get('batch_id', progress.job_id),
+                    progress=progress.progress_percentage,
+                    message=progress.message,
+                    user_id=progress.user_id,
+                    details=progress.details
                 )
                 
-                db.add(transaction)
-                processed_count += 1
-                
-                # Update progress every 10% or every 50 transactions
-                if processed_count % max(1, total_transactions // 10) == 0 or processed_count % 50 == 0:
-                    progress = 65.0 + (processed_count / total_transactions) * 10
-                    update_job_status(job_id, JobStatus.PROCESSING, progress, f"Processing transactions ({processed_count}/{total_transactions})")
-                    
-            except Exception as e:
-                db_error = {
-                    'row_number': transaction_data.get('row_number'),
-                    'error_type': 'database_error',
-                    'message': 'Transaction processing failed',
-                    'correlation_id': str(uuid.uuid4())
-                }
-                db_errors.append(db_error)
-                logger.error(f"Database error for row {transaction_data.get('row_number')}: {str(e)}")
-        
-        # Commit to database
+        except Exception as e:
+            logger.error(f"Failed to emit WebSocket progress for job {progress.job_id}: {e}")
+    
+    async def get_job_status(self, job_id: str) -> Optional[JobProgress]:
+        """Get current job status and progress"""
         try:
+            progress_key = self._get_job_progress_key(job_id)
+            progress_data = self.redis_client.get(progress_key)
+            
+            if not progress_data:
+                return None
+            
+            data = json.loads(progress_data)
+            
+            # Convert ISO datetime strings back to datetime objects
+            for key in ['created_at', 'updated_at', 'started_at', 'completed_at']:
+                if data.get(key):
+                    data[key] = datetime.fromisoformat(data[key])
+            
+            return JobProgress(**data)
+            
+        except Exception as e:
+            logger.error(f"Failed to get job status for {job_id}: {e}")
+            return None
+    
+    async def get_user_jobs(self, user_id: str, limit: int = 50) -> List[JobProgress]:
+        """Get all jobs for a user"""
+        try:
+            user_jobs_key = self._get_user_jobs_key(user_id)
+            job_ids = self.redis_client.smembers(user_jobs_key)
+            
+            jobs = []
+            for job_id in job_ids:
+                if len(jobs) >= limit:
+                    break
+                    
+                job_status = await self.get_job_status(job_id)
+                if job_status:
+                    jobs.append(job_status)
+            
+            # Sort by created_at descending
+            jobs.sort(key=lambda x: x.created_at, reverse=True)
+            return jobs
+            
+        except Exception as e:
+            logger.error(f"Failed to get user jobs for {user_id}: {e}")
+            return []
+    
+    async def cancel_job(self, job_id: str, user_id: str) -> bool:
+        """Cancel a queued or running job"""
+        try:
+            # Check if user owns the job
+            job_status = await self.get_job_status(job_id)
+            if not job_status or job_status.user_id != user_id:
+                return False
+            
+            # Try to cancel the RQ job
+            try:
+                job = Job.fetch(job_id, connection=self.redis_client)
+                job.cancel()
+            except Exception:
+                pass  # Job might not exist in RQ anymore
+            
+            # Update job status
+            job_status.state = JobState.CANCELLED
+            job_status.updated_at = datetime.utcnow()
+            job_status.message = "Job cancelled by user"
+            
+            await self._store_job_progress(job_status)
+            
+            logger.info(f"Cancelled job {job_id} for user {user_id}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to cancel job {job_id}: {e}")
+            return False
+    
+    def get_queue_stats(self) -> Dict[str, Any]:
+        """Get comprehensive queue statistics"""
+        try:
+            stats = {}
+            
+            for priority, queue in self.queues.items():
+                stats[priority.value] = {
+                    'name': queue.name,
+                    'length': len(queue),
+                    'scheduled_count': queue.scheduled_job_registry.count,
+                    'started_count': queue.started_job_registry.count,
+                    'finished_count': queue.finished_job_registry.count,
+                    'failed_count': queue.failed_job_registry.count,
+                    'deferred_count': queue.deferred_job_registry.count
+                }
+            
+            return {
+                'queues': stats,
+                'total_queued': sum(len(q) for q in self.queues.values()),
+                'redis_info': {
+                    'used_memory': self.redis_client.info()['used_memory_human'],
+                    'connected_clients': self.redis_client.info()['connected_clients']
+                }
+            }
+            
+        except Exception as e:
+            logger.error(f"Failed to get queue stats: {e}")
+            return {'error': str(e)}
+
+# Global job manager instance
+job_manager = BackgroundJobManager()
+
+# Background job worker functions
+def process_csv_upload_job(job_data: Dict[str, Any]) -> JobResult:
+    """
+    Background worker function for processing CSV uploads.
+    
+    This function maintains the complete security pipeline from the original
+    synchronous upload endpoint while running in a background worker.
+    
+    Args:
+        job_data: Job data containing file content and metadata
+        
+    Returns:
+        JobResult: Structured result with success/failure information
+    """
+    start_time = datetime.utcnow()
+    job_id = job_data['job_id']
+    user_id = job_data['user_id']
+    filename = job_data['filename']
+    
+    logger.info(f"Starting CSV upload job {job_id} for user {user_id}")
+    
+    try:
+        # Get current RQ job for progress tracking
+        current_job = get_current_job()
+        
+        # Initialize progress tracking
+        async def update_progress(
+            state: JobState,
+            percentage: float,
+            step: str,
+            message: str,
+            details: Optional[Dict[str, Any]] = None
+        ):
+            progress = JobProgress(
+                job_id=job_id,
+                job_type=JobType.CSV_UPLOAD,
+                state=state,
+                progress_percentage=percentage,
+                current_step=step,
+                message=message,
+                details=details or {},
+                user_id=user_id,
+                created_at=datetime.fromisoformat(job_data['created_at']),
+                updated_at=datetime.utcnow(),
+                started_at=datetime.utcnow() if state == JobState.STARTED else None
+            )
+            
+            # Store progress and emit WebSocket update
+            await job_manager._store_job_progress(progress)
+        
+        # Start processing
+        asyncio.run(update_progress(
+            JobState.STARTED,
+            5.0,
+            "started",
+            "Starting file upload processing",
+            {'filename': filename, 'file_size': job_data['file_size']}
+        ))
+        
+        # Convert hex content back to bytes
+        file_content = bytes.fromhex(job_data['file_content'])
+        file_size = job_data['file_size']
+        batch_id = job_data['batch_id']
+        
+        # Get database session
+        db = next(get_db())
+        
+        try:
+            # Get user
+            user = db.query(User).filter(User.id == user_id).first()
+            if not user:
+                raise ValidationException("User not found")
+            
+            # Step 1: Check upload permissions and rate limits
+            asyncio.run(update_progress(
+                JobState.PROCESSING,
+                10.0,
+                "upload_validation",
+                "Checking upload permissions and rate limits"
+            ))
+            
+            upload_allowed, deny_reason = asyncio.run(check_upload_allowed(
+                user_id=user_id,
+                filename=filename,
+                file_size=file_size,
+                file_content=file_content,
+                ip_address=job_data.get('client_ip'),
+                user_agent=job_data.get('user_agent')
+            ))
+            
+            if not upload_allowed:
+                asyncio.run(record_upload(
+                    user_id=user_id,
+                    filename=filename,
+                    file_size=file_size,
+                    file_content=file_content,
+                    success=False,
+                    ip_address=job_data.get('client_ip'),
+                    user_agent=job_data.get('user_agent'),
+                    error=deny_reason
+                ))
+                
+                raise ValidationException(f"Upload denied: {deny_reason}")
+            
+            # Step 2: Comprehensive file validation
+            asyncio.run(update_progress(
+                JobState.PROCESSING,
+                20.0,
+                "file_validation",
+                "Validating file format and structure"
+            ))
+            
+            file_validator = FileValidator()
+            validation_result = asyncio.run(file_validator.validate_file(
+                file_content=file_content,
+                filename=filename,
+                user_id=user_id
+            ))
+            
+            if validation_result.validation_result == ValidationResult.REJECTED:
+                raise ValidationException(f"File validation failed: {validation_result.errors}")
+            
+            # Step 3: Malware scanning
+            asyncio.run(update_progress(
+                JobState.PROCESSING,
+                30.0,
+                "malware_scanning",
+                "Scanning file for malware and threats"
+            ))
+            
+            malware_scan_result = asyncio.run(scan_file_for_malware(
+                file_content=file_content,
+                filename=filename,
+                user_id=user_id
+            ))
+            
+            if not malware_scan_result.is_clean:
+                raise ValidationException(f"Malware detected: {malware_scan_result.threats_detected}")
+            
+            # Step 4: Sandbox analysis for suspicious files
+            if validation_result.threat_level in [ThreatLevel.MEDIUM, ThreatLevel.HIGH, ThreatLevel.CRITICAL]:
+                asyncio.run(update_progress(
+                    JobState.PROCESSING,
+                    35.0,
+                    "sandbox_analysis",
+                    "Performing behavioral analysis"
+                ))
+                
+                sandbox_result = asyncio.run(analyze_file_in_sandbox(
+                    file_content=file_content,
+                    filename=filename,
+                    user_id=user_id,
+                    analysis_type=AnalysisType.BEHAVIORAL
+                ))
+                
+                if sandbox_result.get("threat_detected", False):
+                    raise ValidationException(f"Sandbox analysis failed: {sandbox_result}")
+            
+            # Step 5: Content sanitization and CSV parsing
+            asyncio.run(update_progress(
+                JobState.PROCESSING,
+                40.0,
+                "content_processing",
+                "Processing and sanitizing file content"
+            ))
+            
+            # Decode content
+            try:
+                content_str = file_content.decode('utf-8')
+            except UnicodeDecodeError:
+                try:
+                    content_str = file_content.decode('latin-1')
+                    logger.warning(f"File {filename} uses non-UTF-8 encoding")
+                except UnicodeDecodeError:
+                    raise ValidationException("File encoding error. Please ensure the file is UTF-8 encoded.")
+            
+            # Sanitize content
+            sanitization_result = asyncio.run(sanitize_csv_content(
+                content=content_str,
+                filename=filename,
+                user_id=user_id,
+                level=SanitizationLevel.STRICT
+            ))
+            
+            if not sanitization_result.is_safe:
+                raise ValidationException(f"Content sanitization failed: {sanitization_result.security_issues}")
+            
+            content_str = sanitization_result.sanitized_content
+            
+            # Parse CSV
+            asyncio.run(update_progress(
+                JobState.PROCESSING,
+                50.0,
+                "csv_parsing",
+                "Parsing CSV data and validating structure"
+            ))
+            
+            try:
+                df = pd.read_csv(io.StringIO(content_str))
+            except Exception as e:
+                raise ValidationException(f"CSV parsing failed: {str(e)}")
+            
+            if df.empty:
+                raise ValidationException("CSV file is empty")
+            
+            # Parse transactions
+            parser = CSVParser()
+            parsing_result: ParsingResult = parser.parse_dataframe(df)
+            
+            asyncio.run(update_progress(
+                JobState.PROCESSING,
+                60.0,
+                "transaction_parsing",
+                f"Parsed {len(parsing_result.transactions)} transactions",
+                {
+                    'successful_parsing': len(parsing_result.transactions),
+                    'failed_parsing': len(parsing_result.errors),
+                    'warnings': len(parsing_result.warnings)
+                }
+            ))
+            
+            # Step 6: Database insertion
+            asyncio.run(update_progress(
+                JobState.PROCESSING,
+                70.0,
+                "database_insertion",
+                "Saving transactions to database"
+            ))
+            
+            processed_count = 0
+            db_errors = []
+            total_transactions = len(parsing_result.transactions)
+            
+            for transaction_data in parsing_result.transactions:
+                try:
+                    transaction = Transaction(
+                        user_id=user.id,
+                        date=transaction_data['date'],
+                        amount=transaction_data['amount'],
+                        description=transaction_data['description'],
+                        vendor=transaction_data.get('vendor'),
+                        source='csv',
+                        import_batch=batch_id,
+                        raw_data=transaction_data.get('raw_data', {}),
+                        meta_data={
+                            'filename': filename,
+                            'import_date': datetime.utcnow().isoformat(),
+                            'validation_passed': True,
+                            'malware_scan_clean': True,
+                            'processed_via_background_job': True,
+                            'job_id': job_id
+                        },
+                        is_income=transaction_data.get('is_income', False)
+                    )
+                    
+                    db.add(transaction)
+                    processed_count += 1
+                    
+                    # Update progress every 10% or every 50 transactions
+                    if processed_count % max(1, total_transactions // 10) == 0 or processed_count % 50 == 0:
+                        progress_percentage = 70.0 + (processed_count / total_transactions) * 10  # 70% to 80%
+                        asyncio.run(update_progress(
+                            JobState.PROCESSING,
+                            progress_percentage,
+                            "database_insertion",
+                            f"Processing transactions ({processed_count}/{total_transactions})",
+                            {'processed': processed_count, 'total': total_transactions, 'errors': len(db_errors)}
+                        ))
+                
+                except Exception as e:
+                    sanitized_message = error_sanitizer.sanitize_error_message(str(e))
+                    db_error = {
+                        'row_number': transaction_data.get('row_number'),
+                        'error_type': 'database_error',
+                        'message': 'Transaction processing failed',
+                        'correlation_id': str(uuid.uuid4())
+                    }
+                    db_errors.append(db_error)
+                    logger.error(f"Database error for row {transaction_data.get('row_number')}: {db_error['correlation_id']}")
+            
+            # Commit to database
+            asyncio.run(update_progress(
+                JobState.PROCESSING,
+                80.0,
+                "database_commit",
+                "Committing transactions to database"
+            ))
+            
             db.commit()
             logger.info(f"Successfully committed {processed_count} transactions")
-        except Exception as e:
-            db.rollback()
-            error_msg = f"Database commit failed: {str(e)}"
-            update_job_status(job_id, JobStatus.FAILED, 0.0, error_msg)
-            raise ValueError(error_msg)
-        
-        update_job_status(job_id, JobStatus.PROCESSING, 80.0, "Database insertion completed")
-        
-        # Step 5: Categorization
-        update_job_status(job_id, JobStatus.PROCESSING, 85.0, "Starting categorization")
-        # emit_categorization_progress(
-        #     batch_id=batch_id,
-        #     progress=85.0,
-        #     message="Starting transaction categorization",
-        #     user_id=user_id,
-        #     details={"transactions_to_categorize": processed_count}
-        # )
-        
-        categorization_service = CategorizationService(db)
-        categorization_result = categorization_service.categorize_user_transactions(
-            user_id, batch_id
-        )
-        categorized_count = categorization_result['rule_categorized'] + categorization_result['ml_categorized']
-        
-        update_job_status(job_id, JobStatus.PROCESSING, 95.0, "Categorization completed")
-        
-        # Step 6: Finalize
-        processing_time = (datetime.utcnow() - start_time).total_seconds()
-        
-        result_data = {
-            "job_id": job_id,
-            "batch_id": batch_id,
-            "file_hash": batch_id,
-            "file_info": {
-                "filename": filename,
-                "file_size": file_size,
-                "total_rows": len(df),
-                "validation_passed": True,
-                "threat_level": validation_result.threat_level.value,
-                "malware_scan_clean": malware_scan_result.is_clean,
-                "duplicate_prevention": "SHA256 hash-based"
-            },
-            "processing_results": {
-                "processed_count": processed_count,
-                "categorized_count": categorized_count,
-                "categorization_rate": round((categorized_count / processed_count * 100), 2) if processed_count > 0 else 0,
-                "database_errors": len(db_errors),
-                "parsing_errors": len(parsing_result.errors)
-            },
-            "performance": {
-                "total_processing_time": processing_time,
-                "validation_time": validation_result.scan_duration,
-                "malware_scan_time": malware_scan_result.scan_duration
-            },
-            "summary": {
-                "total_transactions": processed_count,
-                "successfully_categorized": categorized_count,
-                "overall_success_rate": round((processed_count / len(df) * 100), 2) if len(df) > 0 else 0,
-                "security_status": "VALIDATED",
-                "duplicate_prevention": "SHA256_HASH_BASED"
-            }
-        }
-        
-        # Update final status
-        update_job_status(job_id, JobStatus.COMPLETED, 100.0, "Processing completed successfully", result_data)
-        
-        # Emit final progress (commented out for now)
-        # emit_categorization_progress(
-        #     batch_id=batch_id,
-        #     progress=100.0,
-        #     message="Upload completed successfully",
-        #     user_id=user_id,
-        #     details={
-        #         "total_transactions": processed_count,
-        #         "categorized_count": categorized_count,
-        #         "overall_success_rate": result_data['summary']['overall_success_rate']
-        #     }
-        # )
-        
-        # Log successful processing
-        security_audit_logger.log_file_upload_success(
-            user_id=user_id,
-            filename=filename,
-            file_size=file_size,
-            batch_id=batch_id,
-            processed_count=processed_count,
-            request=None  # No request object in background task
-        )
-        
-        logger.info(f"File upload processing completed successfully for job {job_id}: {result_data['summary']}")
-        
-        return result_data
-        
+            
+            # Step 7: Apply categorization
+            asyncio.run(update_progress(
+                JobState.PROCESSING,
+                85.0,
+                "categorization",
+                "Starting transaction categorization"
+            ))
+            
+            categorization_service = CategorizationService(db)
+            categorization_result = asyncio.run(categorization_service.categorize_user_transactions(
+                user.id, batch_id
+            ))
+            categorized_count = categorization_result['rule_categorized'] + categorization_result['ml_categorized']
+            
+            # Step 8: Complete processing
+            processing_time = (datetime.utcnow() - start_time).total_seconds()
+            
+            asyncio.run(update_progress(
+                JobState.COMPLETED,
+                100.0,
+                "completed",
+                "Upload completed successfully",
+                {
+                    'total_transactions': processed_count,
+                    'categorized_count': categorized_count,
+                    'processing_time': processing_time,
+                    'overall_success_rate': round((processed_count / len(df) * 100), 2) if len(df) > 0 else 0
+                }
+            ))
+            
+            # Log successful upload
+            security_audit_logger.log_file_upload_success(
+                user_id=user_id,
+                filename=filename,
+                file_size=file_size,
+                batch_id=batch_id,
+                processed_count=processed_count,
+                request=None
+            )
+            
+            # Record successful upload
+            asyncio.run(record_upload(
+                user_id=user_id,
+                filename=filename,
+                file_size=file_size,
+                file_content=file_content,
+                success=True,
+                ip_address=job_data.get('client_ip'),
+                user_agent=job_data.get('user_agent')
+            ))
+            
+            logger.info(f"Completed CSV upload job {job_id} successfully: {processed_count} transactions processed")
+            
+            return JobResult(
+                success=True,
+                data={
+                    'batch_id': batch_id,
+                    'file_hash': batch_id,
+                    'processed_count': processed_count,
+                    'categorized_count': categorized_count,
+                    'categorization_rate': round((categorized_count / processed_count * 100), 2) if processed_count > 0 else 0,
+                    'parsing_results': {
+                        'successful_parsing': len(parsing_result.transactions),
+                        'failed_parsing': len(parsing_result.errors),
+                        'success_rate': parsing_result.statistics['success_rate'],
+                        'warning_count': len(parsing_result.warnings)
+                    },
+                    'security_validation': {
+                        'validation_passed': True,
+                        'threat_level': validation_result.threat_level.value,
+                        'malware_scan_clean': malware_scan_result.is_clean,
+                        'content_safe': sanitization_result.is_safe
+                    }
+                },
+                processing_time=processing_time,
+                statistics=parsing_result.statistics
+            )
+            
+        finally:
+            db.close()
+            
     except Exception as e:
-        # Handle any unexpected errors
-        error_msg = f"File processing failed: {str(e)}"
-        update_job_status(job_id, JobStatus.FAILED, 0.0, error_msg)
+        logger.error(f"CSV upload job {job_id} failed: {e}")
         
-        # Log the error
+        # Update job status to failed
+        try:
+            asyncio.run(update_progress(
+                JobState.FAILED,
+                0.0,
+                "failed",
+                f"Upload failed: {str(e)}",
+                {'error': str(e)}
+            ))
+        except:
+            pass  # Don't let progress update failure mask the original error
+        
+        # Log failure
         security_audit_logger.log_file_upload_failure(
             user_id=user_id,
             filename=filename,
-            file_size=file_size,
-            error=error_msg,
+            file_size=job_data.get('file_size', 0),
+            error=f"Background job failed: {str(e)}",
             request=None
         )
         
-        logger.error(f"File processing failed for job {job_id}: {str(e)}")
-        raise
-        
-    finally:
-        db.close()
-
-@celery_app.task(bind=True, name="app.core.background_jobs.process_bulk_categorization")
-def process_bulk_categorization(self, user_id: str, transaction_ids: List[str]) -> Dict[str, Any]:
-    """
-    Process bulk categorization asynchronously
-    
-    Args:
-        user_id: User ID
-        transaction_ids: List of transaction IDs to categorize
-    
-    Returns:
-        Dictionary with categorization results
-    """
-    job_id = self.request.id
-    db = get_database_session()
-    
-    try:
-        update_job_status(job_id, JobStatus.PROCESSING, 0.0, "Starting bulk categorization")
-        
-        categorization_service = CategorizationService(db)
-        result = categorization_service.categorize_transactions_by_ids(
-            user_id, transaction_ids
+        return JobResult(
+            success=False,
+            error_message=str(e),
+            error_code="JOB_PROCESSING_ERROR",
+            correlation_id=job_id,
+            processing_time=(datetime.utcnow() - start_time).total_seconds()
         )
-        
-        update_job_status(job_id, JobStatus.COMPLETED, 100.0, "Bulk categorization completed", result)
-        
-        return result
-        
-    except Exception as e:
-        error_msg = f"Bulk categorization failed: {str(e)}"
-        update_job_status(job_id, JobStatus.FAILED, 0.0, error_msg)
-        raise
-        
-    finally:
-        db.close()
 
-@celery_app.task(bind=True, name="app.core.background_jobs.generate_export")
-def generate_export(self, user_id: str, export_type: str, filters: Dict[str, Any]) -> Dict[str, Any]:
+def start_worker(queue_names: List[str] = None) -> None:
     """
-    Generate export asynchronously
+    Start RQ worker for processing background jobs.
     
     Args:
-        user_id: User ID
-        export_type: Type of export (pdf, excel, csv)
-        filters: Export filters
-    
-    Returns:
-        Dictionary with export results
+        queue_names: List of queue names to process (default: all queues)
     """
-    job_id = self.request.id
-    
     try:
-        update_job_status(job_id, JobStatus.PROCESSING, 0.0, "Starting export generation")
+        redis_conn = redis.from_url(settings.REDIS_URL)
         
-        # TODO: Implement export generation logic
-        # This will be implemented in Task B2.3: Export Engine Implementation
+        if queue_names is None:
+            queue_names = ['critical', 'high', 'default', 'low']
         
-        result = {
-            "job_id": job_id,
-            "export_type": export_type,
-            "status": "not_implemented",
-            "message": "Export generation not yet implemented"
-        }
+        queues = [Queue(name, connection=redis_conn) for name in queue_names]
         
-        update_job_status(job_id, JobStatus.COMPLETED, 100.0, "Export generation completed", result)
+        logger.info(f"Starting worker for queues: {queue_names}")
         
-        return result
+        worker = Worker(queues, connection=redis_conn)
+        worker.work(with_scheduler=True)
         
     except Exception as e:
-        error_msg = f"Export generation failed: {str(e)}"
-        update_job_status(job_id, JobStatus.FAILED, 0.0, error_msg)
+        logger.error(f"Failed to start worker: {e}")
         raise
 
-@celery_app.task(bind=True, name="app.core.background_jobs.calculate_analytics")
-def calculate_analytics(self, user_id: str, analytics_type: str, date_range: Dict[str, str]) -> Dict[str, Any]:
-    """
-    Calculate analytics asynchronously
+if __name__ == "__main__":
+    # CLI entry point for starting workers
+    import sys
     
-    Args:
-        user_id: User ID
-        analytics_type: Type of analytics to calculate
-        date_range: Date range for analytics
+    if len(sys.argv) > 1:
+        queue_names = sys.argv[1].split(',')
+    else:
+        queue_names = None
     
-    Returns:
-        Dictionary with analytics results
-    """
-    job_id = self.request.id
-    
-    try:
-        update_job_status(job_id, JobStatus.PROCESSING, 0.0, "Starting analytics calculation")
-        
-        # TODO: Implement analytics calculation logic
-        # This will be implemented in Task B2.1: Analytics Engine Foundation
-        
-        result = {
-            "job_id": job_id,
-            "analytics_type": analytics_type,
-            "status": "not_implemented",
-            "message": "Analytics calculation not yet implemented"
-        }
-        
-        update_job_status(job_id, JobStatus.COMPLETED, 100.0, "Analytics calculation completed", result)
-        
-        return result
-        
-    except Exception as e:
-        error_msg = f"Analytics calculation failed: {str(e)}"
-        update_job_status(job_id, JobStatus.FAILED, 0.0, error_msg)
-        raise
-
-def get_job_status(job_id: str) -> Optional[Dict[str, Any]]:
-    """
-    Get job status from Redis
-    
-    Args:
-        job_id: Job ID to check
-    
-    Returns:
-        Job status dictionary or None if not found
-    """
-    try:
-        status_data = celery_app.backend.get(f"job_status:{job_id}")
-        if status_data:
-            return json.loads(status_data)
-        return None
-    except Exception as e:
-        logger.error(f"Failed to get job status for {job_id}: {str(e)}")
-        return None
-
-def cancel_job(job_id: str) -> bool:
-    """
-    Cancel a running job
-    
-    Args:
-        job_id: Job ID to cancel
-    
-    Returns:
-        True if job was cancelled, False otherwise
-    """
-    try:
-        celery_app.control.revoke(job_id, terminate=True)
-        update_job_status(job_id, JobStatus.CANCELLED, 0.0, "Job cancelled by user")
-        return True
-    except Exception as e:
-        logger.error(f"Failed to cancel job {job_id}: {str(e)}")
-        return False
-
-def get_job_result(job_id: str) -> Optional[Dict[str, Any]]:
-    """
-    Get job result from Celery
-    
-    Args:
-        job_id: Job ID to get result for
-    
-    Returns:
-        Job result or None if not found
-    """
-    try:
-        result = AsyncResult(job_id, app=celery_app)
-        if result.ready():
-            return {
-                "status": result.status,
-                "result": result.result if result.successful() else None,
-                "error": str(result.info) if result.failed() else None
-            }
-        return None
-    except Exception as e:
-        logger.error(f"Failed to get job result for {job_id}: {str(e)}")
-        return None
+    start_worker(queue_names)

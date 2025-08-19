@@ -60,7 +60,15 @@
       "Bash(./dev-start.sh:*)",
       "mcp__browser-tools__getConsoleErrors",
       "mcp__playwright__browser_console_messages",
-      "mcp__sequential-thinking__sequentialthinking"
+      "mcp__sequential-thinking__sequentialthinking",
+      "Bash(gh pr comment:*)",
+      "Bash(gh pr merge:*)",
+      "Bash(git push:*)",
+      "Bash(gh pr view:*)",
+      "Bash(gh pr:*)",
+      "Bash(COMPLIANCE_SECRET_KEY=\"test-compliance-secret-key-at-least-32-chars-long\" python -c \"\n# Test basic imports and configuration after merge\nimport sys\nsys.path.append(''.'')\ntry:\n    from app.core.config import Settings\n    from app.core.background_jobs import job_manager, JobPriority, JobState\n    from app.api.v1.endpoints.upload import router\n    \n    print(''✅ All core imports successful after merge resolution'')\n    print(''✅ Configuration loads correctly'')\n    print(''✅ Background job system (RQ) imports correctly'')\n    print(''✅ Upload router with RQ integration imports correctly'')\n    print()\n    print(''🎉 Merge resolution successful - all systems operational!'')\n    \nexcept Exception as e:\n    print(f''❌ Import error: {e}'')\n    import traceback\n    traceback.print_exc()\n\")",
+      "Bash(COMPLIANCE_SECRET_KEY=\"test-compliance-secret-key-at-least-32-chars-long\" python -c \"\n# Test basic imports and configuration after merge\nimport sys\nsys.path.append(''.'')\ntry:\n    from app.core.config import Settings\n    from app.core.background_jobs import job_manager, JobPriority, JobState\n    from app.api.v1.endpoints.upload import router\n    \n    print(''✅ All core imports successful after merge resolution'')\n    print(''✅ Configuration loads correctly'')\n    print(''✅ Background job system (RQ) imports correctly'')\n    print(''✅ Upload router with RQ integration imports correctly'')\n    print()\n    print(''🎉 Merge resolution successful - all systems operational!'')\n    \nexcept Exception as e:\n    print(f''❌ Import error: {e}'')\n    import traceback\n    traceback.print_exc()\n\")",
+      "Bash(COMPLIANCE_SECRET_KEY=\"test-compliance-secret-key-at-least-32-chars-long\" python -c \"\n# Test basic imports without Redis dependency\nimport sys\nsys.path.append(''.'')\ntry:\n    from app.core.config import Settings\n    from app.core.background_jobs import JobPriority, JobState, JobType, JobProgress\n    \n    print(''✅ Configuration loads correctly'')\n    print(''✅ Background job enums and classes import correctly'')\n    \n    # Test enum values\n    print(f''✅ JobPriority values: {[p.value for p in JobPriority]}'')\n    print(f''✅ JobState values: {[s.value for s in JobState]}'')\n    print(f''✅ JobType values: {[t.value for t in JobType]}'')\n    \n    print()\n    print(''🎉 Core components import successfully after merge resolution!'')\n    \nexcept Exception as e:\n    print(f''❌ Import error: {e}'')\n    import traceback\n    traceback.print_exc()\n\")"
     ],
     "deny": [],
     "ask": [],

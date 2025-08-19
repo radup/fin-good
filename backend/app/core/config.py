@@ -144,13 +144,20 @@ class Settings(BaseSettings):
     WEBSOCKET_MESSAGE_RATE_LIMIT: int = 10  # messages per second
     WEBSOCKET_MAX_MESSAGE_SIZE: int = 1024  # bytes
     
-    # Background Jobs Configuration
+    # Background Job Queue Configuration
     ENABLE_BACKGROUND_JOBS: bool = True
-    CELERY_WORKER_CONCURRENCY: int = 2
-    CELERY_TASK_TIME_LIMIT: int = 1800  # 30 minutes
-    CELERY_TASK_SOFT_TIME_LIMIT: int = 1500  # 25 minutes
-    CELERY_MAX_TASKS_PER_CHILD: int = 1000
-    CELERY_RESULT_EXPIRES: int = 3600  # 1 hour
+    JOB_TIMEOUT_MINUTES: int = 30  # Default job timeout in minutes
+    MAX_JOB_RETRIES: int = 3  # Maximum retry attempts for failed jobs
+    JOB_RESULT_TTL_HOURS: int = 24  # Job result retention in hours
+    ENABLE_JOB_MONITORING: bool = True  # Enable job monitoring dashboard
+    
+    # Job queue priorities and limits
+    MAX_JOBS_PER_USER_PER_HOUR: int = 20
+    MAX_CONCURRENT_JOBS_PER_USER: int = 3
+    CRITICAL_QUEUE_MAX_SIZE: int = 100
+    HIGH_QUEUE_MAX_SIZE: int = 500
+    NORMAL_QUEUE_MAX_SIZE: int = 1000
+    LOW_QUEUE_MAX_SIZE: int = 2000
     
     # AI/ML settings
     OLLAMA_BASE_URL: str = "http://localhost:11434"
