@@ -14,7 +14,7 @@ import logging
 import os
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status, BackgroundTasks, Query
 from fastapi.responses import FileResponse, JSONResponse
@@ -26,7 +26,7 @@ from app.core.audit_logger import security_audit_logger
 from app.core.background_jobs import JobPriority
 from app.core.config import settings
 from app.core.error_handlers import create_error_response
-from app.core.rate_limiting import RateLimiter
+from app.core.rate_limiter import RateLimiter
 from app.core.security_utils import input_sanitizer
 from app.models.export_job import ExportJob, ExportTemplate
 from app.models.user import User
@@ -41,17 +41,9 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 # Rate limiting for export operations
-export_rate_limiter = RateLimiter(
-    max_requests=10,  # 10 export requests
-    window_seconds=300,  # per 5 minutes
-    key_func=lambda request: f"export:{request.state.user.id}"
-)
+export_rate_limiter = RateLimiter()
 
-download_rate_limiter = RateLimiter(
-    max_requests=50,  # 50 downloads
-    window_seconds=300,  # per 5 minutes
-    key_func=lambda request: f"export_download:{request.client.host}"
-)
+download_rate_limiter = RateLimiter()
 
 
 @router.post("/create", response_model=ExportJobResponse)
@@ -603,7 +595,7 @@ async def get_export_stats(
 
 
 # Admin endpoints (require appropriate permissions)
-@router.get("/admin/queue-stats", response_model=Dict[str, any])
+@router.get("/admin/queue-stats", response_model=Dict[str, Any])
 async def get_export_queue_stats(
     current_user: User = Depends(get_current_user_from_cookie),
     db: Session = Depends(get_db)
@@ -638,14 +630,4 @@ async def get_export_queue_stats(
         )
 
 
-# Error handlers for this router
-@router.exception_handler(Exception)
-async def export_exception_handler(request: Request, exc: Exception):
-    """Handle export-specific exceptions."""
-    logger.error(f"Export API error: {exc}", extra={"path": str(request.url)})
-    
-    return create_error_response(
-        error_code="EXPORT_ERROR",
-        message="An error occurred during export processing",
-        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
-    )
+# Note: Exception handlers are typically added at the app level, not router level
