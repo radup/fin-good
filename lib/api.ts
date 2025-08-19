@@ -97,25 +97,248 @@ export interface FeedbackResult {
   ml_learning: boolean
 }
 
+// Types for confidence analysis
+export interface ConfidenceAnalysis {
+  transaction_id: number
+  description: string
+  amount: number
+  current_category: string
+  current_subcategory?: string
+  confidence_score: number
+  categorization_method: 'rule' | 'ml' | 'manual'
+  alternatives: Array<{
+    category: string
+    subcategory?: string
+    confidence: number
+    reasoning?: string
+  }>
+  last_updated: string | null
+}
+
+// Types for bulk categorization
+export interface BulkCategorizationRequest {
+  transaction_ids: number[]
+  use_ml_fallback: boolean
+}
+
+export interface BulkCategorizationResponse {
+  message: string
+  total_transactions: number
+  rule_categorized: number
+  ml_categorized: number
+  failed_categorizations: number
+  success_rate: number
+  processing_time: number
+}
+
 // Types for rate limit handling
 export interface RateLimitInfo {
-  retry_after: number
   limit: number
   reset_time: string
   message: string
 }
 
+// Types for categorization rules
+export interface CategorizationRule {
+  id: number
+  user_id: number
+  pattern: string
+  pattern_type: string
+  category: string
+  subcategory?: string
+  priority: number
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface RuleCreate {
+  pattern: string
+  pattern_type: string
+  category: string
+  subcategory?: string
+  priority?: number
+  is_active?: boolean
+}
+
+export interface RuleUpdate {
+  pattern?: string
+  pattern_type?: string
+  category?: string
+  subcategory?: string
+  priority?: number
+  is_active?: boolean
+}
+
+export interface RuleListResponse {
+  rules: CategorizationRule[]
+  total: number
+  page: number
+  page_size: number
+  has_next: boolean
+  has_prev: boolean
+}
+
+export interface RuleTestRequest {
+  pattern: string
+  pattern_type: string
+  test_text: string
+}
+
+export interface RuleTestResponse {
+  matches: boolean
+  matched_text?: string
+  confidence?: number
+}
+
+// Types for reports
+export interface ReportRequest {
+  report_type: 'cash_flow' | 'spending_analysis' | 'vendor_performance' | 'category_breakdown' | 'monthly_summary' | 'quarterly_summary' | 'custom_kpi' | 'categorization_quality'
+  start_date?: string
+  end_date?: string
+  group_by?: 'none' | 'category' | 'subcategory' | 'vendor' | 'month' | 'quarter' | 'year' | 'week'
+  filters?: {
+    categories?: string[]
+    vendors?: string[]
+    min_amount?: number
+    max_amount?: number
+    is_income?: boolean
+    is_categorized?: boolean
+    description_contains?: string
+  }
+  aggregation?: 'sum' | 'avg' | 'count' | 'min' | 'max'
+  export_format?: 'json' | 'csv'
+}
+
+export interface ReportResponse {
+  report_id: string
+  report_type: string
+  data: any
+  generated_at: string
+  cache_hit: boolean
+}
+
+// Types for export
+export interface ExportRequest {
+  export_name?: string
+  format: 'csv' | 'excel' | 'pdf' | 'json'
+  filters: {
+    start_date?: string
+    end_date?: string
+    categories?: string[]
+    vendors?: string[]
+    min_amount?: number
+    max_amount?: number
+    is_income?: boolean
+    is_categorized?: boolean
+  }
+  columns?: string[]
+  options?: {
+    include_headers?: boolean
+    date_format?: string
+    number_format?: string
+  }
+}
+
+export interface ExportJobResponse {
+  job_id: string
+  status: 'pending' | 'processing' | 'completed' | 'failed'
+  progress: number
+  message: string
+  download_url?: string
+  created_at: string
+  estimated_completion?: string
+}
+
+export interface ExportProgress {
+  job_id: string
+  status: string
+  progress: number
+  message: string
+  download_url?: string
+}
+
+// Types for ML categorization
+export interface MLCategorizationResult {
+  transaction_id: number
+  categorization_result: {
+    categorized: boolean
+    method: 'ml' | 'rule'
+    confidence: number
+    category: string
+    subcategory?: string
+    reasoning?: string
+    alternatives?: Array<{
+      category: string
+      confidence: number
+    }>
+  }
+}
+
+export interface MLSuggestions {
+  transaction_id: number
+  transaction_details: {
+    description: string
+    vendor?: string
+    amount: number
+  }
+  suggestions: {
+    has_suggestions: boolean
+    primary_suggestion?: {
+      category: string
+      subcategory?: string
+      confidence: number
+      reasoning?: string
+    }
+    alternatives?: Array<{
+      category: string
+      confidence: number
+    }>
+  }
+}
+
+export interface MLPerformanceMetrics {
+  user_id: number
+  ml_performance: {
+    total_predictions: number
+    correct_predictions: number
+    accuracy: number
+    average_response_time: number
+    cache_size: number
+    last_updated: string
+  }
+}
+
+// Types for cache management
+export interface CacheStats {
+  hit_rate: number
+  miss_rate: number
+  total_requests: number
+  memory_usage: number
+  cache_size: number
+  eviction_count: number
+}
+
+// Types for monitoring
+export interface HealthStatus {
+  status: 'healthy' | 'degraded' | 'unhealthy'
+  timestamp: string
+  version: string
+  environment: string
+  metrics: {
+    total_errors_last_hour: number
+    critical_errors_last_hour: number
+    unique_error_codes: number
+    affected_users: number
+    affected_ips: number
+  }
+}
+
 // Global CSRF token storage
 let globalCsrfToken: string | null = null
 
-export const setGlobalCsrfToken = (token: string | null) => {
-  globalCsrfToken = token
-}
-
-export const getGlobalCsrfToken = () => globalCsrfToken
-
-// Helper function to extract CSRF token from cookie
-const getCsrfTokenFromCookie = (): string | null => {
+// Get CSRF token from cookies
+const getCsrfTokenFromCookie = () => {
   if (typeof document === 'undefined') return null
   
   const csrfCookie = document.cookie
@@ -257,14 +480,14 @@ export const transactionAPI = {
       params: { category, subcategory }
     }),
 
-  // Get categorization performance metrics
+  // NEW: Get categorization performance metrics
   getCategorizationPerformance: (params?: {
     start_date?: string
     end_date?: string
   }): Promise<{ data: CategorizationPerformance }> =>
     api.get('/api/v1/transactions/categorize/performance', { params }),
 
-  // Auto-improve categorization based on user feedback and patterns
+  // NEW: Auto-improve categorization based on user feedback and patterns
   autoImprove: (params?: {
     batch_id?: string
     min_confidence_threshold?: number
@@ -272,14 +495,14 @@ export const transactionAPI = {
   }): Promise<{ data: AutoImprovementResult }> =>
     api.post('/api/v1/transactions/categorize/auto-improve', null, { params }),
 
-  // Get category suggestions for a transaction
+  // NEW: Get category suggestions for a transaction
   getCategorySuggestions: (transactionId: number, params?: {
     include_ml?: boolean
     include_rules?: boolean
   }): Promise<{ data: CategorySuggestions }> =>
     api.get(`/api/v1/transactions/categorize/suggestions/${transactionId}`, { params }),
 
-  // Submit categorization feedback
+  // NEW: Submit categorization feedback
   submitFeedback: (transactionId: number, params: {
     feedback_type: 'correct' | 'incorrect' | 'suggest_alternative'
     suggested_category?: string
@@ -290,6 +513,17 @@ export const transactionAPI = {
       params: { transaction_id: transactionId, ...params }
     }),
 
+  // NEW: Bulk categorization with transaction IDs
+  bulkCategorize: (transactionIds: number[], useMlFallback: boolean = true): Promise<{ data: BulkCategorizationResponse }> =>
+    api.post('/api/v1/transactions/categorize/bulk', { 
+      transaction_ids: transactionIds, 
+      use_ml_fallback: useMlFallback 
+    }),
+
+  // NEW: Confidence analysis for individual transactions
+  getConfidence: (transactionId: number): Promise<{ data: ConfidenceAnalysis }> =>
+    api.get(`/api/v1/transactions/categorize/confidence/${transactionId}`),
+
   // List import batches (files)
   listImportBatches: () => 
     api.get('/api/v1/transactions/import-batches'),
@@ -297,45 +531,6 @@ export const transactionAPI = {
   // Delete transactions by import batch
   deleteImportBatch: (batchId: string) => 
     api.delete(`/api/v1/transactions/import-batch/${batchId}`),
-
-  // NEW: Bulk categorization with transaction IDs
-  bulkCategorize: (transactionIds: number[], useMlFallback?: boolean) =>
-    api.post('/api/v1/transactions/categorize/bulk', { 
-      transaction_ids: transactionIds, 
-      use_ml_fallback: useMlFallback 
-    }),
-
-  // NEW: Confidence analysis for individual transactions
-  getConfidence: (transactionId: number) =>
-    api.get(`/api/v1/transactions/categorize/confidence/${transactionId}`),
-
-  // NEW: Submit user feedback with ML learning
-  submitFeedback: (transactionId: number, feedbackType: string, suggestedCategory?: string, suggestedSubcategory?: string, feedbackComment?: string) =>
-    api.post('/api/v1/transactions/categorize/feedback', {
-      transaction_id: transactionId,
-      feedback_type: feedbackType,
-      suggested_category: suggestedCategory,
-      suggested_subcategory: suggestedSubcategory,
-      feedback_comment: feedbackComment
-    }),
-
-  // NEW: Category suggestions with rule-based and ML-based recommendations
-  getSuggestions: (transactionId: number, includeMl?: boolean, includeRules?: boolean) =>
-    api.get(`/api/v1/transactions/categorize/suggestions/${transactionId}`, {
-      params: { include_ml: includeMl, include_rules: includeRules }
-    }),
-
-  // NEW: Auto-improvement with configurable limits
-  autoImprove: (params?: { 
-    batch_id?: string, 
-    min_confidence_threshold?: number, 
-    max_transactions?: number 
-  }) =>
-    api.post('/api/v1/transactions/categorize/auto-improve', params),
-
-  // NEW: Categorization performance metrics
-  getPerformance: (params?: { start_date?: string, end_date?: string }) =>
-    api.get('/api/v1/transactions/categorize/performance', { params }),
 }
 
 // Upload endpoints
@@ -382,4 +577,198 @@ export const categoryAPI = {
     subcategory?: string
     priority?: number
   }) => api.post('/api/v1/categories/rules', data),
+}
+
+// Categorization Rules endpoints
+export const categorizationRulesAPI = {
+  // Get paginated list of categorization rules
+  getRules: (params?: {
+    page?: number
+    page_size?: number
+    active_only?: boolean
+    category?: string
+    pattern_type?: string
+    search?: string
+    sort_by?: string
+    sort_desc?: boolean
+  }): Promise<{ data: RuleListResponse }> =>
+    api.get('/api/v1/categorization-rules/', { params }),
+
+  // Create a new categorization rule
+  createRule: (ruleData: RuleCreate): Promise<{ data: CategorizationRule }> =>
+    api.post('/api/v1/categorization-rules/', ruleData),
+
+  // Get a specific rule
+  getRule: (ruleId: number): Promise<{ data: CategorizationRule }> =>
+    api.get(`/api/v1/categorization-rules/${ruleId}`),
+
+  // Update a rule
+  updateRule: (ruleId: number, ruleData: RuleUpdate): Promise<{ data: CategorizationRule }> =>
+    api.put(`/api/v1/categorization-rules/${ruleId}`, ruleData),
+
+  // Delete a rule
+  deleteRule: (ruleId: number): Promise<{ data: { message: string } }> =>
+    api.delete(`/api/v1/categorization-rules/${ruleId}`),
+
+  // Test a rule
+  testRule: (testData: RuleTestRequest): Promise<{ data: RuleTestResponse }> =>
+    api.post('/api/v1/categorization-rules/test', testData),
+}
+
+// Reports endpoints
+export const reportsAPI = {
+  // Generate a report
+  generateReport: (reportRequest: ReportRequest): Promise<{ data: ReportResponse }> =>
+    api.post('/api/v1/reports/generate', reportRequest),
+
+  // Get report by ID
+  getReport: (reportId: string): Promise<{ data: ReportResponse }> =>
+    api.get(`/api/v1/reports/${reportId}`),
+
+  // Get available report types
+  getReportTypes: (): Promise<{ data: string[] }> =>
+    api.get('/api/v1/reports/types'),
+
+  // Get report templates
+  getTemplates: (): Promise<{ data: any[] }> =>
+    api.get('/api/v1/reports/templates'),
+}
+
+// Export endpoints
+export const exportAPI = {
+  // Create export job
+  createExport: (exportRequest: ExportRequest): Promise<{ data: ExportJobResponse }> =>
+    api.post('/api/v1/export/create', exportRequest),
+
+  // Get export job status
+  getExportStatus: (jobId: string): Promise<{ data: ExportProgress }> =>
+    api.get(`/api/v1/export/status/${jobId}`),
+
+  // Download export file
+  downloadExport: (jobId: string): Promise<Blob> =>
+    api.get(`/api/v1/export/download/${jobId}`, { responseType: 'blob' }),
+
+  // Get export history
+  getExportHistory: (params?: {
+    page?: number
+    page_size?: number
+    status?: string
+  }): Promise<{ data: any }> =>
+    api.get('/api/v1/export/history', { params }),
+
+  // Cancel export job
+  cancelExport: (jobId: string): Promise<{ data: { message: string } }> =>
+    api.post(`/api/v1/export/cancel/${jobId}`),
+}
+
+// ML Categorization endpoints
+export const mlAPI = {
+  // Categorize transaction with ML
+  categorizeTransaction: (transactionId: number): Promise<{ data: MLCategorizationResult }> =>
+    api.post(`/api/v1/ml/${transactionId}/categorize`),
+
+  // Get ML suggestions for transaction
+  getSuggestions: (transactionId: number): Promise<{ data: MLSuggestions }> =>
+    api.get(`/api/v1/ml/${transactionId}/suggestions`),
+
+  // Get ML performance metrics
+  getPerformanceMetrics: (): Promise<{ data: MLPerformanceMetrics }> =>
+    api.get('/api/v1/ml/performance-metrics'),
+
+  // Get ML health status
+  getHealthStatus: (): Promise<{ data: any }> =>
+    api.get('/api/v1/ml/health-status'),
+
+  // Get training data
+  getTrainingData: (): Promise<{ data: any }> =>
+    api.get('/api/v1/ml/training-data'),
+}
+
+// Cache Management endpoints
+export const cacheAPI = {
+  // Get cache statistics
+  getStats: (): Promise<{ data: CacheStats }> =>
+    api.get('/api/v1/cache/stats'),
+
+  // Cleanup expired cache
+  cleanup: (): Promise<{ data: { message: string } }> =>
+    api.post('/api/v1/cache/cleanup'),
+
+  // Invalidate user cache
+  invalidateUserCache: (): Promise<{ data: { message: string } }> =>
+    api.post('/api/v1/cache/invalidate-user'),
+}
+
+// Monitoring endpoints
+export const monitoringAPI = {
+  // Get system health status
+  getHealth: (): Promise<{ data: HealthStatus }> =>
+    api.get('/api/v1/monitoring/health'),
+
+  // Get error metrics
+  getErrorMetrics: (params?: {
+    hours?: number
+  }): Promise<{ data: any }> =>
+    api.get('/api/v1/monitoring/metrics', { params }),
+}
+
+// Enhanced Analytics endpoints
+export const enhancedAnalyticsAPI = {
+  // Get cash flow analysis
+  getCashFlowAnalysis: (params?: {
+    start_date?: string
+    end_date?: string
+    group_by?: string
+  }): Promise<{ data: any }> =>
+    api.get('/api/v1/analytics/cash-flow', { params }),
+
+  // Get category insights
+  getCategoryInsights: (params?: {
+    start_date?: string
+    end_date?: string
+    category?: string
+  }): Promise<{ data: any }> =>
+    api.get('/api/v1/analytics/category-insights', { params }),
+
+  // Get vendor analysis
+  getVendorAnalysis: (params?: {
+    start_date?: string
+    end_date?: string
+    vendor?: string
+  }): Promise<{ data: any }> =>
+    api.get('/api/v1/analytics/vendor-analysis', { params }),
+
+  // Get anomaly detection
+  getAnomalyDetection: (params?: {
+    start_date?: string
+    end_date?: string
+    threshold?: number
+  }): Promise<{ data: any }> =>
+    api.get('/api/v1/analytics/anomaly-detection', { params }),
+
+  // Get comparative analysis
+  getComparativeAnalysis: (params?: {
+    period1_start?: string
+    period1_end?: string
+    period2_start?: string
+    period2_end?: string
+    metric?: string
+  }): Promise<{ data: any }> =>
+    api.get('/api/v1/analytics/comparative', { params }),
+
+  // Get trend analysis
+  getTrendAnalysis: (params?: {
+    start_date?: string
+    end_date?: string
+    metric?: string
+    period_type?: string
+  }): Promise<{ data: any }> =>
+    api.get('/api/v1/analytics/trends', { params }),
+
+  // Get dashboard data
+  getDashboardData: (params?: {
+    start_date?: string
+    end_date?: string
+  }): Promise<{ data: any }> =>
+    api.get('/api/v1/analytics/dashboard', { params }),
 }
