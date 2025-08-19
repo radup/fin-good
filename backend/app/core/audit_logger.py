@@ -398,6 +398,91 @@ class SecurityAuditLogger:
         )
         self.log_event(event)
     
+    def log_categorization_change(
+        self,
+        user_id: int,
+        transaction_id: int,
+        old_category: Optional[str],
+        new_category: str,
+        method: str,
+        confidence_score: Optional[float] = None,
+        request: Optional[Request] = None
+    ) -> None:
+        """Log categorization changes for financial compliance."""
+        event = SecurityEvent(
+            event_type=SecurityEventType.SECURITY_VIOLATION,  # Using existing type
+            risk_level=RiskLevel.LOW,
+            timestamp=datetime.utcnow(),
+            user_id=user_id,
+            client_ip=self._get_client_ip(request),
+            user_agent=self._get_user_agent(request),
+            request_id=self._get_request_id(request),
+            details={
+                "transaction_id": transaction_id,
+                "old_category": old_category,
+                "new_category": new_category,
+                "method": method,
+                "confidence_score": confidence_score,
+                "subsystem": "categorization"
+            },
+            outcome="categorization_changed"
+        )
+        self.log_event(event)
+    
+    def log_bulk_categorization(
+        self,
+        user_id: int,
+        transaction_count: int,
+        method: str,
+        processing_time: Optional[float] = None,
+        request: Optional[Request] = None
+    ) -> None:
+        """Log bulk categorization operations."""
+        event = SecurityEvent(
+            event_type=SecurityEventType.SECURITY_VIOLATION,  # Using existing type
+            risk_level=RiskLevel.LOW,
+            timestamp=datetime.utcnow(),
+            user_id=user_id,
+            client_ip=self._get_client_ip(request),
+            user_agent=self._get_user_agent(request),
+            request_id=self._get_request_id(request),
+            details={
+                "transaction_count": transaction_count,
+                "method": method,
+                "processing_time": processing_time,
+                "subsystem": "categorization"
+            },
+            outcome="bulk_categorization_completed"
+        )
+        self.log_event(event)
+    
+    def log_categorization_feedback(
+        self,
+        user_id: int,
+        transaction_id: int,
+        feedback_type: str,
+        suggested_category: Optional[str] = None,
+        request: Optional[Request] = None
+    ) -> None:
+        """Log user feedback on categorization."""
+        event = SecurityEvent(
+            event_type=SecurityEventType.SECURITY_VIOLATION,  # Using existing type
+            risk_level=RiskLevel.LOW,
+            timestamp=datetime.utcnow(),
+            user_id=user_id,
+            client_ip=self._get_client_ip(request),
+            user_agent=self._get_user_agent(request),
+            request_id=self._get_request_id(request),
+            details={
+                "transaction_id": transaction_id,
+                "feedback_type": feedback_type,
+                "suggested_category": suggested_category,
+                "subsystem": "categorization"
+            },
+            outcome="feedback_submitted"
+        )
+        self.log_event(event)
+    
     def _get_client_ip(self, request: Optional[Request]) -> Optional[str]:
         """Extract client IP from request."""
         if not request:

@@ -509,3 +509,28 @@ async def emit_database_progress(batch_id: str, progress: float, message: str, u
 async def emit_categorization_progress(batch_id: str, progress: float, message: str, user_id: str, details: Optional[Dict] = None):
     """Emit categorization stage progress."""
     await emit_upload_progress(batch_id, progress, "categorization", message, user_id, details)
+
+
+async def emit_job_status_update(
+    job_id: str,
+    user_id: str,
+    status: str,
+    progress: float,
+    message: str,
+    details: Optional[Dict] = None,
+    error: Optional[str] = None
+):
+    """Emit job status update for background tasks."""
+    # Create a job-specific batch_id for tracking
+    batch_id = f"job_{job_id}"
+    
+    await websocket_manager.broadcast_progress(
+        batch_id=batch_id,
+        progress=progress,
+        status=status,
+        stage="background_job",
+        message=message,
+        details=details,
+        error=error,
+        user_id=user_id
+    )

@@ -29,7 +29,9 @@ from app.schemas.export import (
 )
 from app.core.financial_validators import validate_and_secure_sort_parameters
 from app.core.exceptions import ValidationException
-from app.core.rate_limiter import get_rate_limiter, RateLimitType, RateLimitTier
+from app.core.rate_limiter import get_rate_limiter, RateLimitType, RateLimitTier, rate_limit
+from app.core.audit_logger import security_audit_logger
+from fastapi import Request
 
 router = APIRouter()
 
@@ -499,11 +501,13 @@ async def categorize_transactions(
     }
 
 @router.post("/categorize/bulk")
+@rate_limit(requests_per_hour=100, requests_per_minute=10)  # Strict limits for bulk operations
 async def bulk_categorize_transactions(
     transaction_ids: List[int],
     use_ml_fallback: bool = Query(True, description="Use ML categorization for transactions not matched by rules"),
     current_user: User = Depends(get_current_user_from_cookie),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    request: Request = None
 ):
     """
     Bulk categorize specific transactions by ID
@@ -538,6 +542,15 @@ async def bulk_categorize_transactions(
     categorization_service = CategorizationService(db)
     result = await categorization_service.categorize_transactions_by_ids(
         current_user.id, transaction_ids, use_ml_fallback
+    )
+    
+    # Audit logging for bulk categorization
+    security_audit_logger.log_bulk_categorization(
+        user_id=current_user.id,
+        transaction_count=len(transaction_ids),
+        method="bulk_categorization",
+        processing_time=result.get('processing_time', 0),
+        request=request
     )
     
     return {
@@ -592,6 +605,7 @@ async def get_categorization_confidence(
     }
 
 @router.post("/categorize/feedback")
+@rate_limit(requests_per_hour=1000, requests_per_minute=100)  # Standard limits for feedback
 async def submit_categorization_feedback(
     transaction_id: int,
     feedback_type: str = Query(..., description="Type of feedback: correct, incorrect, suggest_alternative"),
@@ -599,7 +613,8 @@ async def submit_categorization_feedback(
     suggested_subcategory: Optional[str] = Query(None, description="Suggested subcategory if feedback_type is suggest_alternative"),
     feedback_comment: Optional[str] = Query(None, description="Additional feedback comment"),
     current_user: User = Depends(get_current_user_from_cookie),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    request: Request = None
 ):
     """
     Submit feedback on categorization accuracy
@@ -638,6 +653,15 @@ async def submit_categorization_feedback(
         suggested_category=suggested_category,
         suggested_subcategory=suggested_subcategory,
         feedback_comment=feedback_comment
+    )
+    
+    # Audit logging for categorization feedback
+    security_audit_logger.log_categorization_feedback(
+        user_id=current_user.id,
+        transaction_id=transaction_id,
+        feedback_type=feedback_type,
+        suggested_category=suggested_category,
+        request=request
     )
     
     return {
@@ -692,11 +716,14 @@ async def get_category_suggestions(
     }
 
 @router.post("/categorize/auto-improve")
+@rate_limit(requests_per_hour=50, requests_per_minute=5)  # Strict limits for auto-improvement
 async def auto_improve_categorization(
     batch_id: Optional[str] = Query(None, description="Improve categorization for specific batch"),
     min_confidence_threshold: float = Query(0.5, ge=0.0, le=1.0, description="Minimum confidence threshold for improvements"),
+    max_transactions: int = Query(1000, ge=1, le=10000, description="Maximum transactions to process (default: 1000)"),
     current_user: User = Depends(get_current_user_from_cookie),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    request: Request = None
 ):
     """
     Automatically improve categorization based on user feedback and patterns
@@ -708,7 +735,17 @@ async def auto_improve_categorization(
     improvement_result = await categorization_service.auto_improve_categorization(
         user_id=current_user.id,
         batch_id=batch_id,
-        min_confidence_threshold=min_confidence_threshold
+        min_confidence_threshold=min_confidence_threshold,
+        max_transactions=max_transactions  # Add transaction limit
+    )
+    
+    # Audit logging for auto-improvement
+    security_audit_logger.log_bulk_categorization(
+        user_id=current_user.id,
+        transaction_count=improvement_result.get('transactions_reprocessed', 0),
+        method="auto_improvement",
+        processing_time=improvement_result.get('processing_time', 0),
+        request=request
     )
     
     return {

@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from app.models.transaction import Transaction, CategorizationRule
 from app.services.ml_categorization import MLCategorizationService, MLCategoryPrediction
+from app.core.audit_logger import security_audit_logger
 import re
 import logging
 from typing import Optional, Dict, Any, List
@@ -668,6 +669,9 @@ class CategorizationService:
             impact = 'marked_incorrect'
             
         elif feedback_type == 'suggest_alternative':
+            # Store old category for audit logging
+            old_category = transaction.category
+            
             # Apply suggested category and create rule
             transaction.category = suggested_category
             transaction.subcategory = suggested_subcategory
@@ -681,6 +685,16 @@ class CategorizationService:
                 new_category=suggested_category,
                 new_subcategory=suggested_subcategory,
                 create_rule=True
+            )
+            
+            # Audit logging for categorization change
+            security_audit_logger.log_categorization_change(
+                user_id=user_id,
+                transaction_id=transaction_id,
+                old_category=old_category,
+                new_category=suggested_category,
+                method="feedback_correction",
+                confidence_score=transaction.confidence_score
             )
             
             impact = 'category_applied_and_rule_created'
@@ -762,12 +776,12 @@ class CategorizationService:
             'total_suggestions': len(suggestions)
         }
 
-    async def auto_improve_categorization(self, user_id: int, batch_id: Optional[str] = None, min_confidence_threshold: float = 0.5) -> Dict[str, Any]:
+    async def auto_improve_categorization(self, user_id: int, batch_id: Optional[str] = None, min_confidence_threshold: float = 0.5, max_transactions: int = 1000) -> Dict[str, Any]:
         """Automatically improve categorization based on feedback and patterns"""
         import time
         start_time = time.time()
         
-        # Get transactions with feedback
+        # Get transactions with feedback (with limit)
         query = self.db.query(Transaction).filter(
             Transaction.user_id == user_id,
             Transaction.meta_data.isnot(None)
@@ -776,7 +790,7 @@ class CategorizationService:
         if batch_id:
             query = query.filter(Transaction.import_batch == batch_id)
         
-        transactions = query.all()
+        transactions = query.limit(max_transactions).all()
         
         rules_created = 0
         rules_updated = 0
@@ -845,7 +859,7 @@ class CategorizationService:
                             self.db.add(new_rule)
                             rules_created += 1
         
-        # Reprocess transactions with new rules
+        # Reprocess transactions with new rules (with limit)
         if rules_created > 0 or rules_updated > 0:
             uncategorized = self.db.query(Transaction).filter(
                 Transaction.user_id == user_id,
@@ -855,7 +869,7 @@ class CategorizationService:
             if batch_id:
                 uncategorized = uncategorized.filter(Transaction.import_batch == batch_id)
             
-            uncategorized_transactions = uncategorized.all()
+            uncategorized_transactions = uncategorized.limit(max_transactions).all()
             
             for transaction in uncategorized_transactions:
                 if await self._categorize_transaction(transaction):

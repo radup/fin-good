@@ -577,3 +577,60 @@ async def get_rate_limiter() -> RateLimiter:
     if not rate_limiter.redis_client:
         await rate_limiter.initialize()
     return rate_limiter
+
+
+def rate_limit(requests_per_hour: int = 1000, requests_per_minute: int = 100):
+    """
+    Decorator for rate limiting API endpoints.
+    
+    Args:
+        requests_per_hour: Maximum requests per hour (default: 1000)
+        requests_per_minute: Maximum requests per minute (default: 100)
+    """
+    def decorator(func):
+        async def wrapper(*args, **kwargs):
+            # Extract user and request from function arguments
+            current_user = None
+            request = None
+            
+            # Find current_user in kwargs
+            if 'current_user' in kwargs:
+                current_user = kwargs['current_user']
+            elif 'request' in kwargs:
+                request = kwargs['request']
+            
+            # Create identifier for rate limiting
+            if current_user:
+                identifier = f"user:{current_user.id}"
+            elif request:
+                identifier = f"ip:{request.client.host}"
+            else:
+                # Fallback to function name
+                identifier = f"func:{func.__name__}"
+            
+            # Get rate limiter instance
+            limiter = await get_rate_limiter()
+            
+            # Check rate limits
+            result = await limiter.check_rate_limit(
+                identifier=identifier,
+                limit_type=RateLimitType.GENERAL,
+                user_tier=RateLimitTier.FREE  # Default tier
+            )
+            
+            if not result.allowed:
+                raise HTTPException(
+                    status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                    detail={
+                        "error": "Rate limit exceeded",
+                        "retry_after": result.retry_after,
+                        "limit": result.limit,
+                        "current_usage": result.current_usage
+                    }
+                )
+            
+            # Call the original function
+            return await func(*args, **kwargs)
+        
+        return wrapper
+    return decorator

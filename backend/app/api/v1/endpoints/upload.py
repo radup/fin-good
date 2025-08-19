@@ -31,6 +31,13 @@ from app.core.websocket_manager import (
     emit_database_progress,
     emit_categorization_progress
 )
+from app.core.background_jobs import (
+    process_file_upload,
+    get_job_status,
+    cancel_job,
+    get_job_result,
+    JobStatus
+)
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -903,3 +910,364 @@ async def get_validation_rules():
             "zero_amount": "Zero amounts will trigger a warning"
         }
     }
+
+@router.post("/async")
+async def upload_csv_async(
+    request: Request,
+    file: UploadFile = File(...),
+    batch_id: Optional[str] = None,
+    current_user: User = Depends(get_current_user_from_cookie),
+    db: Session = Depends(get_db)
+):
+    """
+    Upload and process CSV file asynchronously using background job queue.
+    
+    This endpoint initiates file processing in the background and returns immediately
+    with a job ID. Progress can be tracked via WebSocket or the /jobs/{job_id} endpoint.
+    
+    Features:
+    - SHA256 hash-based duplicate prevention
+    - Background processing with job queue
+    - Real-time progress tracking via WebSocket
+    - Comprehensive security validation
+    - Error handling and retry logic
+    """
+    
+    start_time = datetime.utcnow()
+    
+    # Basic file validation
+    if not file.filename:
+        security_audit_logger.log_file_upload_failure(
+            user_id=str(current_user.id),
+            filename="<no filename>",
+            file_size=0,
+            error="No filename provided",
+            request=request
+        )
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Filename is required"
+        )
+    
+    try:
+        # Read file content
+        content = await file.read()
+        file_size = len(content)
+        
+        # Log upload attempt
+        security_audit_logger.log_file_upload_attempt(
+            user_id=str(current_user.id),
+            filename=file.filename,
+            file_size=file_size,
+            timestamp=start_time,
+            request=request
+        )
+        
+        logger.info(f"Initiating async file upload: {file.filename}, size: {file_size} bytes, user: {current_user.id}")
+        
+        # Get client info for monitoring
+        client_ip = request.client.host if request.client else None
+        user_agent = request.headers.get("User-Agent")
+        
+        # Step 1: Check upload permissions and rate limits
+        upload_allowed, deny_reason = await check_upload_allowed(
+            user_id=str(current_user.id),
+            filename=file.filename,
+            file_size=file_size,
+            file_content=content,
+            ip_address=client_ip,
+            user_agent=user_agent
+        )
+        
+        if not upload_allowed:
+            await record_upload(
+                user_id=str(current_user.id),
+                filename=file.filename,
+                file_size=file_size,
+                file_content=content,
+                success=False,
+                ip_address=client_ip,
+                user_agent=user_agent,
+                error=deny_reason
+            )
+            
+            security_audit_logger.log_file_upload_failure(
+                user_id=str(current_user.id),
+                filename=file.filename,
+                file_size=file_size,
+                error=f"Upload denied: {deny_reason}",
+                request=request
+            )
+            
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail=deny_reason
+            )
+        
+        # Generate SHA256 file hash for batch_id (replaces UUID for duplicate prevention)
+        if not batch_id:
+            file_hash = calculate_file_hash_streaming(content)
+            batch_id = file_hash
+            
+            logger.info(f"Generated SHA256 hash for {file.filename}: {truncate_hash_for_display(file_hash)} (size: {file_size} bytes)")
+            
+            # Early duplicate detection - check before any processing
+            existing_upload = db.query(Transaction).filter(
+                Transaction.user_id == current_user.id,
+                Transaction.import_batch == file_hash
+            ).first()
+            
+            if existing_upload:
+                security_audit_logger.log_file_upload_failure(
+                    user_id=str(current_user.id),
+                    filename=file.filename,
+                    file_size=file_size,
+                    error=f"Duplicate file upload detected - hash: {truncate_hash_for_display(file_hash)}",
+                    request=request
+                )
+                
+                logger.warning(f"Duplicate file upload rejected for user {current_user.id}: hash {truncate_hash_for_display(file_hash)}")
+                
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail={
+                        "message": "This file has already been uploaded",
+                        "duplicate_batch_id": file_hash,
+                        "error_code": "DUPLICATE_FILE_UPLOAD",
+                        "suggested_action": f"Use DELETE /api/v1/transactions/import-batch/{file_hash} to remove the previous upload before re-uploading"
+                    }
+                )
+        
+        # Step 2: Basic file validation (quick checks before queuing)
+        if not file.filename.lower().endswith('.csv'):
+            security_audit_logger.log_file_upload_failure(
+                user_id=str(current_user.id),
+                filename=file.filename,
+                file_size=file_size,
+                error="Invalid file extension",
+                request=request
+            )
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Only CSV files are supported"
+            )
+        
+        # Step 3: Size validation
+        max_size = settings.MAX_FILE_SIZE
+        if file_size > max_size:
+            security_audit_logger.log_file_size_violation(
+                user_id=str(current_user.id),
+                filename=file.filename,
+                file_size=file_size,
+                max_allowed=max_size,
+                request=request
+            )
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"File too large. Maximum size: {max_size / (1024*1024):.1f} MB"
+            )
+        
+        # Step 4: Prepare file data for background processing
+        file_data = {
+            "content": content,
+            "filename": file.filename,
+            "file_size": file_size,
+            "batch_id": batch_id,
+            "upload_timestamp": start_time.isoformat(),
+            "client_ip": client_ip,
+            "user_agent": user_agent
+        }
+        
+        # Step 5: Submit job to background queue
+        try:
+            job = process_file_upload.delay(file_data, str(current_user.id))
+            job_id = job.id
+            
+            logger.info(f"Background job submitted successfully: {job_id} for user {current_user.id}")
+            
+            # Log successful job submission
+            security_audit_logger.log_file_upload_success(
+                user_id=str(current_user.id),
+                filename=file.filename,
+                file_size=file_size,
+                batch_id=batch_id,
+                processed_count=0,  # Will be updated by background job
+                request=request
+            )
+            
+            # Return immediate response with job information
+            response_data = {
+                "message": "File upload initiated successfully",
+                "job_id": job_id,
+                "batch_id": batch_id,
+                "file_hash": batch_id,
+                "status": "queued",
+                "processing_mode": "async",
+                "file_info": {
+                    "filename": file.filename,
+                    "file_size": file_size,
+                    "duplicate_prevention": "SHA256 hash-based"
+                },
+                "tracking": {
+                    "job_status_endpoint": f"/api/v1/upload/jobs/{job_id}",
+                    "websocket_topic": f"job_{job_id}",
+                    "estimated_processing_time": "2-5 minutes depending on file size"
+                },
+                "security": {
+                    "validation_pending": True,
+                    "malware_scan_pending": True,
+                    "content_sanitization_pending": True
+                }
+            }
+            
+            return response_data
+            
+        except Exception as e:
+            error_msg = f"Failed to submit background job: {str(e)}"
+            logger.error(f"Background job submission failed for user {current_user.id}: {error_msg}")
+            
+            security_audit_logger.log_file_upload_failure(
+                user_id=str(current_user.id),
+                filename=file.filename,
+                file_size=file_size,
+                error=error_msg,
+                request=request
+            )
+            
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to initiate file processing. Please try again."
+            )
+        
+    except HTTPException:
+        # Re-raise HTTP exceptions
+        raise
+    except Exception as e:
+        # Create sanitized error response for unexpected errors
+        error_detail = create_secure_error_response(
+            exception=e,
+            error_code="ASYNC_UPLOAD_INITIATION_ERROR",
+            error_category=ErrorCategory.SYSTEM_ERROR,
+            correlation_id=str(uuid.uuid4()),
+            user_message="An unexpected error occurred while initiating file upload.",
+            suggested_action="Please try again. If the problem persists, contact support."
+        )
+        
+        security_audit_logger.log_file_upload_failure(
+            user_id=str(current_user.id),
+            filename=file.filename,
+            file_size=len(content) if 'content' in locals() else 0,
+            error=f"Unexpected error: {error_detail.correlation_id}",
+            request=request
+        )
+        
+        logger.error(f"Unexpected error initiating async upload for {file.filename}: {error_detail.correlation_id}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=error_detail.user_message
+        )
+
+@router.get("/jobs/{job_id}")
+async def get_job_status_endpoint(
+    job_id: str,
+    current_user: User = Depends(get_current_user_from_cookie)
+):
+    """
+    Get the status of a background job
+    
+    Args:
+        job_id: The job ID to check
+        
+    Returns:
+        Job status information
+    """
+    try:
+        # Get job status from Redis
+        status_data = get_job_status(job_id)
+        
+        if not status_data:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Job not found or expired"
+            )
+        
+        # Get job result from Celery if completed
+        result_data = None
+        if status_data.get("status") in ["completed", "failed"]:
+            result_data = get_job_result(job_id)
+        
+        response_data = {
+            "job_id": job_id,
+            "status": status_data.get("status"),
+            "progress": status_data.get("progress", 0.0),
+            "message": status_data.get("message", ""),
+            "details": status_data.get("details", {}),
+            "updated_at": status_data.get("updated_at"),
+            "result": result_data
+        }
+        
+        return response_data
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting job status for {job_id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to retrieve job status"
+        )
+
+@router.delete("/jobs/{job_id}")
+async def cancel_job_endpoint(
+    job_id: str,
+    current_user: User = Depends(get_current_user_from_cookie)
+):
+    """
+    Cancel a running background job
+    
+    Args:
+        job_id: The job ID to cancel
+        
+    Returns:
+        Cancellation status
+    """
+    try:
+        # Get current job status
+        status_data = get_job_status(job_id)
+        
+        if not status_data:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Job not found or expired"
+            )
+        
+        # Check if job can be cancelled
+        if status_data.get("status") in ["completed", "failed", "cancelled"]:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Job cannot be cancelled in status: {status_data.get('status')}"
+            )
+        
+        # Attempt to cancel the job
+        success = cancel_job(job_id)
+        
+        if success:
+            return {
+                "message": "Job cancelled successfully",
+                "job_id": job_id,
+                "status": "cancelled"
+            }
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to cancel job"
+            )
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error cancelling job {job_id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to cancel job"
+        )

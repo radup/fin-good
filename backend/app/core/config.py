@@ -144,6 +144,14 @@ class Settings(BaseSettings):
     WEBSOCKET_MESSAGE_RATE_LIMIT: int = 10  # messages per second
     WEBSOCKET_MAX_MESSAGE_SIZE: int = 1024  # bytes
     
+    # Background Jobs Configuration
+    ENABLE_BACKGROUND_JOBS: bool = True
+    CELERY_WORKER_CONCURRENCY: int = 2
+    CELERY_TASK_TIME_LIMIT: int = 1800  # 30 minutes
+    CELERY_TASK_SOFT_TIME_LIMIT: int = 1500  # 25 minutes
+    CELERY_MAX_TASKS_PER_CHILD: int = 1000
+    CELERY_RESULT_EXPIRES: int = 3600  # 1 hour
+    
     # AI/ML settings
     OLLAMA_BASE_URL: str = "http://localhost:11434"
     OLLAMA_MODEL: str = "llama2"
