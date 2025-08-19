@@ -29,10 +29,12 @@ from enum import Enum
 import csv
 import io
 
-from fastapi import APIRouter, HTTPException, Depends, Query, BackgroundTasks
+from fastapi import APIRouter, HTTPException, Depends, Query, BackgroundTasks, Request
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, Field, validator
 import redis
+import os
 
 from app.core.database import get_db
 from app.core.auth import get_current_user
@@ -891,3 +893,254 @@ async def get_supported_export_formats():
     ]
     
     return {"supported_formats": formats}
+
+# ============================================================================
+# NEW REPORT BUILDER ENDPOINTS (Template-based system)
+# ============================================================================
+
+@router.post("/v2/create", response_model=Dict[str, Any])
+async def create_report_job_v2(
+    report_request: Dict[str, Any],
+    background_tasks: BackgroundTasks,
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Create a new report generation job using the template-based system.
+    
+    This endpoint creates a report job that will be processed asynchronously.
+    The job supports multiple formats and template-based generation.
+    """
+    try:
+        from app.services.report_engine import ReportEngine
+        report_engine = ReportEngine(db)
+        
+        # Validate and sanitize report name
+        report_name = None
+        if report_request.get("report_name"):
+            report_name = report_request["report_name"]
+            if len(report_name) > 100:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Report name must be 100 characters or less"
+                )
+        
+        # Create report job
+        job_data = {
+            "user_id": current_user.id,
+            "report_name": report_name or f"Report_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
+            "report_type": report_request.get("report_type", "financial_summary"),
+            "template_id": report_request.get("template_id"),
+            "output_format": report_request.get("output_format", "pdf"),
+            "parameters": report_request.get("parameters", {}),
+            "schedule": report_request.get("schedule")
+        }
+        
+        job_id = await report_engine.create_report_job(job_data)
+        
+        # Log report creation
+        security_audit_logger.info(
+            "Report job created (v2)",
+            extra={
+                "user_id": current_user.id,
+                "job_id": job_id,
+                "report_type": job_data["report_type"],
+                "template_id": job_data.get("template_id")
+            }
+        )
+        
+        return {
+            "job_id": job_id,
+            "status": "pending",
+            "message": "Report generation job created successfully"
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to create report job (v2): {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to create report job"
+        )
+
+@router.get("/v2/templates", response_model=List[Dict[str, Any]])
+async def get_report_templates_v2(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get available report templates for the current user.
+    """
+    try:
+        from app.services.report_engine import ReportEngine
+        report_engine = ReportEngine(db)
+        
+        templates = await report_engine.get_user_templates(current_user.id)
+        return [template.dict() for template in templates]
+        
+    except Exception as e:
+        logger.error(f"Failed to get report templates (v2): {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to retrieve report templates"
+        )
+
+@router.get("/v2/progress/{job_id}", response_model=Dict[str, Any])
+async def get_report_progress_v2(
+    job_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get the progress of a report generation job.
+    """
+    try:
+        from app.services.report_engine import ReportEngine
+        report_engine = ReportEngine(db)
+        
+        progress = await report_engine.get_report_progress(job_id, current_user.id)
+        
+        if not progress:
+            raise HTTPException(
+                status_code=404,
+                detail="Report job not found or access denied"
+            )
+        
+        return progress.dict()
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to get report progress (v2) for job {job_id}: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to retrieve report progress"
+        )
+
+@router.get("/v2/download/{download_token}")
+async def download_report_v2(
+    download_token: str,
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    """
+    Download a completed report using a secure download token.
+    """
+    try:
+        # Validate token format
+        if not download_token or len(download_token) != 64:
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid download token"
+            )
+        
+        from app.services.report_engine import ReportEngine
+        report_engine = ReportEngine(db)
+        
+        file_path = await report_engine.get_report_file(download_token)
+        
+        if not file_path or not os.path.exists(file_path):
+            raise HTTPException(
+                status_code=404,
+                detail="Report file not found"
+            )
+        
+        return FileResponse(
+            path=file_path,
+            filename=os.path.basename(file_path),
+            media_type='application/octet-stream'
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to download report (v2): {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to download report"
+        )
+
+@router.get("/v2/history", response_model=List[Dict[str, Any]])
+async def get_report_history_v2(
+    limit: int = Query(default=50, ge=1, le=100),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get the user's report generation history.
+    """
+    try:
+        from app.services.report_engine import ReportEngine
+        report_engine = ReportEngine(db)
+        
+        history = await report_engine.get_user_report_history(current_user.id, limit)
+        return history
+        
+    except Exception as e:
+        logger.error(f"Failed to get report history (v2): {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to retrieve report history"
+        )
+
+@router.post("/v2/schedule", response_model=Dict[str, Any])
+async def schedule_report_v2(
+    schedule_request: Dict[str, Any],
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Schedule a recurring report.
+    """
+    try:
+        from app.services.report_engine import ReportEngine
+        report_engine = ReportEngine(db)
+        
+        schedule_id = await report_engine.schedule_report(
+            user_id=current_user.id,
+            schedule_data=schedule_request
+        )
+        
+        return {
+            "schedule_id": schedule_id,
+            "message": "Report scheduled successfully"
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to schedule report (v2): {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to schedule report"
+        )
+
+@router.delete("/v2/cancel/{job_id}")
+async def cancel_report_job_v2(
+    job_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Cancel a pending or in-progress report job.
+    """
+    try:
+        from app.services.report_engine import ReportEngine
+        report_engine = ReportEngine(db)
+        
+        success = await report_engine.cancel_report_job(job_id, current_user.id)
+        
+        if not success:
+            raise HTTPException(
+                status_code=404,
+                detail="Report job not found or cannot be cancelled"
+            )
+        
+        return {"message": "Report job cancelled successfully"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to cancel report job (v2): {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to cancel report job"
+        )
