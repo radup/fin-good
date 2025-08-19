@@ -1,4 +1,21 @@
 import axios from 'axios'
+import {
+  BulkOperationResponse,
+  BulkOperationRequest,
+  DuplicateGroup,
+  DuplicateScanResponse,
+  DuplicateMergeResponse,
+  Pattern,
+  PatternAnalysisResponse,
+  PatternRuleGenerationResponse,
+  EnhancedPerformanceMetrics,
+  PredictiveInsights,
+  EnhancedVendorAnalysis,
+  AnalyticsSummary,
+  ReportTemplate,
+  ReportJob,
+  ReportSchedule
+} from '@/types/api'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
@@ -151,26 +168,68 @@ api.interceptors.response.use(
       // Handle unauthorized - redirect to login
       // Clear any stored CSRF token
       globalCsrfToken = null
-      window.location.href = '/login'
+      
+      // Don't redirect if we're already on the login page or if it's a login request
+      const isLoginRequest = error.config?.url?.includes('/auth/login')
+      const isAuthCheckRequest = error.config?.url?.includes('/auth/me')
+      const isRefreshCsrfRequest = error.config?.url?.includes('/auth/refresh-csrf')
+      const isOnLoginPage = typeof window !== 'undefined' && window.location.pathname === '/login'
+      
+      if (!isLoginRequest && !isAuthCheckRequest && !isRefreshCsrfRequest && !isOnLoginPage) {
+        window.location.href = '/login'
+      }
     } else if (error.response?.status === 429) {
       // Handle rate limiting
       const retryAfter = error.response.data?.retry_after || 60
+      const limit = error.response.data?.limit
+      const currentUsage = error.response.data?.current_usage
+      
       console.warn(`Rate limit exceeded. Retry after ${retryAfter} seconds.`)
       
-      // You can add a global rate limit handler here
-      // For example, show a toast notification or disable buttons temporarily
+      // Enhanced rate limit handling with detailed information
       if (typeof window !== 'undefined') {
         // Show user-friendly rate limit message
         const event = new CustomEvent('rate-limit-exceeded', {
           detail: {
             retryAfter,
-            limit: error.response.data?.limit,
-            currentUsage: error.response.data?.current_usage
+            limit,
+            currentUsage,
+            endpoint: error.config?.url,
+            method: error.config?.method
+          }
+        })
+        window.dispatchEvent(event)
+      }
+    } else if (error.response?.status >= 500) {
+      // Handle server errors
+      console.error('Server error:', error.response?.data)
+      
+      if (typeof window !== 'undefined') {
+        const event = new CustomEvent('server-error', {
+          detail: {
+            status: error.response?.status,
+            message: error.response?.data?.detail || 'An unexpected error occurred',
+            endpoint: error.config?.url
+          }
+        })
+        window.dispatchEvent(event)
+      }
+    } else if (error.response?.status >= 400) {
+      // Handle client errors
+      console.warn('Client error:', error.response?.data)
+      
+      if (typeof window !== 'undefined') {
+        const event = new CustomEvent('client-error', {
+          detail: {
+            status: error.response?.status,
+            message: error.response?.data?.detail || 'Invalid request',
+            endpoint: error.config?.url
           }
         })
         window.dispatchEvent(event)
       }
     }
+    
     return Promise.reject(error)
   }
 )
@@ -397,4 +456,208 @@ export const exportAPI = {
   
   // Cleanup expired exports
   cleanup: () => api.post('/api/v1/export/cleanup'),
+}
+
+// ============================================================================
+// NEW API ENDPOINTS FOR PHASE 2 BACKEND FEATURES
+// ============================================================================
+
+// Bulk Operations API
+export const bulkOperationsAPI = {
+  // Bulk categorize transactions
+  categorize: (transactionIds: number[], category: string, subcategory?: string) =>
+    api.post<BulkOperationResponse>('/api/v1/transactions/bulk/categorize', {
+      transaction_ids: transactionIds,
+      category,
+      subcategory
+    }),
+
+  // Bulk update transactions
+  update: (request: BulkOperationRequest) =>
+    api.put<BulkOperationResponse>('/api/v1/transactions/bulk/update', request),
+
+  // Bulk delete transactions
+  delete: (transactionIds: number[]) =>
+    api.delete<BulkOperationResponse>('/api/v1/transactions/bulk/delete', {
+      data: { transaction_ids: transactionIds }
+    }),
+
+  // Undo last bulk operation
+  undo: () => api.post<BulkOperationResponse>('/api/v1/transactions/bulk/undo'),
+
+  // Redo last undone bulk operation
+  redo: () => api.post<BulkOperationResponse>('/api/v1/transactions/bulk/redo'),
+
+  // Get bulk operation history
+  getHistory: (limit?: number) =>
+    api.get<BulkOperationResponse[]>('/api/v1/transactions/bulk/history', { params: { limit } }),
+}
+
+// Duplicate Detection API
+export const duplicateDetectionAPI = {
+  // Scan for duplicates
+  scan: (params?: {
+    confidence_threshold?: number
+    algorithms?: string[]
+    max_results?: number
+  }) => api.post<DuplicateScanResponse>('/api/v1/duplicates/scan', null, { params }),
+
+  // Get duplicate groups
+  getGroups: (params?: {
+    limit?: number
+    offset?: number
+    min_confidence?: number
+    algorithm?: string
+  }) => api.get<DuplicateGroup[]>('/api/v1/duplicates/groups', { params }),
+
+  // Get specific duplicate group
+  getGroup: (groupId: string) => api.get<DuplicateGroup>(`/api/v1/duplicates/groups/${groupId}`),
+
+  // Merge duplicate transactions
+  merge: (groupId: string, primaryTransactionId: number, fieldsToMerge: string[]) =>
+    api.post<DuplicateMergeResponse>('/api/v1/duplicates/merge', {
+      group_id: groupId,
+      primary_transaction_id: primaryTransactionId,
+      fields_to_merge: fieldsToMerge
+    }),
+
+  // Dismiss duplicate group (mark as false positive)
+  dismiss: (groupId: string, reason?: string) =>
+    api.post('/api/v1/duplicates/dismiss', {
+      group_id: groupId,
+      reason
+    }),
+
+  // Get duplicate statistics
+  getStats: () => api.get('/api/v1/duplicates/stats'),
+
+  // Get duplicate scan history
+  getScanHistory: (limit?: number) =>
+    api.get('/api/v1/duplicates/scan-history', { params: { limit } }),
+}
+
+// Pattern Recognition API
+export const patternRecognitionAPI = {
+  // Analyze patterns in transactions
+  analyze: (params?: {
+    pattern_types?: string[]
+    min_confidence?: number
+    min_support?: number
+    max_patterns?: number
+  }) => api.post<PatternAnalysisResponse>('/api/v1/patterns/analyze', null, { params }),
+
+  // Get recognized patterns
+  getRecognized: (params?: {
+    pattern_type?: string
+    min_confidence?: number
+    limit?: number
+    offset?: number
+  }) => api.get<Pattern[]>('/api/v1/patterns/recognized', { params }),
+
+  // Get specific pattern
+  getPattern: (patternId: string) => api.get<Pattern>(`/api/v1/patterns/${patternId}`),
+
+  // Generate rules from patterns
+  generateRules: (params?: {
+    pattern_ids?: string[]
+    min_confidence?: number
+    auto_apply?: boolean
+  }) => api.post<PatternRuleGenerationResponse>('/api/v1/patterns/generate-rules', null, { params }),
+
+  // Get pattern statistics
+  getStats: () => api.get('/api/v1/patterns/stats'),
+
+  // Get user pattern profile
+  getUserProfile: () => api.get('/api/v1/patterns/user-profile'),
+
+  // Update pattern accuracy feedback
+  updateAccuracy: (patternId: string, accuracy: number, feedback?: string) =>
+    api.put(`/api/v1/patterns/${patternId}/accuracy`, {
+      accuracy,
+      feedback
+    }),
+}
+
+// Enhanced Analytics API
+export const enhancedAnalyticsAPI = {
+  // Get enhanced performance metrics
+  getPerformanceMetrics: () => api.get<EnhancedPerformanceMetrics>('/api/v1/analytics/v2/performance-metrics'),
+
+  // Get predictive insights
+  getPredictiveInsights: (params?: {
+    forecast_periods?: number
+    confidence_level?: number
+  }) => api.get<PredictiveInsights>('/api/v1/analytics/v2/predictive-insights', { params }),
+
+  // Get enhanced vendor analysis
+  getEnhancedVendorAnalysis: (params?: {
+    vendor?: string
+    date_range?: string
+    include_anomalies?: boolean
+  }) => api.get<EnhancedVendorAnalysis>('/api/v1/analytics/v2/enhanced-vendor-analysis', { params }),
+
+  // Clear enhanced cache
+  clearEnhancedCache: () => api.post('/api/v1/analytics/v2/clear-enhanced-cache'),
+
+  // Get comprehensive analytics summary
+  getAnalyticsSummary: (params?: {
+    start_date?: string
+    end_date?: string
+    include_predictions?: boolean
+  }) => api.get<AnalyticsSummary>('/api/v1/analytics/v2/analytics-summary', { params }),
+}
+
+// Report Builder API
+export const reportBuilderAPI = {
+  // Create report job
+  createReport: (data: {
+    template_id: string
+    parameters: Record<string, any>
+    format?: 'pdf' | 'excel' | 'html' | 'csv' | 'json'
+  }) => api.post<ReportJob>('/api/v1/reports/v2/create', data),
+
+  // Get report templates
+  getTemplates: (params?: {
+    report_type?: string
+    format?: string
+  }) => api.get<ReportTemplate[]>('/api/v1/reports/v2/templates', { params }),
+
+  // Get specific template
+  getTemplate: (templateId: string) => api.get<ReportTemplate>(`/api/v1/reports/v2/templates/${templateId}`),
+
+  // Get report progress
+  getProgress: (jobId: string) => api.get<ReportJob>(`/api/v1/reports/v2/progress/${jobId}`),
+
+  // Download report
+  download: (downloadToken: string) => api.get(`/api/v1/reports/v2/download/${downloadToken}`),
+
+  // Get report history
+  getHistory: (params?: {
+    limit?: number
+    offset?: number
+    status?: string
+  }) => api.get<ReportJob[]>('/api/v1/reports/v2/history', { params }),
+
+  // Schedule report
+  scheduleReport: (data: {
+    template_id: string
+    name: string
+    frequency: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly'
+    parameters: Record<string, any>
+    recipients: string[]
+  }) => api.post<ReportSchedule>('/api/v1/reports/v2/schedule', data),
+
+  // Get scheduled reports
+  getScheduledReports: () => api.get<ReportSchedule[]>('/api/v1/reports/v2/scheduled'),
+
+  // Update scheduled report
+  updateScheduledReport: (scheduleId: string, data: Partial<ReportSchedule>) =>
+    api.put<ReportSchedule>(`/api/v1/reports/v2/scheduled/${scheduleId}`, data),
+
+  // Delete scheduled report
+  deleteScheduledReport: (scheduleId: string) =>
+    api.delete(`/api/v1/reports/v2/scheduled/${scheduleId}`),
+
+  // Cancel report job
+  cancelJob: (jobId: string) => api.delete(`/api/v1/reports/v2/cancel/${jobId}`),
 }
