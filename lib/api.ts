@@ -337,6 +337,10 @@ export interface HealthStatus {
 // Global CSRF token storage
 let globalCsrfToken: string | null = null
 
+export const setGlobalCsrfToken = (token: string | null) => {
+  globalCsrfToken = token
+}
+
 // Get CSRF token from cookies
 const getCsrfTokenFromCookie = () => {
   if (typeof document === 'undefined') return null
