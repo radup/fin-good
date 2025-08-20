@@ -25,6 +25,9 @@ import {
 import DrSigmundSpendAvatar from './DrSigmundSpendAvatar'
 import ChatInterface from './ChatInterface'
 import Sidebar from './Sidebar'
+import TaxOptimizationDashboard from './TaxOptimizationDashboard'
+import CashFlowForecastingDashboard from './CashFlowForecastingDashboard'
+import ScenarioSimulationDashboard from './ScenarioSimulationDashboard'
 
 export default function CabinetLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
@@ -71,10 +74,22 @@ export default function CabinetLayout() {
           </div>
         </header>
 
-        {/* Main Chat Interface */}
+        {/* Main Content Interface */}
         <div className="flex-1 flex flex-col">
           {activeSection === 'chat' ? (
             <ChatInterface />
+          ) : activeSection === 'tax-optimization' ? (
+            <div className="flex-1 overflow-y-auto p-6">
+              <TaxOptimizationDashboard />
+            </div>
+          ) : activeSection === 'forecasting' ? (
+            <div className="flex-1 overflow-y-auto p-6">
+              <CashFlowForecastingDashboard />
+            </div>
+          ) : activeSection === 'scenarios' ? (
+            <div className="flex-1 overflow-y-auto p-6">
+              <ScenarioSimulationDashboard />
+            </div>
           ) : (
             <div className="flex-1 flex items-center justify-center">
               <div className="text-center">
@@ -84,7 +99,6 @@ export default function CabinetLayout() {
                   {activeSection === 'forecasting' && <TrendingUp className="h-8 w-8 text-blue-600" />}
                   {activeSection === 'budgets' && <Target className="h-8 w-8 text-blue-600" />}
                   {activeSection === 'scenarios' && <GitBranch className="h-8 w-8 text-blue-600" />}
-                  {activeSection === 'tax-optimization' && <Receipt className="h-8 w-8 text-blue-600" />}
                   {activeSection === 'upload' && <Upload className="h-8 w-8 text-blue-600" />}
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">
@@ -93,7 +107,6 @@ export default function CabinetLayout() {
                   {activeSection === 'forecasting' && 'Cash Flow Forecasting'}
                   {activeSection === 'budgets' && 'Budget Analysis'}
                   {activeSection === 'scenarios' && 'Scenario Simulation'}
-                  {activeSection === 'tax-optimization' && 'Tax Optimization'}
                   {activeSection === 'upload' && 'Data Upload'}
                 </h3>
                 <p className="text-gray-600 mb-6">
