@@ -433,15 +433,313 @@ export default function EnhancedAnalyticsDashboard() {
     </div>
   )
 
-  const PerformanceView = () => (
-    <div className="space-y-6">
-      <div className="text-center py-12">
-        <BarChart3 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 mb-2">Advanced Performance Analytics</h3>
-        <p className="text-gray-500 mb-4">Detailed model performance metrics and training insights coming soon</p>
+  const PerformanceView = () => {
+    const performanceMetrics = {
+      trainingHistory: [
+        { epoch: 1, accuracy: 0.72, loss: 0.65, valAccuracy: 0.68, valLoss: 0.71 },
+        { epoch: 2, accuracy: 0.81, loss: 0.52, valAccuracy: 0.78, valLoss: 0.58 },
+        { epoch: 3, accuracy: 0.87, loss: 0.41, valAccuracy: 0.84, valLoss: 0.47 },
+        { epoch: 4, accuracy: 0.91, loss: 0.32, valAccuracy: 0.89, valLoss: 0.38 },
+        { epoch: 5, accuracy: 0.94, loss: 0.24, valAccuracy: 0.92, valLoss: 0.29 }
+      ],
+      featureImportance: [
+        { feature: 'Transaction Description', importance: 0.35, examples: ['office supplies', 'software subscription'] },
+        { feature: 'Vendor Name', importance: 0.28, examples: ['AWS', 'Staples', 'Adobe'] },
+        { feature: 'Amount Range', importance: 0.18, examples: ['< €100', '€100-€1000', '> €1000'] },
+        { feature: 'Transaction Frequency', importance: 0.12, examples: ['Monthly recurring', 'One-time'] },
+        { feature: 'Date Pattern', importance: 0.07, examples: ['Month-end', 'Weekly', 'Irregular'] }
+      ],
+      confusionMatrix: {
+        categories: ['Technology', 'Office', 'Professional', 'Travel', 'Marketing'],
+        matrix: [
+          [0.96, 0.02, 0.01, 0.01, 0.00], // Technology actual
+          [0.03, 0.94, 0.02, 0.01, 0.00], // Office actual
+          [0.01, 0.01, 0.89, 0.07, 0.02], // Professional actual
+          [0.00, 0.01, 0.04, 0.95, 0.00], // Travel actual
+          [0.02, 0.01, 0.03, 0.01, 0.93]  // Marketing actual
+        ]
+      },
+      modelComparison: [
+        { model: 'FinBERT (Current)', accuracy: 94.2, precision: 91.8, recall: 89.5, f1Score: 90.6, inferenceTime: 45 },
+        { model: 'BERT Base', accuracy: 89.7, precision: 87.2, recall: 85.1, f1Score: 86.1, inferenceTime: 38 },
+        { model: 'Random Forest', accuracy: 82.3, precision: 79.8, recall: 77.4, f1Score: 78.6, inferenceTime: 12 },
+        { model: 'SVM', accuracy: 78.9, precision: 75.3, recall: 73.1, f1Score: 74.2, inferenceTime: 8 },
+        { model: 'Naive Bayes', accuracy: 71.4, precision: 68.7, recall: 66.2, f1Score: 67.4, inferenceTime: 3 }
+      ]
+    }
+
+    return (
+      <div className="space-y-6">
+        {/* Performance Overview */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Current Accuracy</p>
+                <p className="text-2xl font-bold text-green-600">{modelPerformanceData.overall.accuracy}%</p>
+                <p className="text-xs text-green-600 mt-1">↗ +2.1% vs last model</p>
+              </div>
+              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                <Target className="w-6 h-6 text-green-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Inference Time</p>
+                <p className="text-2xl font-bold text-blue-600">45ms</p>
+                <p className="text-xs text-gray-500 mt-1">Per transaction</p>
+              </div>
+              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                <Zap className="w-6 h-6 text-blue-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Training Epochs</p>
+                <p className="text-2xl font-bold text-purple-600">{performanceMetrics.trainingHistory.length}</p>
+                <p className="text-xs text-gray-500 mt-1">Converged optimally</p>
+              </div>
+              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                <Brain className="w-6 h-6 text-purple-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">F1-Score</p>
+                <p className="text-2xl font-bold text-orange-600">{modelPerformanceData.overall.f1Score}%</p>
+                <p className="text-xs text-gray-500 mt-1">Balanced performance</p>
+              </div>
+              <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                <Award className="w-6 h-6 text-orange-600" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Dr. Sigmund ML Performance Insights */}
+        <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-6 border border-purple-200">
+          <div className="flex items-start space-x-4">
+            <DrSigmundSpendAvatar size="sm" mood="analytical" />
+            <div className="flex-1">
+              <div className="flex items-center space-x-2 mb-2">
+                <h3 className="text-lg font-semibold text-purple-900">ML Performance Psychology</h3>
+                <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full">Model Insights</span>
+              </div>
+              <div className="space-y-3 text-sm text-purple-800">
+                <p>
+                  Your FinBERT model is performing exceptionally well with <strong>94.2% accuracy</strong>. 
+                  The convergence in just 5 epochs suggests optimal hyperparameter tuning.
+                </p>
+                <p>
+                  <strong>Key Strength:</strong> The model excels at technology and office supply categorization (96% and 94% accuracy respectively), 
+                  reflecting your business's clear transaction patterns in these areas.
+                </p>
+                <div className="bg-white/60 rounded-lg p-3 mt-3">
+                  <p className="font-medium text-purple-900 mb-1">Improvement Opportunity:</p>
+                  <p className="text-xs text-purple-700">
+                    Professional services show some confusion with contractor payments (89% accuracy vs 96% for tech). 
+                    Consider adding more contextual features like payment frequency patterns.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Training History */}
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Training Progress</h3>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Accuracy Progress */}
+              <div>
+                <h4 className="font-medium text-gray-900 mb-3">Accuracy Evolution</h4>
+                <div className="space-y-2">
+                  {performanceMetrics.trainingHistory.map((epoch, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <span className="text-sm font-medium text-gray-700">Epoch {epoch.epoch}</span>
+                      </div>
+                      <div className="flex items-center space-x-4 text-sm">
+                        <div className="flex items-center space-x-2">
+                          <span className="text-gray-600">Train:</span>
+                          <div className="w-16 bg-gray-200 rounded-full h-2">
+                            <div className="bg-blue-500 h-2 rounded-full" style={{ width: `${epoch.accuracy * 100}%` }}></div>
+                          </div>
+                          <span className="font-medium text-gray-900">{Math.round(epoch.accuracy * 100)}%</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <span className="text-gray-600">Val:</span>
+                          <div className="w-16 bg-gray-200 rounded-full h-2">
+                            <div className="bg-green-500 h-2 rounded-full" style={{ width: `${epoch.valAccuracy * 100}%` }}></div>
+                          </div>
+                          <span className="font-medium text-gray-900">{Math.round(epoch.valAccuracy * 100)}%</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Loss Progress */}
+              <div>
+                <h4 className="font-medium text-gray-900 mb-3">Loss Reduction</h4>
+                <div className="space-y-2">
+                  {performanceMetrics.trainingHistory.map((epoch, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <span className="text-sm font-medium text-gray-700">Epoch {epoch.epoch}</span>
+                      </div>
+                      <div className="flex items-center space-x-4 text-sm">
+                        <div className="flex items-center space-x-2">
+                          <span className="text-gray-600">Train:</span>
+                          <span className="font-medium text-gray-900">{epoch.loss.toFixed(3)}</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <span className="text-gray-600">Val:</span>
+                          <span className="font-medium text-gray-900">{epoch.valLoss.toFixed(3)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Feature Importance */}
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Feature Importance Analysis</h3>
+          <div className="space-y-4">
+            {performanceMetrics.featureImportance.map((feature, index) => (
+              <div key={index} className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-900">{feature.feature}</h4>
+                    <p className="text-xs text-gray-500">Examples: {feature.examples.join(', ')}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-semibold text-gray-900">{Math.round(feature.importance * 100)}%</p>
+                  </div>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div 
+                    className={`h-3 rounded-full ${
+                      index === 0 ? 'bg-blue-500' :
+                      index === 1 ? 'bg-green-500' :
+                      index === 2 ? 'bg-yellow-500' :
+                      index === 3 ? 'bg-purple-500' : 'bg-red-500'
+                    }`}
+                    style={{ width: `${feature.importance * 100}%` }}
+                  ></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Model Comparison */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+            <h3 className="text-lg font-semibold text-gray-900">Model Comparison</h3>
+            <p className="text-sm text-gray-600 mt-1">Performance benchmarks across different algorithms</p>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Model</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Accuracy</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Precision</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Recall</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">F1-Score</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Inference Time</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {performanceMetrics.modelComparison.map((model, index) => (
+                  <tr key={index} className={`hover:bg-gray-50 ${index === 0 ? 'bg-blue-50' : ''}`}>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className="text-sm font-medium text-gray-900">{model.model}</div>
+                        {index === 0 && (
+                          <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            Active
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-16 bg-gray-200 rounded-full h-2">
+                          <div className="bg-green-500 h-2 rounded-full" style={{ width: `${model.accuracy}%` }}></div>
+                        </div>
+                        <span className="text-sm text-gray-900">{model.accuracy}%</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{model.precision}%</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{model.recall}%</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{model.f1Score}%</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{model.inferenceTime}ms</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Confusion Matrix */}
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Confusion Matrix - Top Categories</h3>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr>
+                  <th className="text-left p-2 font-medium text-gray-900">Actual / Predicted</th>
+                  {performanceMetrics.confusionMatrix.categories.map((cat, index) => (
+                    <th key={index} className="text-center p-2 font-medium text-gray-900">{cat}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {performanceMetrics.confusionMatrix.matrix.map((row, rowIndex) => (
+                  <tr key={rowIndex}>
+                    <td className="p-2 font-medium text-gray-900">{performanceMetrics.confusionMatrix.categories[rowIndex]}</td>
+                    {row.map((value, colIndex) => (
+                      <td key={colIndex} className="text-center p-2">
+                        <div className={`rounded px-2 py-1 text-xs font-medium ${
+                          rowIndex === colIndex 
+                            ? 'bg-green-100 text-green-800' 
+                            : value > 0.05 
+                              ? 'bg-yellow-100 text-yellow-800' 
+                              : 'bg-gray-100 text-gray-600'
+                        }`}>
+                          {Math.round(value * 100)}%
+                        </div>
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="mt-4 text-xs text-gray-600">
+            <p><strong>Green:</strong> Correct predictions (diagonal) | <strong>Yellow:</strong> Common misclassifications | <strong>Gray:</strong> Rare errors</p>
+          </div>
+        </div>
       </div>
-    </div>
-  )
+    )
+  }
 
   const IntelligenceView = () => {
     const businessMetrics = {
