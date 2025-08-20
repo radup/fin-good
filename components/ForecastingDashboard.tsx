@@ -367,13 +367,16 @@ export function ForecastingDashboard({ className = '' }: ForecastingDashboardPro
   })
 
   // Fetch available models
-  const { data: availableModels, isLoading: modelsLoading } = useQuery({
+  const { data: availableModelsResponse, isLoading: modelsLoading } = useQuery({
     queryKey: ['available-models'],
     queryFn: () => forecastingAPI.getAvailableModels(),
     staleTime: 10 * 60 * 1000, // 10 minutes
     retry: 1,
     retryDelay: 1000,
   })
+  
+  // Extract the data from the API response
+  const availableModels: ForecastModelInfo[] = availableModelsResponse?.data || []
 
   // Fetch accuracy history - disabled due to CORS/backend issues
   const { data: accuracyHistory, isLoading: accuracyLoading, error: accuracyError } = useQuery({
@@ -391,13 +394,19 @@ export function ForecastingDashboard({ className = '' }: ForecastingDashboardPro
     onSuccess: (response) => {
       const data = response.data  // Extract actual forecast data from Axios response
       queryClient.setQueryData(['forecast', data.forecast_id], data)
-      setForecastResult(data)  // Store result in local state for immediate display
-      setMultiModelResult(null) // Clear multi-model result when using single model
-      setIsGenerating(false)
+      
+      // Defer state updates to avoid render phase warnings
+      setTimeout(() => {
+        setForecastResult(data)  // Store result in local state for immediate display
+        setMultiModelResult(null) // Clear multi-model result when using single model
+        setIsGenerating(false)
+      }, 0)
     },
     onError: (error) => {
       console.error('Forecast generation failed:', error)
-      setIsGenerating(false)
+      setTimeout(() => {
+        setIsGenerating(false)
+      }, 0)
     },
   })
 
@@ -407,13 +416,19 @@ export function ForecastingDashboard({ className = '' }: ForecastingDashboardPro
     onSuccess: (response) => {
       const data = response.data  // Extract actual forecast data from Axios response
       queryClient.setQueryData(['multi-forecast', data.forecast_id], data)
-      setMultiModelResult(data)  // Store result in local state for immediate display
-      setForecastResult(null) // Clear single-model result when using multi-model
-      setIsGenerating(false)
+      
+      // Defer state updates to avoid render phase warnings
+      setTimeout(() => {
+        setMultiModelResult(data)  // Store result in local state for immediate display
+        setForecastResult(null) // Clear single-model result when using multi-model
+        setIsGenerating(false)
+      }, 0)
     },
     onError: (error) => {
       console.error('Multi-model forecast generation failed:', error)
-      setIsGenerating(false)
+      setTimeout(() => {
+        setIsGenerating(false)
+      }, 0)
     },
   })
 
@@ -740,7 +755,7 @@ export function ForecastingDashboard({ className = '' }: ForecastingDashboardPro
               Select Models to Compare
             </label>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-              {availableModels?.map((model) => (
+              {availableModels.map((model) => (
                 <div key={model.model} className="relative">
                   <label className="flex items-center space-x-3 cursor-pointer">
                     <input
