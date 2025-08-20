@@ -38,6 +38,7 @@ export function ForecastingDashboard({ className = '' }: ForecastingDashboardPro
   const [confidenceLevel, setConfidenceLevel] = useState<number>(0.95)
   const [showConfidenceIntervals, setShowConfidenceIntervals] = useState<boolean>(true)
   const [isGenerating, setIsGenerating] = useState<boolean>(false)
+  const [forecastResult, setForecastResult] = useState<ForecastResponse | null>(null)
 
   const queryClient = useQueryClient()
 
@@ -72,8 +73,10 @@ export function ForecastingDashboard({ className = '' }: ForecastingDashboardPro
   // Generate forecast mutation
   const generateForecastMutation = useMutation({
     mutationFn: (data: ForecastRequest) => forecastingAPI.generateForecast(data),
-    onSuccess: (data) => {
+    onSuccess: (response) => {
+      const data = response.data  // Extract actual forecast data from Axios response
       queryClient.setQueryData(['forecast', data.forecast_id], data)
+      setForecastResult(data)  // Store result in local state for immediate display
       setIsGenerating(false)
     },
     onError: (error) => {
@@ -101,6 +104,7 @@ export function ForecastingDashboard({ className = '' }: ForecastingDashboardPro
 
   const handleGenerateForecast = () => {
     setIsGenerating(true)
+    setForecastResult(null) // Clear previous results
     const request: ForecastRequest = {
       forecast_type: selectedForecastType as any,
       horizon: selectedHorizon as any,
@@ -395,22 +399,22 @@ export function ForecastingDashboard({ className = '' }: ForecastingDashboardPro
       </div>
 
       {/* Forecast Results */}
-      {latestForecast && (
+      {forecastResult && (
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-900">Forecast Results</h3>
             <div className="flex items-center gap-4 text-sm">
               <div className="flex items-center gap-1">
                 <CheckCircle className="w-4 h-4 text-green-500" />
-                <span>Confidence: {Math.round(latestForecast.confidence_score * 100)}%</span>
+                <span>Confidence: {Math.round((forecastResult.confidence_score || 0) * 100)}%</span>
               </div>
               <div className="flex items-center gap-1">
                 <BarChart3 className="w-4 h-4 text-blue-500" />
-                <span>Accuracy: {Math.round(latestForecast.model_accuracy * 100)}%</span>
+                <span>Accuracy: {Math.round((forecastResult.model_accuracy || 0) * 100)}%</span>
               </div>
               <div className="flex items-center gap-1">
                 <Calendar className="w-4 h-4 text-purple-500" />
-                <span>Pattern: {latestForecast.seasonal_pattern}</span>
+                <span>Pattern: {forecastResult.seasonal_pattern || 'Unknown'}</span>
               </div>
             </div>
           </div>
@@ -420,7 +424,7 @@ export function ForecastingDashboard({ className = '' }: ForecastingDashboardPro
             <div className="text-center">
               <BarChart3 className="w-12 h-12 text-gray-400 mx-auto mb-2" />
               <p className="text-gray-500">Forecast visualization will be implemented here</p>
-              <p className="text-sm text-gray-400">Showing {latestForecast.predictions.length} prediction points</p>
+              <p className="text-sm text-gray-400">Showing {forecastResult.predictions?.length || 0} prediction points</p>
             </div>
           </div>
 
@@ -429,19 +433,19 @@ export function ForecastingDashboard({ className = '' }: ForecastingDashboardPro
             <div className="bg-blue-50 p-4 rounded-lg">
               <h4 className="font-medium text-blue-900">Trend Direction</h4>
               <p className="text-2xl font-bold text-blue-600 capitalize">
-                {latestForecast.trend_direction}
+                {forecastResult.trend_direction || 'Unknown'}
               </p>
             </div>
             <div className="bg-green-50 p-4 rounded-lg">
               <h4 className="font-medium text-green-900">Total Predicted</h4>
               <p className="text-2xl font-bold text-green-600">
-                ${latestForecast.predictions.reduce((sum, p) => sum + p.value, 0).toFixed(2)}
+                ${forecastResult.predictions?.reduce((sum, p) => sum + p.value, 0)?.toFixed(2) || '0.00'}
               </p>
             </div>
             <div className="bg-purple-50 p-4 rounded-lg">
               <h4 className="font-medium text-purple-900">Data Points</h4>
               <p className="text-2xl font-bold text-purple-600">
-                {latestForecast.metadata.data_points}
+                {forecastResult.metadata?.data_points || 'N/A'}
               </p>
             </div>
           </div>
@@ -501,17 +505,78 @@ export function ForecastingDashboard({ className = '' }: ForecastingDashboardPro
 
       {/* Error Display */}
       {generateForecastMutation.error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <div className="flex items-center gap-2">
-            <AlertTriangle className="w-5 h-5 text-red-500" />
-            <h3 className="font-medium text-red-900">Forecast Generation Failed</h3>
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="w-6 h-6 text-red-500 mt-1 flex-shrink-0" />
+            <div className="flex-1">
+              {(() => {
+                const error = generateForecastMutation.error
+                
+                // Extract error message from Axios error response
+                let errorMessage = ''
+                if (error && typeof error === 'object' && 'response' in error) {
+                  const axiosError = error as any
+                  if (axiosError.response?.data?.detail) {
+                    errorMessage = axiosError.response.data.detail
+                  } else if (axiosError.message) {
+                    errorMessage = axiosError.message
+                  } else {
+                    errorMessage = String(error)
+                  }
+                } else if (error instanceof Error) {
+                  errorMessage = error.message
+                } else {
+                  errorMessage = String(error)
+                }
+
+                const isInsufficientDataError = 
+                  errorMessage.includes('Insufficient historical data') ||
+                  errorMessage.includes('insufficient data') ||
+                  errorMessage.includes('Need at least') ||
+                  errorMessage.includes('not enough data')
+
+                if (isInsufficientDataError) {
+                  return (
+                    <>
+                      <h3 className="font-semibold text-red-900 text-lg mb-2">
+                        Insufficient Historical Data
+                      </h3>
+                      <p className="text-red-700 mb-4">
+                        Your account doesn't have enough transaction history to generate reliable forecasts. 
+                        Our ML models require at least 30 days of transaction data to provide accurate predictions.
+                      </p>
+                      <div className="bg-red-100 border border-red-200 rounded-lg p-4 mb-4">
+                        <h4 className="font-medium text-red-800 mb-2">What you can do:</h4>
+                        <ul className="text-red-700 space-y-1 list-disc list-inside">
+                          <li>Upload more transaction data from your bank or accounting software</li>
+                          <li>Wait for more transactions to accumulate over time (recommended: 30+ days)</li>
+                          <li>Import historical data from previous months or years</li>
+                        </ul>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-red-600">
+                        <Clock className="w-4 h-4" />
+                        <span>Try again once you have at least 30 days of transaction history</span>
+                      </div>
+                    </>
+                  )
+                } else {
+                  return (
+                    <>
+                      <h3 className="font-semibold text-red-900 text-lg mb-2">
+                        Forecast Generation Failed
+                      </h3>
+                      <p className="text-red-700 mb-2">
+                        {errorMessage || 'An unexpected error occurred while generating the forecast.'}
+                      </p>
+                      <div className="text-sm text-red-600">
+                        Please try again or contact support if the problem persists.
+                      </div>
+                    </>
+                  )
+                }
+              })()}
+            </div>
           </div>
-          <p className="text-red-700 mt-1">
-            {generateForecastMutation.error instanceof Error 
-              ? generateForecastMutation.error.message 
-              : 'An unexpected error occurred while generating the forecast.'
-            }
-          </p>
         </div>
       )}
     </div>
