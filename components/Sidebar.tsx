@@ -46,13 +46,14 @@ export default function Sidebar({ isOpen, onToggle, activeSection, onSectionChan
   ]
 
   const technicalTools = [
-    { id: 'transactions', icon: FileText, label: 'Transactions', description: 'Manage your financial data' },
-    { id: 'analytics', icon: BarChart3, label: 'Analytics', description: 'Insights and reports' },
-    { id: 'forecasting', icon: TrendingUp, label: 'Forecasting', description: 'Predict cash flow' },
-    { id: 'budgets', icon: Target, label: 'Budgets', description: 'Plan and track spending' },
     { id: 'scenarios', icon: GitBranch, label: 'Scenario Simulation', description: 'What-if financial modeling' },
-    { id: 'invoice-risk', icon: CreditCard, label: 'Invoice & Risk', description: 'Client payment predictions' },
+    { id: 'payment-prediction', icon: Clock, label: 'Payment Prediction', description: 'Client payment forecasts' },
     { id: 'tax-optimization', icon: Receipt, label: 'Tax Optimization', description: 'Minimize tax burden' },
+    { id: 'forecasting', icon: TrendingUp, label: 'Cash Flow Forecast', description: 'Predict cash flow' },
+    { id: 'analytics', icon: BarChart3, label: 'Analytics', description: 'Insights and reports' },
+    { id: 'budgets', icon: Target, label: 'Budgets', description: 'Plan and track spending' },
+    { id: 'transactions', icon: FileText, label: 'Transactions', description: 'Manage your financial data' },
+    { id: 'invoice-risk', icon: CreditCard, label: 'Invoice & Risk', description: 'Client payment analysis' },
     { id: 'upload', icon: Upload, label: 'Upload Data', description: 'Import financial files' }
   ]
 

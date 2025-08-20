@@ -23,13 +23,14 @@ import {
   Bot
 } from 'lucide-react'
 import DrSigmundSpendAvatar from './DrSigmundSpendAvatar'
-import ChatInterface from './ChatInterface'
+import EnhancedDrSigmundChat from './EnhancedDrSigmundChat'
 import Sidebar from './Sidebar'
 import TaxOptimizationDashboard from './TaxOptimizationDashboard'
 import CashFlowForecastingDashboard from './CashFlowForecastingDashboard'
-import ScenarioSimulationDashboard from './ScenarioSimulationDashboard'
+import ScenarioSimulationEngine from './ScenarioSimulationEngine'
 import InvoiceRiskDashboard from './InvoiceRiskDashboard'
 import EnhancedAnalyticsDashboard from './EnhancedAnalyticsDashboard'
+import ClientPaymentPredictionDashboard from './ClientPaymentPredictionDashboard'
 
 export default function CabinetLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
@@ -79,7 +80,7 @@ export default function CabinetLayout() {
         {/* Main Content Interface */}
         <div className="flex-1 flex flex-col">
           {activeSection === 'chat' ? (
-            <ChatInterface />
+            <EnhancedDrSigmundChat />
           ) : activeSection === 'tax-optimization' ? (
             <div className="flex-1 overflow-y-auto p-6">
               <TaxOptimizationDashboard />
@@ -90,7 +91,7 @@ export default function CabinetLayout() {
             </div>
           ) : activeSection === 'scenarios' ? (
             <div className="flex-1 overflow-y-auto p-6">
-              <ScenarioSimulationDashboard />
+              <ScenarioSimulationEngine />
             </div>
           ) : activeSection === 'invoice-risk' ? (
             <div className="flex-1 overflow-y-auto">
@@ -99,6 +100,10 @@ export default function CabinetLayout() {
           ) : activeSection === 'analytics' ? (
             <div className="flex-1 overflow-y-auto">
               <EnhancedAnalyticsDashboard />
+            </div>
+          ) : activeSection === 'payment-prediction' ? (
+            <div className="flex-1 overflow-y-auto p-6">
+              <ClientPaymentPredictionDashboard />
             </div>
           ) : (
             <div className="flex-1 flex items-center justify-center">

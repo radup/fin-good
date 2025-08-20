@@ -16,7 +16,14 @@ import {
   ChevronRight,
   User,
   Bell,
-  Search
+  Search,
+  Calculator,
+  Target,
+  Clock,
+  TrendingUp,
+  Shield,
+  PieChart,
+  Zap
 } from 'lucide-react'
 
 interface NavigationProps {
@@ -36,6 +43,42 @@ const navigation: NavItem[] = [
     href: '/dashboard',
     icon: <Home className="w-5 h-5" />,
     description: 'Overview and summary'
+  },
+  {
+    name: 'Dr. Sigmund AI',
+    href: '/dr-sigmund-ai',
+    icon: <Zap className="w-5 h-5" />,
+    description: 'AI financial therapist'
+  },
+  {
+    name: 'Scenario Engine',
+    href: '/scenario-simulation',
+    icon: <Target className="w-5 h-5" />,
+    description: 'What-if simulations'
+  },
+  {
+    name: 'Tax Optimization',
+    href: '/tax-optimization',
+    icon: <Calculator className="w-5 h-5" />,
+    description: 'Multi-jurisdiction tax planning'
+  },
+  {
+    name: 'Payment Prediction',
+    href: '/client-payment-prediction',
+    icon: <Clock className="w-5 h-5" />,
+    description: 'Client payment forecasts'
+  },
+  {
+    name: 'Cash Flow Forecast',
+    href: '/forecasting-demo',
+    icon: <TrendingUp className="w-5 h-5" />,
+    description: 'Financial forecasting'
+  },
+  {
+    name: 'Budget Analysis',
+    href: '/budget-analysis-demo',
+    icon: <PieChart className="w-5 h-5" />,
+    description: 'Budget planning & analysis'
   },
   {
     name: 'Transactions',
@@ -110,8 +153,8 @@ export default function Navigation({ className = '' }: NavigationProps) {
                   </div>
                 </div>
                 <div className="ml-3">
-                  <h1 className="text-lg font-semibold text-gray-900">FinGood</h1>
-                  <p className="text-xs text-gray-500">Financial Management</p>
+                  <h1 className="text-lg font-semibold text-gray-900">Spend's Analysis</h1>
+                  <p className="text-xs text-gray-500">AI Financial Intelligence</p>
                 </div>
               </div>
             </div>
@@ -197,8 +240,8 @@ export default function Navigation({ className = '' }: NavigationProps) {
                 </div>
               </div>
               <div className="ml-3">
-                <h1 className="text-lg font-semibold text-gray-900">FinGood</h1>
-                <p className="text-xs text-gray-500">Financial Management</p>
+                <h1 className="text-lg font-semibold text-gray-900">Spend's Analysis</h1>
+                <p className="text-xs text-gray-500">AI Financial Intelligence</p>
               </div>
             </div>
           </div>

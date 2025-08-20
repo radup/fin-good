@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spend's Analysis - Updated Logo Design</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&family=Dancing+Script:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="spends_analysis_logo_theme.css">
+    <style>
+        /* Custom Logo Styles */
+        .logo-container {
+            font-family: var(--font-sans);
+            color: var(--logo-text);
+        }
+        
+        .logo-primary {
+            color: var(--logo-primary);
+        }
+        
+        .logo-secondary {
+            color: var(--logo-secondary);
+        }
+        
+        .logo-accent {
+            color: var(--logo-accent);
+        }
+        
+        .logo-icon {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, var(--logo-primary), var(--logo-secondary));
+            border-radius: var(--radius-xl);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .logo-icon::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%);
+            transform: translateX(-100%);
+            transition: transform 0.6s ease;
+        }
+        
+        .logo-icon:hover::before {
+            transform: translateX(100%);
+        }
+        
+        .logo-icon:hover {
+            transform: scale(1.05);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .logo-text {
+            font-family: var(--font-serif);
+            font-weight: 600;
+            font-size: 1.75rem;
+            letter-spacing: -0.025em;
+        }
+        
+        .logo-tagline {
+            font-family: var(--font-sans);
+            font-weight: 400;
+            font-size: 0.875rem;
+            color: var(--muted-foreground);
+            letter-spacing: 0.025em;
+        }
+        
+        .dr-spend-signature {
+            font-family: var(--font-script);
+            font-weight: 500;
+            font-size: 1.25rem;
+            color: var(--logo-secondary);
+        }
+        
+        .logo-variation {
+            padding: var(--spacing-lg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            background: var(--card);
+            transition: all 0.3s ease;
+        }
+        
+        .logo-variation:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .monochrome-logo {
+            filter: grayscale(100%);
+        }
+        
+        .icon-only-logo {
+            width: 90px;
+            height: 90px;
+            border-radius: var(--radius-xl);
+        }
+        
+        .therapy-office-bg {
+            background: var(--background);
+        }
+        
+        /* Animation Classes */
+        .logo-appear {
+            animation: logoAppear 1s ease-out forwards;
+        }
+        
+        .icon-pulse {
+            animation: iconPulse 2.5s ease-in-out infinite;
+        }
+        
+        .text-slide {
+            animation: textSlide 0.8s ease-out 0.3s forwards;
+            opacity: 0;
+            transform: translateX(-30px);
+        }
+        
+        .signature-appear {
+            animation: signatureAppear 1.2s ease-out 0.6s forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        
+        @keyframes logoAppear {
+            from {
+                opacity: 0;
+                transform: scale(0.8) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+        
+        @keyframes iconPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+        }
+        
+        @keyframes textSlide {
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        @keyframes signatureAppear {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .gradient-flow {
+            background: linear-gradient(135deg, var(--logo-primary), var(--logo-secondary), var(--logo-accent));
+            background-size: 200% 200%;
+            animation: gradientFlow 4s ease infinite;
+        }
+        
+        @keyframes gradientFlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .sparkle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: var(--logo-accent);
+            border-radius: 50%;
+            animation: sparkle 2s ease-in-out infinite;
+        }
+        
+        @keyframes sparkle {
+            0%, 100% { opacity: 0; transform: scale(0); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+        
+        .gold-accent {
+            background: linear-gradient(45deg, var(--logo-secondary), var(--logo-accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+    </style>
+</head>
+<body class="therapy-office-bg min-h-screen p-8">
+    <div class="max-w-6xl mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <h1 class="text-4xl font-bold logo-primary mb-4" style="font-family: var(--font-serif);">Spend's Analysis</h1>
+            <p class="text-lg text-muted-foreground" style="font-family: var(--font-sans);">Financial Therapy & Money Psychology</p>
+        </div>
+
+        <!-- Primary Logo -->
+        <div class="logo-container mb-16">
+            <div class="text-center">
+                <div class="logo-variation inline-block logo-appear">
+                    <div class="flex items-center gap-6 mb-4">
+                        <div class="logo-icon icon-pulse relative">
+                            <!-- Brain Icon with Money Elements -->
+                            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                                <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.44 2.5 2.5 0 0 1-.44-2.96A2.5 2.5 0 0 1 4.5 9.5a2.5 2.5 0 0 1 2.96-2.96A2.5 2.5 0 0 1 9.5 2Z"/>
+                                <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.44 2.5 2.5 0 0 0 .44-2.96A2.5 2.5 0 0 0 19.5 9.5a2.5 2.5 0 0 0-2.96-2.96A2.5 2.5 0 0 0 14.5 2Z"/>
+                            </svg>
+                            <!-- Sparkle effects -->
+                            <div class="sparkle" style="top: 15%; left: 25%;"></div>
+                            <div class="sparkle" style="top: 35%; right: 20%; animation-delay: 0.7s;"></div>
+                            <div class="sparkle" style="bottom: 25%; left: 35%; animation-delay: 1.4s;"></div>
+                        </div>
+                        <div class="text-left">
+                            <div class="logo-text text-3xl font-bold logo-primary text-slide">Spend's Analysis</div>
+                            <div class="logo-tagline text-slide" style="animation-delay: 0.5s;">Financial Therapy & Smart Money Analysis</div>
+                            <div class="dr-spend-signature signature-appear mt-1">Dr. Spend</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Logo Variations Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+            <!-- Monochrome Version -->
+            <div class="logo-variation text-center">
+                <h3 class="font-semibold mb-4" style="font-family: var(--font-serif);">Monochrome</h3>
+                <div class="flex items-center justify-center gap-3 mb-2">
+                    <div class="logo-icon monochrome-logo">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.44 2.5 2.5 0 0 1-.44-2.96A2.5 2.5 0 0 1 4.5 9.5a2.5 2.5 0 0 1 2.96-2.96A2.5 2.5 0 0 1 9.5 2Z"/>
+                            <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.44 2.5 2.5 0 0 0 .44-2.96A2.5 2.5 0 0 0 19.5 9.5a2.5 2.5 0 0 0-2.96-2.96A2.5 2.5 0 0 0 14.5 2Z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="logo-text text-xl font-bold">Spend's Analysis</div>
+                        <div class="logo-tagline text-sm">Financial Therapy</div>
+                        <div class="dr-spend-signature text-sm">Dr. Spend</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Icon Only -->
+            <div class="logo-variation text-center">
+                <h3 class="font-semibold mb-4" style="font-family: var(--font-serif);">Icon Only</h3>
+                <div class="logo-icon icon-only-logo mx-auto gradient-flow">
+                    <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                        <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.44 2.5 2.5 0 0 1-.44-2.96A2.5 2.5 0 0 1 4.5 9.5a2.5 2.5 0 0 1 2.96-2.96A2.5 2.5 0 0 1 9.5 2Z"/>
+                        <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.44 2.5 2.5 0 0 0 .44-2.96A2.5 2.5 0 0 0 19.5 9.5a2.5 2.5 0 0 0-2.96-2.96A2.5 2.5 0 0 0 14.5 2Z"/>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Horizontal Layout -->
+            <div class="logo-variation text-center">
+                <h3 class="font-semibold mb-4" style="font-family: var(--font-serif);">Horizontal</h3>
+                <div class="flex items-center justify-center gap-3">
+                    <div class="logo-icon" style="width: 45px; height: 45px;">
+                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.44 2.5 2.5 0 0 1-.44-2.96A2.5 2.5 0 0 1 4.5 9.5a2.5 2.5 0 0 1 2.96-2.96A2.5 2.5 0 0 1 9.5 2Z"/>
+                            <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.44 2.5 2.5 0 0 0 .44-2.96A2.5 2.5 0 0 0 19.5 9.5a2.5 2.5 0 0 0-2.96-2.96A2.5 2.5 0 0 0 14.5 2Z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="logo-text text-lg font-bold">Spend's Analysis</div>
+                        <div class="dr-spend-signature text-sm">Dr. Spend</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Color Psychology Palette -->
+        <div class="mb-16">
+            <h2 class="text-2xl font-bold mb-6 text-center" style="font-family: var(--font-serif);">Color Psychology Palette</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <div class="text-center">
+                    <div class="w-20 h-20 mx-auto mb-3 rounded-xl" style="background: var(--logo-primary);"></div>
+                    <p class="text-sm font-medium" style="font-family: var(--font-serif);">Forest Green</p>
+                    <p class="text-xs text-muted-foreground">Money + Calm Therapy</p>
+                </div>
+                <div class="text-center">
+                    <div class="w-20 h-20 mx-auto mb-3 rounded-xl" style="background: var(--logo-secondary);"></div>
+                    <p class="text-sm font-medium" style="font-family: var(--font-serif);">Warm Gold</p>
+                    <p class="text-xs text-muted-foreground">Wealth + Wisdom</p>
+                </div>
+                <div class="text-center">
+                    <div class="w-20 h-20 mx-auto mb-3 rounded-xl" style="background: var(--logo-accent);"></div>
+                    <p class="text-sm font-medium" style="font-family: var(--font-serif);">Soft Blue</p>
+                    <p class="text-xs text-muted-foreground">Trust + Professional</p>
+                </div>
+                <div class="text-center">
+                    <div class="w-20 h-20 mx-auto mb-3 rounded-xl border-2 border-border" style="background: var(--logo-background);"></div>
+                    <p class="text-sm font-medium" style="font-family: var(--font-serif);">Cream</p>
+                    <p class="text-xs text-muted-foreground">Therapy Office Calm</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Typography System -->
+        <div class="mb-16">
+            <h2 class="text-2xl font-bold mb-6 text-center" style="font-family: var(--font-serif);">Typography System</h2>
+            <div class="space-y-6">
+                <div class="text-center">
+                    <h1 class="text-4xl font-bold logo-primary mb-2" style="font-family: var(--font-serif);">Spend's Analysis</h1>
+                    <p class="text-sm text-muted-foreground" style="font-family: var(--font-sans);">Playfair Display - Classic Serif for Headings</p>
+                </div>
+                <div class="text-center">
+                    <h2 class="text-2xl font-semibold logo-secondary mb-2" style="font-family: var(--font-serif);">Financial Therapy</h2>
+                    <p class="text-sm text-muted-foreground" style="font-family: var(--font-sans);">Professional Freudian Era Style</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-lg font-medium logo-accent mb-2" style="font-family: var(--font-sans);">Smart Money Analysis & Psychology</p>
+                    <p class="text-sm text-muted-foreground" style="font-family: var(--font-sans);">Inter - Clean Sans-serif for Body Text</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-xl font-medium dr-spend-signature mb-2">Dr. Spend</p>
+                    <p class="text-sm text-muted-foreground" style="font-family: var(--font-sans);">Dancing Script - Personal Signature Style</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Interactive Demo -->
+        <div class="text-center">
+            <h2 class="text-2xl font-bold mb-6" style="font-family: var(--font-serif);">Interactive Logo Demo</h2>
+            <div class="logo-variation inline-block cursor-pointer" onclick="this.style.transform='scale(0.95)'; setTimeout(()=>this.style.transform='scale(1)',150)">
+                <div class="flex items-center gap-4">
+                    <div class="logo-icon">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                            <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.44 2.5 2.5 0 0 1-.44-2.96A2.5 2.5 0 0 1 4.5 9.5a2.5 2.5 0 0 1 2.96-2.96A2.5 2.5 0 0 1 9.5 2Z"/>
+                            <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.44 2.5 2.5 0 0 0 .44-2.96A2.5 2.5 0 0 0 19.5 9.5a2.5 2.5 0 0 0-2.96-2.96A2.5 2.5 0 0 0 14.5 2Z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="logo-text text-2xl font-bold logo-primary">Spend's Analysis</div>
+                        <div class="logo-tagline">Click to interact!</div>
+                        <div class="dr-spend-signature">Dr. Spend</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+        
+        // Add some interactive effects
+        document.addEventListener('DOMContentLoaded', function() {
+            const logos = document.querySelectorAll('.logo-variation');
+            
+            logos.forEach(logo => {
+                logo.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-4px) scale(1.02)';
+                });
+                
+                logo.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0) scale(1)';
+                });
+            });
+        });
+    </script>
+</body>
+</html>

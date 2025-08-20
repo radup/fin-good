@@ -1,0 +1,64 @@
+:root {
+  /* Primary Brand Colors - Money & Calm Therapy */
+  --primary: oklch(0.3500 0.1800 142.0000); /* Deep Forest Green - Money + Calm */
+  --primary-foreground: oklch(1.0000 0 0); /* Pure White */
+  --secondary: oklch(0.7500 0.2000 85.0000); /* Warm Gold - Wealth + Wisdom */
+  --secondary-foreground: oklch(0.1450 0 0); /* Dark Text */
+  
+  /* Accent Colors */
+  --accent: oklch(0.7000 0.1500 240.0000); /* Soft Blue - Trust + Professional */
+  --accent-foreground: oklch(1.0000 0 0); /* White */
+  
+  /* Background & Surface */
+  --background: oklch(0.9800 0.0200 85.0000); /* Cream/Off-White - Therapy Office Calm */
+  --foreground: oklch(0.1450 0 0); /* Dark Text */
+  --card: oklch(1.0000 0 0); /* Pure White */
+  --card-foreground: oklch(0.1450 0 0);
+  --muted: oklch(0.9500 0.0200 85.0000); /* Light Cream */
+  --muted-foreground: oklch(0.3211 0 0); /* Medium Gray */
+  
+  /* Financial Colors */
+  --financial-success: oklch(0.3500 0.1800 142.0000); /* Forest Green - Money */
+  --financial-chart: oklch(0.7500 0.2000 85.0000); /* Gold - Wealth */
+  --financial-warning: oklch(0.6500 0.2500 45.0000); /* Warm Orange - Caution */
+  
+  /* Therapy Colors */
+  --therapy-calm: oklch(0.7000 0.1500 240.0000); /* Soft Blue - Calm */
+  --therapy-warm: oklch(0.9800 0.0200 85.0000); /* Cream - Comfort */
+  
+  /* Borders & Shadows */
+  --border: oklch(0.9000 0.0200 85.0000); /* Light Cream Border */
+  --ring: oklch(0.3500 0.1800 142.0000); /* Forest Green */
+  
+  /* Typography */
+  --font-sans: 'Inter', 'DM Sans', sans-serif; /* Clean sans-serif for body */
+  --font-serif: 'Playfair Display', 'Times New Roman', serif; /* Classic serif for headings */
+  --font-script: 'Dancing Script', 'Brush Script MT', cursive; /* Script for Dr. Spend */
+  --font-mono: 'Space Mono', monospace;
+  
+  /* Logo Specific */
+  --logo-primary: oklch(0.3500 0.1800 142.0000); /* Deep Forest Green */
+  --logo-secondary: oklch(0.7500 0.2000 85.0000); /* Warm Gold */
+  --logo-accent: oklch(0.7000 0.1500 240.0000); /* Soft Blue */
+  --logo-text: oklch(0.1450 0 0); /* Dark Text */
+  --logo-background: oklch(0.9800 0.0200 85.0000); /* Cream */
+  
+  /* Shadows */
+  --shadow-sm: 0px 1px 3px 0px hsl(0 0% 0% / 0.08);
+  --shadow: 0px 4px 6px -1px hsl(0 0% 0% / 0.08);
+  --shadow-lg: 0px 10px 15px -3px hsl(0 0% 0% / 0.08);
+  --shadow-xl: 0px 20px 25px -5px hsl(0 0% 0% / 0.08);
+  
+  /* Border Radius */
+  --radius: 0.5rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  
+  /* Spacing */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+}
