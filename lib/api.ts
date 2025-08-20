@@ -41,7 +41,7 @@ import {
   BudgetAnalysisHealth
 } from '@/types/api'
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001'
 
 // Types for categorization performance
 export interface CategorizationPerformance {
@@ -758,10 +758,12 @@ export const forecastingAPI = {
 export const budgetAnalysisAPI = {
   // Get budget list
   getBudgets: (params?: {
-    page?: number
-    page_size?: number
+    limit?: number
+    offset?: number
     status?: string
-  }) => api.get<BudgetListResponse>('/api/v1/budget/', { params }),
+    budget_type?: string
+    include_archived?: boolean
+  }) => api.get<Budget[]>('/api/v1/budget/', { params }),
 
   // Get budget details
   getBudget: (budgetId: string) => 
@@ -771,11 +773,24 @@ export const budgetAnalysisAPI = {
   createBudget: (data: {
     name: string
     description: string
-    period_type: 'monthly' | 'quarterly' | 'yearly' | 'custom'
+    budget_type: 'MONTHLY' | 'QUARTERLY' | 'ANNUAL' | 'PROJECT' | 'GOAL_BASED'
     start_date: string
     end_date: string
-    total_budget: number
-    currency: string
+    warning_threshold?: number
+    critical_threshold?: number
+    auto_rollover?: boolean
+    include_in_forecasting?: boolean
+    budget_items?: Array<{
+      category: string
+      subcategory?: string
+      is_income: boolean
+      budgeted_amount: number
+      use_historical_data?: boolean
+      forecast_method?: string
+      notes?: string
+      priority?: number
+    }>
+    tags?: string[]
   }) => api.post<Budget>('/api/v1/budget/', data),
 
   // Update budget

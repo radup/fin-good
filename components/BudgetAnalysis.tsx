@@ -46,28 +46,47 @@ export function BudgetAnalysis({ className = '' }: BudgetAnalysisProps) {
   // Fetch budgets
   const { data: budgets, isLoading: budgetsLoading, error: budgetsError } = useQuery({
     queryKey: ['budgets'],
-    queryFn: () => budgetAnalysisAPI.getBudgets(),
+    queryFn: async () => {
+      const response = await budgetAnalysisAPI.getBudgets()
+      return response.data
+    },
     staleTime: 5 * 60 * 1000, // 5 minutes
+  })
+
+  // Debug logging
+  console.log('BudgetAnalysis Debug:', { 
+    budgets, 
+    budgetsLoading, 
+    budgetsError,
+    budgetsLength: budgets?.length 
   })
 
   // Fetch budget summary
   const { data: summary, isLoading: summaryLoading } = useQuery({
     queryKey: ['budget-summary'],
-    queryFn: () => budgetAnalysisAPI.getSummary(),
+    queryFn: async () => {
+      const response = await budgetAnalysisAPI.getSummary()
+      return response.data
+    },
     staleTime: 2 * 60 * 1000, // 2 minutes
   })
 
   // Fetch performance metrics
   const { data: performance, isLoading: performanceLoading } = useQuery({
     queryKey: ['budget-performance'],
-    queryFn: () => budgetAnalysisAPI.getPerformanceMetrics(),
+    queryFn: async () => {
+      const response = await budgetAnalysisAPI.getPerformance()
+      return response.data
+    },
     staleTime: 5 * 60 * 1000, // 5 minutes
   })
 
   // Variance analysis mutation
   const varianceMutation = useMutation({
-    mutationFn: (budgetId: number) => 
-      budgetAnalysisAPI.getVarianceAnalysis(budgetId),
+    mutationFn: async (budgetId: number) => {
+      const response = await budgetAnalysisAPI.getVarianceAnalysis(budgetId.toString())
+      return response.data
+    },
     onSuccess: (data) => {
       queryClient.setQueryData(['budget-variance', selectedBudget?.id], data)
     },
@@ -75,7 +94,10 @@ export function BudgetAnalysis({ className = '' }: BudgetAnalysisProps) {
 
   // Create budget mutation
   const createBudgetMutation = useMutation({
-    mutationFn: (budgetData: any) => budgetAnalysisAPI.createBudget(budgetData),
+    mutationFn: async (budgetData: any) => {
+      const response = await budgetAnalysisAPI.createBudget(budgetData)
+      return response.data
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['budgets'] })
       queryClient.invalidateQueries({ queryKey: ['budget-summary'] })
@@ -554,10 +576,11 @@ export function BudgetAnalysis({ className = '' }: BudgetAnalysisProps) {
                     required
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value="monthly">Monthly</option>
-                    <option value="quarterly">Quarterly</option>
-                    <option value="annual">Annual</option>
-                    <option value="project">Project-based</option>
+                    <option value="MONTHLY">Monthly</option>
+                    <option value="QUARTERLY">Quarterly</option>
+                    <option value="ANNUAL">Annual</option>
+                    <option value="PROJECT">Project-based</option>
+                    <option value="GOAL_BASED">Goal-based</option>
                   </select>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
