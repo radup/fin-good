@@ -567,6 +567,79 @@ export default function ScenarioSimulationEngine() {
           </div>
         </div>
       )}
+
+      {/* Dr. Sigmund Therapy Section */}
+      <div className="mt-12 bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
+        <div className="flex items-start gap-6">
+          <DrSigmundSpendAvatar
+            size="md"
+            mood="supportive"
+            showMessage={false}
+            animated={true}
+            variant="professional"
+          />
+          <div className="flex-1">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Financial Decision Therapy</h2>
+            <div className="bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-2xl p-6">
+              <h3 className="font-medium text-indigo-900 mb-3">Dr. Sigmund's Decision-Making Framework</h3>
+              <div className="grid md:grid-cols-2 gap-4 text-sm text-indigo-800">
+                <div>
+                  <h4 className="font-medium mb-2">🧠 Emotional Intelligence</h4>
+                  <ul className="space-y-1 text-indigo-700">
+                    <li>• Acknowledge financial anxiety as normal</li>
+                    <li>• Use data to reduce uncertainty</li>
+                    <li>• Focus on what you can control</li>
+                    <li>• Celebrate small wins and progress</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-medium mb-2">📊 Analytical Process</h4>
+                  <ul className="space-y-1 text-indigo-700">
+                    <li>• Start with conservative assumptions</li>
+                    <li>• Test multiple scenarios</li>
+                    <li>• Consider best/worst/likely cases</li>
+                    <li>• Plan for unexpected outcomes</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Getting Started Guide */}
+      <div className="mt-8 bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-2xl p-6">
+        <h3 className="font-medium text-indigo-900 mb-4">🚀 How to Use the Scenario Engine</h3>
+        <div className="grid md:grid-cols-3 gap-6 text-sm">
+          <div className="bg-white rounded-xl p-4 border border-indigo-200">
+            <div className="font-medium text-indigo-800 mb-2">1. Choose Scenario Type</div>
+            <p className="text-indigo-700">Select from income, expense, timing, client, or investment scenarios based on your current decision</p>
+          </div>
+          <div className="bg-white rounded-xl p-4 border border-indigo-200">
+            <div className="font-medium text-indigo-800 mb-2">2. Configure Variables</div>
+            <p className="text-indigo-700">Adjust current vs proposed values, timeframes, and confidence levels for realistic modeling</p>
+          </div>
+          <div className="bg-white rounded-xl p-4 border border-indigo-200">
+            <div className="font-medium text-indigo-800 mb-2">3. Analyze Results</div>
+            <p className="text-indigo-700">Review cash flow impact, risk scores, and Dr. Sigmund's therapeutic recommendations</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Disclaimer */}
+      <div className="mt-8 bg-yellow-50 border border-yellow-200 rounded-2xl p-6">
+        <div className="flex items-start gap-3">
+          <Target className="h-6 w-6 text-yellow-600 flex-shrink-0 mt-1" />
+          <div>
+            <h3 className="font-medium text-yellow-900 mb-2">Scenario Simulation Disclaimer</h3>
+            <p className="text-sm text-yellow-800 leading-relaxed">
+              This simulation engine provides estimates for planning purposes only. Actual results may vary based on market conditions, 
+              client behavior, and unforeseen circumstances. Dr. Sigmund's advice is designed to reduce anxiety and provide perspective, 
+              but should not replace professional financial or business consulting when making major decisions.
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

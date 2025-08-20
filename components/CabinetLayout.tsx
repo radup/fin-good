@@ -31,6 +31,12 @@ import ScenarioSimulationEngine from './ScenarioSimulationEngine'
 import InvoiceRiskDashboard from './InvoiceRiskDashboard'
 import EnhancedAnalyticsDashboard from './EnhancedAnalyticsDashboard'
 import ClientPaymentPredictionDashboard from './ClientPaymentPredictionDashboard'
+import TransactionTable from './TransactionTable'
+import UploadModal from './UploadModal'
+import ImportBatchManager from './ImportBatchManager'
+import CategorizationPerformance from './CategorizationPerformance'
+import AutoImprovement from './AutoImprovement'
+import SuggestionDisplay from './SuggestionDisplay'
 
 export default function CabinetLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
@@ -105,24 +111,26 @@ export default function CabinetLayout() {
             <div className="flex-1 overflow-y-auto p-6">
               <ClientPaymentPredictionDashboard />
             </div>
+          ) : activeSection === 'categorization' ? (
+            <div className="flex-1 overflow-y-auto p-6">
+              <CategorizationSection />
+            </div>
+          ) : activeSection === 'transactions' ? (
+            <div className="flex-1 overflow-y-auto p-6">
+              <TransactionsSection />
+            </div>
+          ) : activeSection === 'upload' ? (
+            <div className="flex-1 overflow-y-auto p-6">
+              <UploadSection />
+            </div>
           ) : (
             <div className="flex-1 flex items-center justify-center">
               <div className="text-center">
                 <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  {activeSection === 'transactions' && <FileText className="h-8 w-8 text-blue-600" />}
-                  {activeSection === 'analytics' && <BarChart3 className="h-8 w-8 text-blue-600" />}
-                  {activeSection === 'forecasting' && <TrendingUp className="h-8 w-8 text-blue-600" />}
                   {activeSection === 'budgets' && <Target className="h-8 w-8 text-blue-600" />}
-                  {activeSection === 'scenarios' && <GitBranch className="h-8 w-8 text-blue-600" />}
-                  {activeSection === 'upload' && <Upload className="h-8 w-8 text-blue-600" />}
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  {activeSection === 'transactions' && 'Transaction Management'}
-                  {activeSection === 'analytics' && 'Financial Analytics'}
-                  {activeSection === 'forecasting' && 'Cash Flow Forecasting'}
                   {activeSection === 'budgets' && 'Budget Analysis'}
-                  {activeSection === 'scenarios' && 'Scenario Simulation'}
-                  {activeSection === 'upload' && 'Data Upload'}
                 </h3>
                 <p className="text-gray-600 mb-6">
                   This feature will be integrated soon. For now, let's chat about your financial goals!
@@ -138,6 +146,132 @@ export default function CabinetLayout() {
           )}
         </div>
       </main>
+    </div>
+  )
+}
+
+// Categorization Section Component
+function CategorizationSection() {
+  return (
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Categorization</h1>
+        <p className="mt-1 text-sm text-gray-500">
+          AI-powered categorization tools and performance insights
+        </p>
+      </div>
+      
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Performance Dashboard */}
+        <div>
+          <CategorizationPerformance />
+        </div>
+        
+        {/* Auto-Improvement */}
+        <div>
+          <AutoImprovement />
+        </div>
+      </div>
+      
+      {/* Category Suggestions Demo */}
+      <div>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Category Suggestions</h2>
+        <SuggestionDisplay
+          transactionId={1}
+          currentCategory="Food & Dining"
+          currentSubcategory="Restaurants"
+          onSuggestionApplied={(category, subcategory) => {
+            console.log('Suggestion applied:', category, subcategory)
+          }}
+        />
+      </div>
+    </div>
+  )
+}
+
+// Transactions Section Component
+function TransactionsSection() {
+  // Mock data for transactions - in a real app this would come from an API
+  const mockTransactions = [
+    {
+      id: 1,
+      date: '2025-01-15',
+      description: 'Client Payment - Web Development',
+      amount: 2500,
+      vendor: 'Tech Solutions Inc.',
+      category: 'Income',
+      subcategory: 'Consulting',
+      is_income: true,
+      is_categorized: true,
+      confidence_score: 95
+    },
+    {
+      id: 2,
+      date: '2025-01-14',
+      description: 'Office Supplies',
+      amount: -45.80,
+      vendor: 'OfficeMax',
+      category: 'Business Expenses',
+      subcategory: 'Office Supplies',
+      is_income: false,
+      is_categorized: true,
+      confidence_score: 88
+    },
+    {
+      id: 3,
+      date: '2025-01-13',
+      description: 'Monthly Software Subscription',
+      amount: -29.99,
+      vendor: 'Adobe',
+      category: 'Business Expenses',
+      subcategory: 'Software',
+      is_income: false,
+      is_categorized: true,
+      confidence_score: 92
+    }
+  ]
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Transactions</h1>
+        <p className="mt-1 text-sm text-gray-500">
+          Manage and categorize your financial transactions
+        </p>
+      </div>
+      
+      <TransactionTable 
+        transactions={mockTransactions} 
+        isLoading={false}
+      />
+    </div>
+  )
+}
+
+// Upload Section Component
+function UploadSection() {
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Upload</h1>
+        <p className="mt-1 text-sm text-gray-500">
+          Import and map your financial data files
+        </p>
+      </div>
+      
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Upload Modal */}
+        <div>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Upload New File</h2>
+          <UploadModal />
+        </div>
+        
+        {/* Import Batch Manager */}
+        <div>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Import History</h2>
+          <ImportBatchManager />
+        </div>
+      </div>
     </div>
   )
 }

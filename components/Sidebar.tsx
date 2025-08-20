@@ -51,6 +51,7 @@ export default function Sidebar({ isOpen, onToggle, activeSection, onSectionChan
     { id: 'tax-optimization', icon: Receipt, label: 'Tax Optimization', description: 'Minimize tax burden' },
     { id: 'forecasting', icon: TrendingUp, label: 'Cash Flow Forecast', description: 'Predict cash flow' },
     { id: 'analytics', icon: BarChart3, label: 'Analytics', description: 'Insights and reports' },
+    { id: 'categorization', icon: PieChart, label: 'Categorization', description: 'AI-powered transaction categorization' },
     { id: 'budgets', icon: Target, label: 'Budgets', description: 'Plan and track spending' },
     { id: 'transactions', icon: FileText, label: 'Transactions', description: 'Manage your financial data' },
     { id: 'invoice-risk', icon: CreditCard, label: 'Invoice & Risk', description: 'Client payment analysis' },
