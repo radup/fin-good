@@ -28,6 +28,7 @@ import Sidebar from './Sidebar'
 import TaxOptimizationDashboard from './TaxOptimizationDashboard'
 import CashFlowForecastingDashboard from './CashFlowForecastingDashboard'
 import ScenarioSimulationDashboard from './ScenarioSimulationDashboard'
+import InvoiceRiskDashboard from './InvoiceRiskDashboard'
 
 export default function CabinetLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
@@ -89,6 +90,10 @@ export default function CabinetLayout() {
           ) : activeSection === 'scenarios' ? (
             <div className="flex-1 overflow-y-auto p-6">
               <ScenarioSimulationDashboard />
+            </div>
+          ) : activeSection === 'invoice-risk' ? (
+            <div className="flex-1 overflow-y-auto">
+              <InvoiceRiskDashboard />
             </div>
           ) : (
             <div className="flex-1 flex items-center justify-center">

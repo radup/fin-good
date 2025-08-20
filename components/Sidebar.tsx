@@ -22,7 +22,8 @@ import {
   PieChart,
   Calculator,
   GitBranch,
-  Receipt
+  Receipt,
+  CreditCard
 } from 'lucide-react'
 
 interface SidebarProps {
@@ -50,6 +51,7 @@ export default function Sidebar({ isOpen, onToggle, activeSection, onSectionChan
     { id: 'forecasting', icon: TrendingUp, label: 'Forecasting', description: 'Predict cash flow' },
     { id: 'budgets', icon: Target, label: 'Budgets', description: 'Plan and track spending' },
     { id: 'scenarios', icon: GitBranch, label: 'Scenario Simulation', description: 'What-if financial modeling' },
+    { id: 'invoice-risk', icon: CreditCard, label: 'Invoice & Risk', description: 'Client payment predictions' },
     { id: 'tax-optimization', icon: Receipt, label: 'Tax Optimization', description: 'Minimize tax burden' },
     { id: 'upload', icon: Upload, label: 'Upload Data', description: 'Import financial files' }
   ]
