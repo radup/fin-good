@@ -15,7 +15,6 @@ import logging
 from app.core.database import get_db
 from app.core.cookie_auth import get_current_user_from_cookie
 from app.core.exceptions import ValidationException, BusinessLogicException
-from app.core.rate_limiter import rate_limit
 from app.core.audit_logger import security_audit_logger
 from app.models.user import User
 from app.services.forecasting_engine import (
@@ -117,7 +116,6 @@ class EnsembleAnalysisResponse(BaseModel):
 
 # API Endpoints
 @router.post("/generate", response_model=ForecastResponse)
-@rate_limit(requests_per_hour=30, requests_per_minute=5)
 async def generate_forecast(
     request: ForecastRequest,
     background_tasks: BackgroundTasks,
@@ -206,7 +204,6 @@ async def generate_forecast(
 
 
 @router.get("/accuracy-history", response_model=AccuracyHistoryResponse)
-@rate_limit(requests_per_hour=60, requests_per_minute=10)
 async def get_accuracy_history(
     days: int = Query(30, description="Number of days to analyze", ge=7, le=365),
     db: Session = Depends(get_db),
@@ -235,7 +232,6 @@ async def get_accuracy_history(
 
 
 @router.get("/model-analysis", response_model=EnsembleAnalysisResponse)
-@rate_limit(requests_per_hour=20, requests_per_minute=2)
 async def get_model_analysis(
     forecast_type: str = Query("cash_flow", description="Type of forecast to analyze"),
     db: Session = Depends(get_db),
@@ -310,7 +306,6 @@ async def get_model_analysis(
 
 
 @router.post("/batch-forecast")
-@rate_limit(requests_per_hour=10, requests_per_minute=1)
 async def generate_batch_forecasts(
     forecast_types: List[str] = Query(..., description="List of forecast types to generate"),
     horizon: str = Query("30_days", description="Forecast horizon for all forecasts"),
