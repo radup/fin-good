@@ -483,6 +483,35 @@ class SecurityAuditLogger:
         )
         self.log_event(event)
     
+    def log_forecast_generation(
+        self,
+        user_id: int,
+        forecast_type: str,
+        timeframe: str,
+        result: str,
+        processing_time: Optional[float] = None,
+        request: Optional[Request] = None
+    ) -> None:
+        """Log forecast generation for financial compliance."""
+        event = SecurityEvent(
+            event_type=SecurityEventType.SECURITY_VIOLATION,  # Using existing type
+            risk_level=RiskLevel.LOW,
+            timestamp=datetime.utcnow(),
+            user_id=user_id,
+            client_ip=self._get_client_ip(request),
+            user_agent=self._get_user_agent(request),
+            request_id=self._get_request_id(request),
+            details={
+                "forecast_type": forecast_type,
+                "timeframe": timeframe,
+                "result": result,
+                "processing_time": processing_time,
+                "subsystem": "forecasting"
+            },
+            outcome="forecast_generated"
+        )
+        self.log_event(event)
+    
     def _get_client_ip(self, request: Optional[Request]) -> Optional[str]:
         """Extract client IP from request."""
         if not request:

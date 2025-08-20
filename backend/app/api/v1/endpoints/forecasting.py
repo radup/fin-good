@@ -176,16 +176,12 @@ async def generate_forecast(
         )
         
         # Log successful forecast generation
-        security_audit_logger.log_data_access(
+        security_audit_logger.log_forecast_generation(
             user_id=current_user.id,
-            action="forecast_generated",
-            resource_type="forecast",
-            resource_id=forecast_result.forecast_id,
-            metadata={
-                "forecast_type": request.forecast_type,
-                "horizon_days": forecast_result.horizon_days,
-                "confidence": forecast_result.confidence_score
-            }
+            forecast_type=request.forecast_type,
+            timeframe=f"{forecast_result.horizon_days}_days",
+            result="success",
+            processing_time=None
         )
         
         return response

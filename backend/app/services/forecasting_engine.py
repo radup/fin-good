@@ -189,15 +189,19 @@ class ForecastingEngine:
             security_audit_logger.log_forecast_generation(
                 user_id=user_id,
                 forecast_type=forecast_type.value,
-                horizon_days=horizon_days,
-                confidence=forecast_result.confidence_score
+                timeframe=f"{horizon_days}_days",
+                result="success",
+                processing_time=None
             )
             
             return forecast_result
             
         except Exception as e:
             self.logger.error(f"Forecast generation failed for user {user_id}: {str(e)}")
-            raise BusinessLogicException(f"Failed to generate forecast: {str(e)}")
+            raise BusinessLogicException(
+                message=f"Failed to generate forecast: {str(e)}", 
+                code="FORECAST_GENERATION_ERROR"
+            )
     
     def _validate_forecast_request(
         self,
@@ -238,7 +242,8 @@ class ForecastingEngine:
     ) -> pd.DataFrame:
         """Load and prepare historical transaction data"""
         # Load historical data (at least 3x the forecast horizon)
-        lookback_days = max(90, horizon_days * 3)
+        # For demo purposes, use 2 years of data to work with historical samples
+        lookback_days = max(730, horizon_days * 3)  # 2 years or 3x horizon
         start_date = datetime.utcnow() - timedelta(days=lookback_days)
         
         query = (
@@ -532,4 +537,7 @@ class ForecastingEngine:
             }
         except Exception as e:
             self.logger.error(f"Failed to get accuracy history: {str(e)}")
-            raise BusinessLogicException("Failed to retrieve forecast accuracy history")
+            raise BusinessLogicException(
+                message="Failed to retrieve forecast accuracy history",
+                code="FORECAST_ACCURACY_ERROR"
+            )

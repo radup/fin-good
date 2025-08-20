@@ -1412,3 +1412,57 @@ class AnalyticsEngine:
         except Exception as e:
             logger.error(f"Failed to clear enhanced cache for user {user_id}: {e}")
             return {"error": "Failed to clear cache"}
+    
+    def store_custom_metric(
+        self,
+        user_id: int,
+        metric_name: str,
+        metric_value: Union[float, int, str],
+        metric_type: str = "custom",
+        metadata: Optional[Dict[str, Any]] = None
+    ) -> bool:
+        """
+        Store custom metric for analytics tracking.
+        
+        Args:
+            user_id: User ID for metric storage
+            metric_name: Name of the custom metric
+            metric_value: Value of the metric
+            metric_type: Type of metric (default: "custom")
+            metadata: Additional metadata for the metric
+            
+        Returns:
+            bool: True if metric was stored successfully
+        """
+        try:
+            # Create metric entry for storage
+            metric_data = {
+                "metric_name": metric_name,
+                "metric_value": metric_value,
+                "metric_type": metric_type,
+                "user_id": user_id,
+                "metadata": metadata or {},
+                "timestamp": datetime.utcnow().isoformat()
+            }
+            
+            # Store in cache for immediate access
+            if self.cache.redis_client:
+                try:
+                    cache_key = f"custom_metrics:{user_id}:{metric_name}:{datetime.utcnow().strftime('%Y%m%d')}"
+                    self.cache.redis_client.setex(
+                        cache_key,
+                        86400,  # 24 hours TTL
+                        json.dumps(metric_data, default=str)
+                    )
+                    logger.info(f"Stored custom metric {metric_name} for user {user_id}")
+                    return True
+                except Exception as e:
+                    logger.error(f"Failed to store custom metric in cache: {e}")
+                    return False
+            else:
+                logger.warning("Cache not available for custom metric storage")
+                return False
+                
+        except Exception as e:
+            logger.error(f"Failed to store custom metric {metric_name} for user {user_id}: {e}")
+            return False
