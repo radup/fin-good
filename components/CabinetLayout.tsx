@@ -63,9 +63,9 @@ export default function CabinetLayout() {
               )}
               <div className="flex items-center space-x-3">
                 <div className="w-7 h-7 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-xs">F</span>
+                  <span className="text-white font-bold text-xs">S</span>
                 </div>
-                <h1 className="text-lg font-semibold text-gray-900">FeenGood</h1>
+                <h1 className="text-lg font-semibold text-gray-900">Spend's Analysis</h1>
               </div>
             </div>
             

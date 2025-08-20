@@ -6,8 +6,8 @@ import { Providers } from './providers'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'FinGood - AI-Powered Financial Intelligence',
-  description: 'Automate transaction categorization and get cash flow insights for your business',
+  title: 'Spend\'s Analysis - AI-Powered Financial Therapy',
+  description: 'Heal your relationship with money through AI-powered transaction categorization and therapeutic financial insights',
 }
 
 export default function RootLayout({

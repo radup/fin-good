@@ -1,6 +1,6 @@
-# FinGood - AI-Powered Financial Intelligence
+# Spend's Analysis - AI-Powered Financial Therapy
 
-An intelligent financial management platform that automates transaction categorization and provides cash flow insights for small businesses.
+An intelligent financial therapy platform that combines AI-powered transaction categorization with therapeutic principles to help you heal your relationship with money.
 
 ## 🚀 Quick Start (Recommended)
 

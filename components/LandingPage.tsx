@@ -16,9 +16,9 @@ export default function LandingPage() {
           <div className="flex justify-between items-center py-3">
             <div className="flex items-center space-x-3">
               <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">F</span>
+                <span className="text-white font-bold text-sm">S</span>
               </div>
-              <h1 className="text-lg font-bold text-gray-900">FeenGood</h1>
+              <h1 className="text-lg font-bold text-gray-900">Spend's Analysis</h1>
             </div>
             <div className="flex items-center space-x-3">
               <button
@@ -167,7 +167,7 @@ export default function LandingPage() {
                       id="email"
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       placeholder="Enter your email"
-                      defaultValue="demo@fingood.com"
+                      defaultValue="demo@spendsanalysis.com"
                     />
                   </div>
 
@@ -230,7 +230,7 @@ export default function LandingPage() {
               <div className="mt-4 text-center">
                 <div className="bg-green-50 border border-green-200 rounded-lg p-3">
                   <p className="text-sm text-green-800">
-                    <strong>Demo Account:</strong> demo@fingood.com / demo123
+                    <strong>Demo Account:</strong> demo@spendsanalysis.com / demo123
                   </p>
                 </div>
               </div>
@@ -291,7 +291,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <p className="text-sm text-gray-600">
-              © 2024 FeenGood. AI-powered financial therapy for your wellness journey.
+              © 2024 Spend's Analysis. AI-powered financial therapy for your wellness journey.
             </p>
           </div>
         </div>

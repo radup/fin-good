@@ -161,7 +161,7 @@ const getCsrfTokenFromCookie = (): string | null => {
   
   const csrfCookie = document.cookie
     .split('; ')
-    .find(row => row.startsWith('fingood_auth_csrf='))
+    .find(row => row.startsWith('spendsanalysis_auth_csrf='))
   
   return csrfCookie ? csrfCookie.split('=')[1] : null
 }
