@@ -512,6 +512,54 @@ export interface EnsembleAnalysisResponse {
   ensemble_confidence: number
 }
 
+// Multi-Model Forecasting Types
+export interface MultiModelForecastRequest {
+  forecast_type: 'cash_flow' | 'revenue' | 'expenses' | 'net_income' | 'category_specific'
+  horizon: '7_days' | '30_days' | '60_days' | '90_days' | 'custom'
+  custom_days?: number
+  category_filter?: string
+  confidence_level?: number
+  models?: Array<'prophet' | 'arima' | 'neuralprophet' | 'simple_trend'>
+}
+
+export interface ModelResult {
+  model_name: string
+  predictions: PredictionPoint[]
+  accuracy: number
+  mse: number
+  mae: number
+  confidence_score: number
+  seasonal_pattern: string
+  trend_direction: string
+  model_params: Record<string, any>
+}
+
+export interface MultiModelForecastResponse {
+  forecast_id: string
+  user_id: number
+  forecast_type: string
+  horizon_days: number
+  model_results: ModelResult[]
+  ensemble_predictions: PredictionPoint[]
+  best_model: string
+  ensemble_accuracy: number
+  created_at: string
+  metadata: {
+    models_used: string[]
+    data_points: number
+    category_filter?: string
+    confidence_level: number
+  }
+}
+
+export interface ForecastModelInfo {
+  model: string
+  name: string
+  description: string
+  strengths: string[]
+  best_for: string
+}
+
 export interface BatchForecastRequest {
   forecasts: Array<{
     forecast_type: string

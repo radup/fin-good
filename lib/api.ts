@@ -24,6 +24,9 @@ import {
   ForecastTypeInfo,
   ForecastHorizonInfo,
   ForecastingHealth,
+  MultiModelForecastRequest,
+  MultiModelForecastResponse,
+  ForecastModelInfo,
   Budget,
   BudgetListResponse,
   BudgetDetailResponse,
@@ -741,6 +744,14 @@ export const forecastingAPI = {
 
   // Get forecasting health status
   getHealth: () => api.get<ForecastingHealth>('/api/v1/forecasting/health'),
+
+  // Multi-model forecasting
+  generateMultiModelForecast: (data: MultiModelForecastRequest) =>
+    api.post<MultiModelForecastResponse>('/api/v1/forecasting/multi-model', data),
+
+  // Get available models
+  getAvailableModels: () =>
+    api.get<ForecastModelInfo[]>('/api/v1/forecasting/models'),
 }
 
 // Budget Analysis API

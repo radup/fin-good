@@ -14,7 +14,10 @@ import {
   Settings,
   Download,
   Eye,
-  EyeOff
+  EyeOff,
+  Zap,
+  Brain,
+  TrendingDown
 } from 'lucide-react'
 import { 
   LineChart, 
@@ -26,7 +29,8 @@ import {
   ResponsiveContainer, 
   Area, 
   ComposedChart,
-  ReferenceLine
+  ReferenceLine,
+  Legend
 } from 'recharts'
 import { forecastingAPI } from '@/lib/api'
 import type { 
@@ -35,10 +39,163 @@ import type {
   ForecastTypeInfo, 
   ForecastHorizonInfo,
   AccuracyHistoryResponse,
-  EnsembleAnalysisResponse
+  EnsembleAnalysisResponse,
+  MultiModelForecastRequest,
+  MultiModelForecastResponse,
+  ForecastModelInfo
 } from '@/types/api'
 
-// Forecast Chart Component
+// Multi-Model Forecast Chart Component
+interface MultiModelForecastChartProps {
+  data: MultiModelForecastResponse
+  showConfidenceIntervals: boolean
+}
+
+function MultiModelForecastChart({ data, showConfidenceIntervals }: MultiModelForecastChartProps) {
+  // Transform multi-model forecast data for Recharts
+  const chartData = data.ensemble_predictions?.map((prediction, index) => {
+    const point: any = {
+      period: index + 1,
+      date: prediction.date,
+      ensemble: prediction.value,
+      ensemble_lower: prediction.confidence_lower,
+      ensemble_upper: prediction.confidence_upper,
+    }
+
+    // Add individual model predictions
+    data.model_results.forEach(model => {
+      if (model.predictions[index]) {
+        point[model.model_name.toLowerCase().replace(' ', '_')] = model.predictions[index].value
+      }
+    })
+
+    return point
+  }) || []
+
+  const formatValue = (value: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(value)
+  }
+
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr)
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  }
+
+  // Model colors
+  const modelColors = {
+    prophet: '#3b82f6',      // Blue
+    arima: '#ef4444',        // Red
+    neuralprophet: '#10b981', // Green
+    simple_trend: '#f59e0b',  // Yellow
+    ensemble: '#8b5cf6'       // Purple
+  }
+
+  if (!chartData.length) {
+    return (
+      <div className="h-96 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center">
+        <div className="text-center">
+          <BarChart3 className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+          <p className="text-gray-500">No multi-model forecast data available</p>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="h-96">
+      <ResponsiveContainer width="100%" height="100%">
+        <ComposedChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+          <XAxis 
+            dataKey="date" 
+            tickFormatter={formatDate}
+            stroke="#6b7280"
+            fontSize={12}
+          />
+          <YAxis 
+            tickFormatter={formatValue}
+            stroke="#6b7280"
+            fontSize={12}
+          />
+          <Tooltip
+            labelFormatter={(label) => `Date: ${formatDate(label)}`}
+            formatter={(value: number, name: string) => [
+              formatValue(value),
+              name.charAt(0).toUpperCase() + name.slice(1).replace(/_/g, ' ')
+            ]}
+            contentStyle={{
+              backgroundColor: 'white',
+              border: '1px solid #e5e7eb',
+              borderRadius: '6px',
+              fontSize: '12px'
+            }}
+          />
+          <Legend />
+          
+          {/* Confidence interval area for ensemble */}
+          {showConfidenceIntervals && (
+            <Area
+              type="monotone"
+              dataKey="ensemble_upper"
+              stroke="none"
+              fill="#8b5cf6"
+              fillOpacity={0.1}
+            />
+          )}
+          {showConfidenceIntervals && (
+            <Area
+              type="monotone"
+              dataKey="ensemble_lower"
+              stroke="none"
+              fill="#ffffff"
+              fillOpacity={1}
+            />
+          )}
+          
+          {/* Individual model lines */}
+          {data.model_results.map((model) => {
+            const modelKey = model.model_name.toLowerCase().replace(' ', '_')
+            const color = modelColors[modelKey] || '#6b7280'
+            
+            return (
+              <Line
+                key={model.model_name}
+                type="monotone"
+                dataKey={modelKey}
+                stroke={color}
+                strokeWidth={2}
+                strokeDasharray="5 5"
+                dot={{ r: 3, fill: color }}
+                name={model.model_name}
+              />
+            )
+          })}
+          
+          {/* Ensemble line (thicker, solid) */}
+          <Line
+            type="monotone"
+            dataKey="ensemble"
+            stroke={modelColors.ensemble}
+            strokeWidth={4}
+            dot={{ r: 5, fill: modelColors.ensemble }}
+            activeDot={{ r: 7, fill: '#7c3aed' }}
+            name="Ensemble"
+          />
+          
+          {/* Zero line reference */}
+          <ReferenceLine y={0} stroke="#6b7280" strokeDasharray="2 2" />
+        </ComposedChart>
+      </ResponsiveContainer>
+    </div>
+  )
+}
+
+// Fallback single-model chart for compatibility
 interface ForecastChartProps {
   data: ForecastResponse
   showConfidenceIntervals: boolean
@@ -48,11 +205,11 @@ function ForecastChart({ data, showConfidenceIntervals }: ForecastChartProps) {
   // Transform forecast data for Recharts
   const chartData = data.predictions?.map((prediction, index) => ({
     period: index + 1,
-    date: new Date(Date.now() + (index * 24 * 60 * 60 * 1000)).toISOString().split('T')[0],
+    date: prediction.date,
     value: prediction.value,
-    upperBound: prediction.upper_bound || prediction.value * 1.1,
-    lowerBound: prediction.lower_bound || prediction.value * 0.9,
-    confidence: prediction.confidence || data.confidence_score || 0
+    upperBound: prediction.confidence_upper || prediction.value * 1.1,
+    lowerBound: prediction.confidence_lower || prediction.value * 0.9,
+    confidence: data.confidence_score || 0
   })) || []
 
   const formatValue = (value: number) => {
@@ -71,7 +228,7 @@ function ForecastChart({ data, showConfidenceIntervals }: ForecastChartProps) {
 
   if (!chartData.length) {
     return (
-      <div className="h-64 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center">
+      <div className="h-80 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center">
         <div className="text-center">
           <BarChart3 className="w-12 h-12 text-gray-400 mx-auto mb-2" />
           <p className="text-gray-500">No forecast data available</p>
@@ -184,7 +341,10 @@ export function ForecastingDashboard({ className = '' }: ForecastingDashboardPro
   const [confidenceLevel, setConfidenceLevel] = useState<number>(0.95)
   const [showConfidenceIntervals, setShowConfidenceIntervals] = useState<boolean>(true)
   const [isGenerating, setIsGenerating] = useState<boolean>(false)
+  const [isMultiModelMode, setIsMultiModelMode] = useState<boolean>(true)
+  const [selectedModels, setSelectedModels] = useState<string[]>(['prophet', 'arima', 'neuralprophet', 'simple_trend'])
   const [forecastResult, setForecastResult] = useState<ForecastResponse | null>(null)
+  const [multiModelResult, setMultiModelResult] = useState<MultiModelForecastResponse | null>(null)
 
   const queryClient = useQueryClient()
 
@@ -206,6 +366,15 @@ export function ForecastingDashboard({ className = '' }: ForecastingDashboardPro
     retryDelay: 1000,
   })
 
+  // Fetch available models
+  const { data: availableModels, isLoading: modelsLoading } = useQuery({
+    queryKey: ['available-models'],
+    queryFn: () => forecastingAPI.getAvailableModels(),
+    staleTime: 10 * 60 * 1000, // 10 minutes
+    retry: 1,
+    retryDelay: 1000,
+  })
+
   // Fetch accuracy history - disabled due to CORS/backend issues
   const { data: accuracyHistory, isLoading: accuracyLoading, error: accuracyError } = useQuery({
     queryKey: ['forecast-accuracy'],
@@ -216,17 +385,34 @@ export function ForecastingDashboard({ className = '' }: ForecastingDashboardPro
     enabled: false, // Disable until CORS is fixed
   })
 
-  // Generate forecast mutation
+  // Generate single-model forecast mutation
   const generateForecastMutation = useMutation({
     mutationFn: (data: ForecastRequest) => forecastingAPI.generateForecast(data),
     onSuccess: (response) => {
       const data = response.data  // Extract actual forecast data from Axios response
       queryClient.setQueryData(['forecast', data.forecast_id], data)
       setForecastResult(data)  // Store result in local state for immediate display
+      setMultiModelResult(null) // Clear multi-model result when using single model
       setIsGenerating(false)
     },
     onError: (error) => {
       console.error('Forecast generation failed:', error)
+      setIsGenerating(false)
+    },
+  })
+
+  // Generate multi-model forecast mutation
+  const generateMultiModelForecastMutation = useMutation({
+    mutationFn: (data: MultiModelForecastRequest) => forecastingAPI.generateMultiModelForecast(data),
+    onSuccess: (response) => {
+      const data = response.data  // Extract actual forecast data from Axios response
+      queryClient.setQueryData(['multi-forecast', data.forecast_id], data)
+      setMultiModelResult(data)  // Store result in local state for immediate display
+      setForecastResult(null) // Clear single-model result when using multi-model
+      setIsGenerating(false)
+    },
+    onError: (error) => {
+      console.error('Multi-model forecast generation failed:', error)
       setIsGenerating(false)
     },
   })
@@ -251,14 +437,28 @@ export function ForecastingDashboard({ className = '' }: ForecastingDashboardPro
   const handleGenerateForecast = () => {
     setIsGenerating(true)
     setForecastResult(null) // Clear previous results
-    const request: ForecastRequest = {
-      forecast_type: selectedForecastType as any,
-      horizon: selectedHorizon as any,
-      custom_days: selectedHorizon === 'custom' ? customDays : undefined,
-      category_filter: categoryFilter || undefined,
-      confidence_level: confidenceLevel,
+    setMultiModelResult(null) // Clear previous multi-model results
+    
+    if (isMultiModelMode) {
+      const request: MultiModelForecastRequest = {
+        forecast_type: selectedForecastType as any,
+        horizon: selectedHorizon as any,
+        custom_days: selectedHorizon === 'custom' ? customDays : undefined,
+        category_filter: categoryFilter || undefined,
+        confidence_level: confidenceLevel,
+        models: selectedModels,
+      }
+      generateMultiModelForecastMutation.mutate(request)
+    } else {
+      const request: ForecastRequest = {
+        forecast_type: selectedForecastType as any,
+        horizon: selectedHorizon as any,
+        custom_days: selectedHorizon === 'custom' ? customDays : undefined,
+        category_filter: categoryFilter || undefined,
+        confidence_level: confidenceLevel,
+      }
+      generateForecastMutation.mutate(request)
     }
-    generateForecastMutation.mutate(request)
   }
 
   const handleRefresh = () => {
@@ -267,7 +467,7 @@ export function ForecastingDashboard({ className = '' }: ForecastingDashboardPro
     queryClient.invalidateQueries({ queryKey: ['forecast-horizons'] })
   }
 
-  if (typesLoading || horizonsLoading) {
+  if (typesLoading || horizonsLoading || modelsLoading) {
     return (
       <div className={`animate-pulse ${className}`}>
         <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
@@ -390,6 +590,17 @@ export function ForecastingDashboard({ className = '' }: ForecastingDashboardPro
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => setIsMultiModelMode(!isMultiModelMode)}
+            className={`flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors ${
+              isMultiModelMode 
+                ? 'bg-purple-100 text-purple-700 border border-purple-200' 
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            {isMultiModelMode ? <Brain className="w-4 h-4" /> : <Zap className="w-4 h-4" />}
+            {isMultiModelMode ? 'Multi-Model' : 'Single Model'}
+          </button>
           <button
             onClick={handleRefresh}
             className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 disabled:opacity-50"
@@ -522,29 +733,162 @@ export function ForecastingDashboard({ className = '' }: ForecastingDashboardPro
           </div>
         </div>
 
+        {/* Model Selection (only for multi-model mode) */}
+        {isMultiModelMode && (
+          <div className="mt-6">
+            <label className="block text-sm font-medium text-gray-700 mb-3">
+              Select Models to Compare
+            </label>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              {availableModels?.map((model) => (
+                <div key={model.model} className="relative">
+                  <label className="flex items-center space-x-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={selectedModels.includes(model.model)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedModels([...selectedModels, model.model])
+                        } else {
+                          setSelectedModels(selectedModels.filter(m => m !== model.model))
+                        }
+                      }}
+                      className="form-checkbox h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                    />
+                    <div className="flex-1">
+                      <div className="text-sm font-medium text-gray-900">{model.name}</div>
+                      <div className="text-xs text-gray-500">{model.best_for}</div>
+                    </div>
+                  </label>
+                </div>
+              ))}
+            </div>
+            {selectedModels.length === 0 && (
+              <p className="text-sm text-red-500 mt-2">
+                Please select at least one model for comparison.
+              </p>
+            )}
+          </div>
+        )}
+
         {/* Generate Button */}
         <div className="mt-6">
           <button
             onClick={handleGenerateForecast}
-            disabled={isGenerating}
+            disabled={isGenerating || (isMultiModelMode && selectedModels.length === 0)}
             className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isGenerating ? (
               <>
                 <RefreshCw className="w-4 h-4 animate-spin" />
-                Generating Forecast...
+                {isMultiModelMode ? 'Generating Multi-Model Forecast...' : 'Generating Forecast...'}
               </>
             ) : (
               <>
-                <Target className="w-4 h-4" />
-                Generate Forecast
+                {isMultiModelMode ? <Brain className="w-4 h-4" /> : <Target className="w-4 h-4" />}
+                {isMultiModelMode ? 'Generate Multi-Model Forecast' : 'Generate Forecast'}
               </>
             )}
           </button>
+          {isMultiModelMode && selectedModels.length === 0 && (
+            <p className="text-sm text-red-500 mt-2">
+              Please select at least one model to generate forecasts.
+            </p>
+          )}
         </div>
       </div>
 
-      {/* Forecast Results */}
+      {/* Multi-Model Forecast Results */}
+      {multiModelResult && (
+        <div className="bg-white rounded-lg shadow p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">Multi-Model Forecast Results</h3>
+            <div className="flex items-center gap-4 text-sm">
+              <div className="flex items-center gap-1">
+                <CheckCircle className="w-4 h-4 text-purple-500" />
+                <span>Ensemble Accuracy: {Math.round((multiModelResult.ensemble_accuracy || 0) * 100)}%</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Brain className="w-4 h-4 text-blue-500" />
+                <span>Best Model: {multiModelResult.best_model}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Target className="w-4 h-4 text-green-500" />
+                <span>Models: {multiModelResult.model_results.length}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Multi-Model Forecast Chart */}
+          <MultiModelForecastChart 
+            data={multiModelResult} 
+            showConfidenceIntervals={showConfidenceIntervals}
+          />
+
+          {/* Model Performance Comparison */}
+          <div className="mt-6">
+            <h4 className="text-md font-semibold text-gray-900 mb-3">Model Performance Comparison</h4>
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4">
+              {multiModelResult.model_results.map((model) => (
+                <div key={model.model_name} className="bg-gray-50 p-4 rounded-lg border">
+                  <div className="flex items-center justify-between mb-2">
+                    <h5 className="font-medium text-gray-900">{model.model_name}</h5>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      model.model_name === multiModelResult.best_model 
+                        ? 'bg-green-100 text-green-700' 
+                        : 'bg-gray-100 text-gray-600'
+                    }`}>
+                      {model.model_name === multiModelResult.best_model ? 'Best' : 'Good'}
+                    </span>
+                  </div>
+                  <div className="space-y-1 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Accuracy:</span>
+                      <span className="font-medium">{Math.round(model.accuracy * 100)}%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">MAE:</span>
+                      <span className="font-medium">${model.mae.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Pattern:</span>
+                      <span className="font-medium capitalize">{model.seasonal_pattern}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Trend:</span>
+                      <span className="font-medium capitalize">{model.trend_direction}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Ensemble Summary */}
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-purple-50 p-4 rounded-lg">
+              <h4 className="font-medium text-purple-900">Ensemble Prediction</h4>
+              <p className="text-2xl font-bold text-purple-600">
+                ${multiModelResult.ensemble_predictions?.reduce((sum, p) => sum + p.value, 0)?.toFixed(2) || '0.00'}
+              </p>
+            </div>
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <h4 className="font-medium text-blue-900">Best Model</h4>
+              <p className="text-2xl font-bold text-blue-600">
+                {multiModelResult.best_model}
+              </p>
+            </div>
+            <div className="bg-green-50 p-4 rounded-lg">
+              <h4 className="font-medium text-green-900">Data Points</h4>
+              <p className="text-2xl font-bold text-green-600">
+                {multiModelResult.metadata?.data_points || 'N/A'}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Single-Model Forecast Results */}
       {forecastResult && (
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between mb-4">
@@ -565,7 +909,7 @@ export function ForecastingDashboard({ className = '' }: ForecastingDashboardPro
             </div>
           </div>
 
-          {/* Forecast Chart */}
+          {/* Single-Model Forecast Chart */}
           <ForecastChart 
             data={forecastResult} 
             showConfidenceIntervals={showConfidenceIntervals}
@@ -647,7 +991,7 @@ export function ForecastingDashboard({ className = '' }: ForecastingDashboardPro
       )}
 
       {/* Error Display */}
-      {generateForecastMutation.error && (
+      {(generateForecastMutation.error || generateMultiModelForecastMutation.error) && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-6">
           <div className="flex items-start gap-3">
             <AlertTriangle className="w-6 h-6 text-red-500 mt-1 flex-shrink-0" />

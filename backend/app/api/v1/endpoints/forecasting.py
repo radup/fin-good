@@ -20,6 +20,9 @@ from app.models.user import User
 from app.services.forecasting_engine import (
     ForecastingEngine, ForecastType, ForecastHorizon, ForecastResult
 )
+from app.services.multi_model_forecasting_engine import (
+    MultiModelForecastingEngine, ForecastModel, MultiModelForecastResult, ModelResult
+)
 from app.ml.time_series_models import EnsembleTimeSeriesModel, ModelType
 
 
@@ -35,6 +38,25 @@ class ForecastRequest(BaseModel):
     custom_days: Optional[int] = Field(None, description="Custom forecast days for custom horizon")
     category_filter: Optional[str] = Field(None, description="Filter by transaction category")
     confidence_level: float = Field(0.95, description="Confidence level for intervals")
+
+
+class MultiModelForecastRequest(BaseModel):
+    """Request model for multi-model forecasting"""
+    forecast_type: str = Field(..., description="Type of forecast to generate")
+    horizon: str = Field(..., description="Forecast horizon")
+    custom_days: Optional[int] = Field(None, description="Custom forecast days for custom horizon")
+    category_filter: Optional[str] = Field(None, description="Filter by transaction category")
+    confidence_level: float = Field(0.95, description="Confidence level for intervals")
+    models: Optional[List[str]] = Field(None, description="List of models to use (prophet, arima, neuralprophet, simple_trend)")
+    
+    @validator('models')
+    def validate_models(cls, v):
+        if v is not None:
+            valid_models = [model.value for model in ForecastModel]
+            invalid_models = [m for m in v if m not in valid_models]
+            if invalid_models:
+                raise ValueError(f"Invalid models: {invalid_models}. Valid models: {valid_models}")
+        return v
     
     @validator('forecast_type')
     def validate_forecast_type(cls, v):
@@ -78,6 +100,33 @@ class ForecastResponse(BaseModel):
     seasonal_pattern: str
     trend_direction: str
     model_accuracy: float
+    created_at: datetime
+    metadata: Dict[str, Any]
+
+
+class ModelResultResponse(BaseModel):
+    """Response model for individual model results"""
+    model_name: str
+    predictions: List[PredictionPoint]
+    accuracy: float
+    mse: float
+    mae: float
+    confidence_score: float
+    seasonal_pattern: str
+    trend_direction: str
+    model_params: Dict[str, Any]
+
+
+class MultiModelForecastResponse(BaseModel):
+    """Response model for multi-model forecast results"""
+    forecast_id: str
+    user_id: int
+    forecast_type: str
+    horizon_days: int
+    model_results: List[ModelResultResponse]
+    ensemble_predictions: List[PredictionPoint]
+    best_model: str
+    ensemble_accuracy: float
     created_at: datetime
     metadata: Dict[str, Any]
 
@@ -197,6 +246,113 @@ async def generate_forecast(
     except Exception as e:
         logger.error(f"Unexpected forecast error for user {current_user.id}: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to generate forecast")
+
+
+@router.post("/multi-model", response_model=MultiModelForecastResponse)
+async def generate_multi_model_forecast(
+    request: MultiModelForecastRequest,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user_from_cookie)
+):
+    """
+    Generate multi-model forecast comparing Prophet, ARIMA, Neural Prophet, and ensemble methods
+    
+    - **forecast_type**: Type of forecast (cash_flow, revenue, expenses, net_income, category_specific)
+    - **horizon**: Forecast horizon (7_days, 30_days, 60_days, 90_days, custom)
+    - **custom_days**: Number of days for custom horizon
+    - **category_filter**: Optional category filter for category-specific forecasts
+    - **confidence_level**: Statistical confidence level for prediction intervals
+    - **models**: Optional list of specific models to use (defaults to all)
+    """
+    try:
+        # Initialize multi-model forecasting engine
+        multi_engine = MultiModelForecastingEngine(db)
+        
+        # Generate multi-model forecast
+        forecast_result = multi_engine.generate_multi_model_forecast(
+            user_id=current_user.id,
+            forecast_type=request.forecast_type,
+            horizon=request.horizon,
+            custom_days=request.custom_days,
+            category_filter=request.category_filter,
+            confidence_level=request.confidence_level,
+            models=request.models
+        )
+        
+        # Convert model results to response format
+        model_results_response = []
+        for model_result in forecast_result.model_results:
+            predictions = [
+                PredictionPoint(
+                    date=pred["date"],
+                    value=pred["value"],
+                    confidence_lower=pred["confidence_lower"],
+                    confidence_upper=pred["confidence_upper"],
+                    trend_component=pred.get("trend_component"),
+                    seasonal_component=pred.get("seasonal_component")
+                )
+                for pred in model_result.predictions
+            ]
+            
+            model_results_response.append(ModelResultResponse(
+                model_name=model_result.model_name,
+                predictions=predictions,
+                accuracy=model_result.accuracy,
+                mse=model_result.mse,
+                mae=model_result.mae,
+                confidence_score=model_result.confidence_score,
+                seasonal_pattern=model_result.seasonal_pattern,
+                trend_direction=model_result.trend_direction,
+                model_params=model_result.model_params
+            ))
+        
+        # Convert ensemble predictions
+        ensemble_predictions = [
+            PredictionPoint(
+                date=pred["date"],
+                value=pred["value"],
+                confidence_lower=pred["confidence_lower"],
+                confidence_upper=pred["confidence_upper"]
+            )
+            for pred in forecast_result.ensemble_predictions
+        ]
+        
+        response = MultiModelForecastResponse(
+            forecast_id=forecast_result.forecast_id,
+            user_id=forecast_result.user_id,
+            forecast_type=forecast_result.forecast_type,
+            horizon_days=forecast_result.horizon_days,
+            model_results=model_results_response,
+            ensemble_predictions=ensemble_predictions,
+            best_model=forecast_result.best_model,
+            ensemble_accuracy=forecast_result.ensemble_accuracy,
+            created_at=forecast_result.created_at,
+            metadata=forecast_result.metadata
+        )
+        
+        # Log successful multi-model forecast generation
+        security_audit_logger.log_forecast_generation(
+            user_id=current_user.id,
+            forecast_type=f"multi_model_{request.forecast_type}",
+            timeframe=f"{forecast_result.horizon_days}_days",
+            result="success",
+            processing_time=None
+        )
+        
+        return response
+        
+    except ValidationException as e:
+        logger.warning(f"Multi-model forecast validation error for user {current_user.id}: {str(e)}")
+        raise HTTPException(status_code=400, detail=str(e))
+    
+    except BusinessLogicException as e:
+        logger.error(f"Multi-model forecast generation error for user {current_user.id}: {str(e)}")
+        raise HTTPException(status_code=422, detail=str(e))
+    
+    except Exception as e:
+        logger.error(f"Unexpected multi-model forecast error for user {current_user.id}: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to generate multi-model forecast")
 
 
 @router.get("/accuracy-history", response_model=AccuracyHistoryResponse)
@@ -465,3 +621,45 @@ async def forecasting_health_check():
         "max_forecast_days": 365,
         "supported_confidence_levels": [0.8, 0.9, 0.95]
     }
+
+
+@router.get("/models", response_model=List[Dict[str, Any]])
+async def get_available_models():
+    """Get list of available forecasting models for multi-model forecasting"""
+    return [
+        {
+            "model": ForecastModel.PROPHET.value,
+            "name": "Prophet",
+            "description": "Facebook's Prophet model with seasonality detection",
+            "strengths": ["Handles seasonality well", "Robust to outliers", "Good for business metrics"],
+            "best_for": "Data with strong seasonal patterns and holidays"
+        },
+        {
+            "model": ForecastModel.ARIMA.value,
+            "name": "ARIMA",
+            "description": "Auto-Regressive Integrated Moving Average model",
+            "strengths": ["Statistical foundation", "Works with stationary data", "Interpretable"],
+            "best_for": "Time series with clear trends and patterns"
+        },
+        {
+            "model": ForecastModel.NEURAL_PROPHET.value,
+            "name": "Neural Prophet",
+            "description": "Neural network-based Prophet with deep learning",
+            "strengths": ["Combines neural networks with Prophet", "Handles complex patterns", "Modern approach"],
+            "best_for": "Complex datasets with non-linear patterns"
+        },
+        {
+            "model": ForecastModel.SIMPLE_TREND.value,
+            "name": "Simple Trend",
+            "description": "Linear trend with seasonal adjustments",
+            "strengths": ["Fast", "Interpretable", "Good baseline"],
+            "best_for": "Quick forecasts and comparison baseline"
+        },
+        {
+            "model": ForecastModel.ENSEMBLE.value,
+            "name": "Ensemble",
+            "description": "Weighted combination of all models",
+            "strengths": ["Combines all model strengths", "Usually most accurate", "Reduces overfitting"],
+            "best_for": "When you want the most robust predictions"
+        }
+    ]
