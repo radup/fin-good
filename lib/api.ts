@@ -686,14 +686,8 @@ export const reportBuilderAPI = {
 // Forecasting API
 export const forecastingAPI = {
   // Generate forecast
-  generateForecast: (data: ForecastRequest) => {
-    const { forecast_type, ...kwargs } = data
-    const params = {
-      args: forecast_type,
-      kwargs: JSON.stringify(kwargs)
-    }
-    return api.post<ForecastResponse>('/api/v1/forecasting/generate', null, { params })
-  },
+  generateForecast: (data: ForecastRequest) =>
+    api.post<ForecastResponse>('/api/v1/forecasting/generate', data),
 
   // Get forecast accuracy history
   getAccuracyHistory: (params?: {

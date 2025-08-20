@@ -26,6 +26,7 @@ class User(Base):
     
     # Relationships
     transactions = relationship("Transaction", back_populates="user")
+    budgets = relationship("Budget", back_populates="user")
     
     def __repr__(self):
         return f"<User(id={self.id}, email='{self.email}')>"

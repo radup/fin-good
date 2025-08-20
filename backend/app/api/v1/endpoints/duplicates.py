@@ -22,7 +22,7 @@ from app.services.duplicate_detection import (
 from app.core.exceptions import ValidationException, BusinessLogicException
 from app.core.error_sanitizer import error_sanitizer, create_secure_error_response
 from app.schemas.error import ErrorCategory, ErrorSeverity
-from app.core.rate_limiter import get_rate_limiter, RateLimitType, RateLimitTier, rate_limit
+from app.core.rate_limiter import get_rate_limiter, RateLimitType, RateLimitTier
 from app.core.audit_logger import security_audit_logger
 from fastapi import Request
 import uuid
@@ -31,7 +31,6 @@ router = APIRouter()
 
 
 @router.post("/scan")
-@rate_limit(requests_per_hour=20, requests_per_minute=2)  # Conservative limits for resource-intensive operation
 async def scan_for_duplicates(
     date_range_days: int = Query(30, ge=1, le=90, description="Number of days to scan for duplicates"),
     min_confidence: float = Query(0.5, ge=0.1, le=1.0, description="Minimum confidence score (0.1-1.0)"),
@@ -147,7 +146,6 @@ async def scan_for_duplicates(
 
 
 @router.post("/auto-merge")
-@rate_limit(requests_per_hour=10, requests_per_minute=1)  # Very conservative for potentially destructive operation
 async def auto_merge_high_confidence_duplicates(
     scan_id: str = Query(..., description="Scan ID from duplicate detection scan"),
     min_confidence: float = Query(0.95, ge=0.8, le=1.0, description="Minimum confidence for auto-merge"),
@@ -271,7 +269,6 @@ async def auto_merge_high_confidence_duplicates(
 
 
 @router.get("/stats")
-@rate_limit(requests_per_hour=100, requests_per_minute=10)
 async def get_duplicate_detection_stats(
     current_user: User = Depends(get_current_user_from_cookie),
     db: Session = Depends(get_db)

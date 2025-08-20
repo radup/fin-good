@@ -23,14 +23,12 @@ from app.services.pattern_recognition import (
 from app.core.exceptions import ValidationException, BusinessLogicException
 from app.core.error_sanitizer import error_sanitizer, create_secure_error_response
 from app.schemas.error import ErrorCategory, ErrorSeverity
-from app.core.rate_limiter import rate_limit
 from app.core.audit_logger import security_audit_logger
 
 router = APIRouter()
 
 
 @router.post("/analyze")
-@rate_limit(requests_per_hour=10, requests_per_minute=1)  # Very conservative for resource-intensive operation
 async def analyze_user_patterns(
     date_range_days: int = Query(90, ge=30, le=365, description="Days of transaction history to analyze"),
     include_uncategorized: bool = Query(True, description="Include uncategorized transactions in analysis"),
@@ -175,7 +173,6 @@ async def analyze_user_patterns(
 
 
 @router.post("/apply-rules")
-@rate_limit(requests_per_hour=20, requests_per_minute=2)
 async def apply_suggested_rules(
     rule_ids: List[str] = Query(..., description="List of rule IDs to apply"),
     dry_run: bool = Query(True, description="Perform dry run without creating actual rules"),
@@ -272,7 +269,6 @@ async def apply_suggested_rules(
 
 
 @router.get("/behavior-profile")
-@rate_limit(requests_per_hour=50, requests_per_minute=5)
 async def get_user_behavior_profile(
     current_user: User = Depends(get_current_user_from_cookie),
     db: Session = Depends(get_db)
@@ -349,7 +345,6 @@ async def get_user_behavior_profile(
 
 
 @router.get("/analytics")
-@rate_limit(requests_per_hour=100, requests_per_minute=10)
 async def get_pattern_analytics(
     current_user: User = Depends(get_current_user_from_cookie),
     db: Session = Depends(get_db)

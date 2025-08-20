@@ -6,6 +6,7 @@ Provides protection against abuse, brute force attacks, and DDoS for financial A
 import asyncio
 import json
 import time
+import functools
 from typing import Dict, List, Optional, Tuple, Union
 from datetime import datetime, timedelta
 from enum import Enum
@@ -588,6 +589,7 @@ def rate_limit(requests_per_hour: int = 1000, requests_per_minute: int = 100):
         requests_per_minute: Maximum requests per minute (default: 100)
     """
     def decorator(func):
+        @functools.wraps(func)
         async def wrapper(*args, **kwargs):
             # Extract user and request from function arguments
             current_user = None
