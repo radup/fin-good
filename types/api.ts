@@ -679,18 +679,42 @@ export interface ApiErrorResponse {
 
 // Budget Definition
 export interface Budget {
-  budget_id: string
+  id: number
   name: string
-  description: string
-  period_type: 'monthly' | 'quarterly' | 'yearly' | 'custom'
+  description: string | null
+  budget_type: 'MONTHLY' | 'QUARTERLY' | 'ANNUAL' | 'PROJECT' | 'GOAL_BASED'
   start_date: string
   end_date: string
-  total_budget: number
-  currency: string
-  status: 'active' | 'draft' | 'archived'
+  total_income_budget: number
+  total_expense_budget: number
+  status: 'DRAFT' | 'ACTIVE' | 'COMPLETED' | 'PAUSED' | 'ARCHIVED'
+  user_id: number
+  warning_threshold: number
+  critical_threshold: number
+  auto_rollover: boolean
+  include_in_forecasting: boolean
+  created_from_template: string | null
+  tags: string[]
   created_at: string
-  updated_at: string
-  created_by: string
+  updated_at: string | null
+  budget_items?: BudgetItem[]
+}
+
+export interface BudgetItem {
+  id: number
+  budget_id: number
+  category: string
+  subcategory: string | null
+  is_income: boolean
+  budgeted_amount: number
+  use_historical_data: boolean
+  forecast_method: string
+  notes: string | null
+  priority: number
+  monthly_breakdown: any | null
+  forecast_confidence: number | null
+  created_at: string
+  updated_at: string | null
 }
 
 // Budget Category Allocation

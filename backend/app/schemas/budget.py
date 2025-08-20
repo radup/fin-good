@@ -15,27 +15,27 @@ from enum import Enum
 
 class BudgetType(str, Enum):
     """Types of budgets supported by the system."""
-    MONTHLY = "monthly"
-    QUARTERLY = "quarterly"
-    ANNUAL = "annual"
-    PROJECT = "project"
-    GOAL_BASED = "goal_based"
+    MONTHLY = "MONTHLY"
+    QUARTERLY = "QUARTERLY"
+    ANNUAL = "ANNUAL"
+    PROJECT = "PROJECT"
+    GOAL_BASED = "GOAL_BASED"
 
 
 class BudgetStatus(str, Enum):
     """Budget status lifecycle."""
-    DRAFT = "draft"
-    ACTIVE = "active"
-    COMPLETED = "completed"
-    PAUSED = "paused"
-    ARCHIVED = "archived"
+    DRAFT = "DRAFT"
+    ACTIVE = "ACTIVE"
+    COMPLETED = "COMPLETED"
+    PAUSED = "PAUSED"
+    ARCHIVED = "ARCHIVED"
 
 
 class VarianceType(str, Enum):
     """Types of budget variance analysis."""
-    FAVORABLE = "favorable"
-    UNFAVORABLE = "unfavorable"
-    ON_TARGET = "on_target"
+    FAVORABLE = "FAVORABLE"
+    UNFAVORABLE = "UNFAVORABLE"
+    ON_TARGET = "ON_TARGET"
 
 
 class ForecastMethod(str, Enum):

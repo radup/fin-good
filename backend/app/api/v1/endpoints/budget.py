@@ -104,19 +104,10 @@ async def create_budget(
         db.refresh(budget)
         
         # Log budget creation
-        security_audit_logger.info(
-            "Budget created",
-            extra={
-                "user_id": current_user.id,
-                "budget_id": budget.id,
-                "budget_name": budget.name,
-                "budget_type": budget.budget_type.value,
-                "total_income": total_income,
-                "total_expenses": total_expenses
-            }
+        logger.info(
+            f"Budget created: {budget.name} (ID: {budget.id}) by user {current_user.id}. "
+            f"Type: {budget.budget_type.value}, Income: {total_income}, Expenses: {total_expenses}"
         )
-        
-        logger.info(f"Budget created: {budget.name} (ID: {budget.id}) for user {current_user.id}")
         
         return budget
         

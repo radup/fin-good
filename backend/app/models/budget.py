@@ -18,27 +18,27 @@ from typing import Dict, Any, Optional, List
 
 class BudgetType(PyEnum):
     """Types of budgets supported by the system."""
-    MONTHLY = "monthly"
-    QUARTERLY = "quarterly"
-    ANNUAL = "annual"
-    PROJECT = "project"
-    GOAL_BASED = "goal_based"
+    MONTHLY = "MONTHLY"
+    QUARTERLY = "QUARTERLY"
+    ANNUAL = "ANNUAL"
+    PROJECT = "PROJECT"
+    GOAL_BASED = "GOAL_BASED"
 
 
 class BudgetStatus(PyEnum):
     """Budget status lifecycle."""
-    DRAFT = "draft"
-    ACTIVE = "active"
-    COMPLETED = "completed"
-    PAUSED = "paused"
-    ARCHIVED = "archived"
+    DRAFT = "DRAFT"
+    ACTIVE = "ACTIVE"
+    COMPLETED = "COMPLETED"
+    PAUSED = "PAUSED"
+    ARCHIVED = "ARCHIVED"
 
 
 class VarianceType(PyEnum):
     """Types of budget variance analysis."""
-    FAVORABLE = "favorable"  # Under budget for expenses, over budget for income
-    UNFAVORABLE = "unfavorable"  # Over budget for expenses, under budget for income
-    ON_TARGET = "on_target"  # Within acceptable variance threshold
+    FAVORABLE = "FAVORABLE"  # Under budget for expenses, over budget for income
+    UNFAVORABLE = "UNFAVORABLE"  # Over budget for expenses, under budget for income
+    ON_TARGET = "ON_TARGET"  # Within acceptable variance threshold
 
 
 class Budget(Base):

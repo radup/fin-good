@@ -24,7 +24,10 @@ import {
   ChevronDown,
   ChevronUp,
   Settings,
-  TrendingDown
+  TrendingDown,
+  BarChart as LucideBarChart,
+  Save,
+  Download
 } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, LineChart, Line, AreaChart, Area } from 'recharts'
 
@@ -200,6 +203,279 @@ const QUICK_SCENARIOS: QuickScenario[] = [
     example: 'What if I increase my hourly rate by €15?'
   }
 ]
+
+// Collapsible Monte Carlo Chart Component
+function CollapsibleMonteCarloChart({ 
+  data, 
+  title, 
+  isInChat = false 
+}: { 
+  data: MonteCarloPoint[]
+  title: string
+  isInChat?: boolean 
+}) {
+  const [isExpanded, setIsExpanded] = useState(false)
+
+  const saveAsImage = () => {
+    // This would implement saving the chart as an image
+    // For now, just show a notification
+    alert('Chart saved as image! (This would actually save the visualization)')
+  }
+
+  return (
+    <div className={`border rounded-lg ${isInChat ? 'border-white border-opacity-30 bg-white bg-opacity-10' : 'border-gray-200 bg-white'}`}>
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className={`w-full p-3 flex items-center justify-between text-left ${isInChat ? 'hover:bg-white hover:bg-opacity-20' : 'hover:bg-gray-50'} transition-colors rounded-t-lg`}
+      >
+        <div className="flex items-center space-x-2">
+          <LucideBarChart className={`h-4 w-4 ${isInChat ? 'text-white' : 'text-purple-600'}`} />
+          <span className={`text-sm font-semibold ${isInChat ? 'text-white' : 'text-gray-900'}`}>
+            Outcome Probabilities
+          </span>
+        </div>
+        <div className="flex items-center space-x-2">
+          {!isExpanded && (
+            <span className={`text-sm ${isInChat ? 'text-white text-opacity-80' : 'text-gray-600'}`}>
+              Click to expand
+            </span>
+          )}
+          {isExpanded ? (
+            <ChevronUp className={`h-4 w-4 ${isInChat ? 'text-white' : 'text-gray-400'}`} />
+          ) : (
+            <ChevronDown className={`h-4 w-4 ${isInChat ? 'text-white' : 'text-gray-400'}`} />
+          )}
+        </div>
+      </button>
+
+      {isExpanded && (
+        <div className={`border-t p-4 space-y-4 ${isInChat ? 'border-white border-opacity-30' : 'border-gray-200'}`}>
+          {/* Probability Bars - Enhanced Design */}
+          <div className="space-y-4">
+            {data.map((point, index) => {
+              const isPositive = point.outcome >= 0
+              const barColor = point.scenario === 'Best Case' ? 
+                'from-emerald-400 to-green-500' :
+                point.scenario === 'Worst Case' ? 
+                'from-red-400 to-red-500' :
+                'from-blue-400 to-indigo-500'
+              
+              const glowColor = point.scenario === 'Best Case' ? 
+                'shadow-emerald-500/25' :
+                point.scenario === 'Worst Case' ? 
+                'shadow-red-500/25' :
+                'shadow-blue-500/25'
+              
+              return (
+                <div key={index} className="relative group">
+                  {/* Floating Labels */}
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center space-x-2">
+                      <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${barColor} ${isInChat ? '' : 'shadow-sm ' + glowColor}`}></div>
+                      <span className={`text-sm font-semibold ${
+                        point.scenario === 'Best Case' ? (isInChat ? 'text-emerald-300' : 'text-emerald-700') :
+                        point.scenario === 'Worst Case' ? (isInChat ? 'text-red-300' : 'text-red-700') :
+                        isInChat ? 'text-blue-300' : 'text-blue-700'
+                      }`}>
+                        {point.scenario}
+                      </span>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <div className={`px-3 py-1 rounded-md text-sm font-semibold shadow-lg ${
+                        isInChat ? 'bg-slate-900 text-white border-2 border-white' : 'bg-gray-800 text-white'
+                      }`}>
+                        €{Math.abs(point.outcome).toLocaleString()}{!isPositive ? ' loss' : ''}
+                      </div>
+                      <div className={`px-3 py-1 rounded-full text-sm font-bold shadow-lg ${
+                        isInChat ? 'bg-slate-900 text-white border-2 border-white' : 'bg-gray-900 text-white'
+                      }`}>
+                        {Math.round(point.probability * 100)}%
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Enhanced Progress Bar */}
+                  <div className={`relative w-full h-3 rounded-full overflow-hidden ${
+                    isInChat ? 'bg-white bg-opacity-15' : 'bg-gray-100'
+                  } group-hover:shadow-lg transition-all duration-300`}>
+                    {/* Background Glow Effect */}
+                    <div className={`absolute inset-0 bg-gradient-to-r ${barColor} opacity-10 blur-sm`}></div>
+                    
+                    {/* Main Progress Bar */}
+                    <div 
+                      className={`absolute top-0 left-0 h-full rounded-full bg-gradient-to-r ${barColor} 
+                        ${isInChat ? '' : 'shadow-lg ' + glowColor} 
+                        transform transition-all duration-700 ease-out group-hover:scale-y-110`}
+                      style={{ 
+                        width: `${point.probability * 100}%`,
+                        animation: `slideIn 0.8s ease-out ${index * 0.2}s both`
+                      }}
+                    >
+                      {/* Inner Shine Effect */}
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-30 transform -skew-x-12"></div>
+                    </div>
+                    
+                    {/* Percentage Text Overlay */}
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className={`text-xs font-bold transition-opacity duration-300 ${
+                        point.probability > 0.3 ? 'opacity-90' : 'opacity-0'
+                      } ${isInChat ? 'text-white drop-shadow-lg' : 'text-white drop-shadow-md'}`}>
+                        {Math.round(point.probability * 100)}%
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {/* Confidence Indicator */}
+                  <div className="flex items-center justify-between mt-1 px-1">
+                    <div className={`flex items-center space-x-1 text-sm ${
+                      isInChat ? 'text-white text-opacity-70' : 'text-gray-600'
+                    }`}>
+                      <div className={`w-1.5 h-1.5 rounded-full ${
+                        point.confidence > 0.9 ? 'bg-green-400' : 
+                        point.confidence > 0.8 ? 'bg-yellow-400' : 
+                        'bg-red-400'
+                      }`}></div>
+                      <span className="font-medium">{Math.round(point.confidence * 100)}% confidence</span>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Simple Outcome Range - User-Friendly Design */}
+          <div className={`rounded-xl p-4 ${
+            isInChat 
+              ? 'bg-slate-800 border-2 border-white' 
+              : 'bg-gradient-to-br from-purple-50 to-blue-50 border border-gray-200'
+          } shadow-lg`}>
+            
+            {/* Clear Title and Description */}
+            <div className="mb-6">
+              <h4 className={`text-xl font-bold mb-3 ${
+                isInChat ? 'text-white drop-shadow-lg' : 'text-gray-900'
+              }`}>
+                💡 What Could Happen?
+              </h4>
+              <p className={`text-base font-medium ${
+                isInChat ? 'text-white drop-shadow-md' : 'text-gray-800'
+              }`}>
+                Based on 1,000 simulations of your scenario
+              </p>
+            </div>
+            
+            {/* Simple Visual Range Display */}
+            <div className="space-y-4">
+              {/* Best to Worst Range Bar */}
+              <div className="relative">
+                <div className={`h-8 rounded-full overflow-hidden ${
+                  isInChat ? 'bg-gray-700 border border-white' : 'bg-gray-200'
+                } relative`}>
+                  
+                  {/* Gradient showing range of outcomes */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-red-400 via-blue-400 to-green-400 opacity-60"></div>
+                  
+                  {/* Markers for each scenario */}
+                  {data.map((point, index) => {
+                    // Calculate position based on outcome relative to range
+                    const minOutcome = Math.min(...data.map(p => p.outcome))
+                    const maxOutcome = Math.max(...data.map(p => p.outcome))
+                    const position = maxOutcome === minOutcome ? 50 : 
+                      ((point.outcome - minOutcome) / (maxOutcome - minOutcome)) * 100
+                    
+                    const markerColor = point.scenario === 'Best Case' ? 'bg-green-500' :
+                                      point.scenario === 'Worst Case' ? 'bg-red-500' :
+                                      'bg-blue-500'
+                    
+                    return (
+                      <div
+                        key={index}
+                        className="absolute top-0 h-full flex items-center justify-center transform -translate-x-1/2"
+                        style={{ left: `${position}%` }}
+                      >
+                        <div className={`w-3 h-6 ${markerColor} rounded-sm shadow-lg border-2 border-white`}>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+                
+                {/* Range Labels */}
+                <div className="flex justify-between mt-4 text-base">
+                  <span className={`${isInChat ? 'text-red-100 drop-shadow-lg' : 'text-red-800'} font-bold`}>
+                    €{Math.min(...data.map(p => p.outcome)).toLocaleString()}
+                  </span>
+                  <span className={`${isInChat ? 'text-white drop-shadow-md' : 'text-gray-900'} font-semibold`}>
+                    Range of Possible Outcomes
+                  </span>
+                  <span className={`${isInChat ? 'text-green-100 drop-shadow-lg' : 'text-green-800'} font-bold`}>
+                    €{Math.max(...data.map(p => p.outcome)).toLocaleString()}
+                  </span>
+                </div>
+              </div>
+              
+              {/* Simple Statistics Cards */}
+              <div className="grid grid-cols-3 gap-3">
+                {data.map((point, index) => (
+                  <div key={index} className={`p-5 rounded-xl text-center ${
+                    isInChat ? 'bg-slate-700 border-2 border-white' : 'bg-white border border-gray-200'
+                  } shadow-sm`}>
+                    <div className={`text-base font-bold mb-3 ${
+                      isInChat ? 'text-white drop-shadow-md' : 'text-gray-900'
+                    }`}>
+                      {point.scenario.replace(' Case', '')}
+                    </div>
+                    <div className={`text-2xl font-black mb-2 ${
+                      point.scenario === 'Best Case' ? (isInChat ? 'text-green-200' : 'text-green-800') :
+                      point.scenario === 'Worst Case' ? (isInChat ? 'text-red-200' : 'text-red-800') :
+                      isInChat ? 'text-blue-200' : 'text-blue-800'
+                    }`}>
+                      €{Math.abs(point.outcome).toLocaleString()}
+                    </div>
+                    <div className={`text-base font-semibold ${isInChat ? 'text-white/95 drop-shadow-sm' : 'text-gray-800'}`}>
+                      {Math.round(point.probability * 100)}% chance
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              {/* Simple Interpretation */}
+              <div className={`text-sm p-4 rounded-lg ${
+                isInChat ? 'bg-blue-500/20 text-white/85' : 'bg-blue-100 text-blue-800'
+              }`}>
+                <div className="flex items-start space-x-3">
+                  <div className="w-2 h-2 rounded-full bg-current mt-2 flex-shrink-0"></div>
+                  <div className="font-medium">
+                    <strong className="text-base">Simple explanation:</strong> I ran 1,000 simulations of your scenario. 
+                    The colored markers show you the most likely outcomes. Most results will fall between the worst and best case scenarios.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex items-center justify-between pt-3 border-t border-opacity-30">
+            <div className={`text-sm ${isInChat ? 'text-white text-opacity-80' : 'text-gray-600'}`}>
+              <span className="font-semibold">Uncertainty Analysis</span> - Realistic outcome ranges
+            </div>
+            <button
+              onClick={saveAsImage}
+              className={`flex items-center space-x-2 px-3 py-2 rounded text-sm font-medium transition-colors ${
+                isInChat 
+                  ? 'bg-white bg-opacity-20 text-white hover:bg-opacity-30' 
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              <Save className="h-4 w-4" />
+              <span>Save Chart</span>
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
 
 export default function ScenarioSimulationDashboard() {
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -549,9 +825,21 @@ The more specific you are, the better I can help you see the real financial impa
                     {message.content}
                   </div>
                   {message.scenario && (
-                    <div className="mt-3 p-3 bg-white bg-opacity-20 rounded-lg text-xs">
-                      <div className="font-medium">{message.scenario.title}</div>
-                      <div className="text-xs opacity-75 mt-1">Confidence: {message.scenario.confidence}</div>
+                    <div className="mt-3 space-y-3">
+                      {/* Scenario Summary Card */}
+                      <div className="p-3 bg-white bg-opacity-20 rounded-lg text-xs">
+                        <div className="font-medium">{message.scenario.title}</div>
+                        <div className="text-xs opacity-75 mt-1">Confidence: {message.scenario.confidence}</div>
+                      </div>
+
+                      {/* Expandable Monte Carlo Visualization */}
+                      {message.scenario.monteCarloData && (
+                        <CollapsibleMonteCarloChart 
+                          data={message.scenario.monteCarloData}
+                          title={message.scenario.title}
+                          isInChat={true}
+                        />
+                      )}
                     </div>
                   )}
                 </div>
@@ -673,99 +961,6 @@ The more specific you are, the better I can help you see the real financial impa
                 </div>
               )}
 
-              {/* Monte Carlo Uncertainty Visualization */}
-              {currentScenario?.monteCarloData && (
-                <div className="mb-4">
-                  <h4 className="text-sm font-medium text-gray-900 mb-3 flex items-center">
-                    <Target className="h-4 w-4 mr-2 text-purple-600" />
-                    Outcome Probability
-                  </h4>
-                  
-                  {/* Probability Bars */}
-                  <div className="space-y-3">
-                    {currentScenario.monteCarloData.map((point, index) => (
-                      <div key={index} className="relative">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className={`text-xs font-medium ${
-                            point.scenario === 'Best Case' ? 'text-green-700' :
-                            point.scenario === 'Worst Case' ? 'text-red-700' :
-                            'text-blue-700'
-                          }`}>
-                            {point.scenario}
-                          </span>
-                          <div className="flex items-center space-x-2">
-                            <span className="text-xs text-gray-600">
-                              €{point.outcome.toLocaleString()}
-                            </span>
-                            <span className="text-xs text-gray-500">
-                              {Math.round(point.probability * 100)}%
-                            </span>
-                          </div>
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div 
-                            className={`h-2 rounded-full ${
-                              point.scenario === 'Best Case' ? 'bg-green-500' :
-                              point.scenario === 'Worst Case' ? 'bg-red-500' :
-                              'bg-blue-500'
-                            }`}
-                            style={{ width: `${point.probability * 100}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Monte Carlo Chart */}
-                  <div className="mt-4 h-32">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart 
-                        data={currentScenario.monteCarloData.map((point, index) => ({
-                          name: point.scenario.replace(' Case', ''),
-                          probability: point.probability * 100,
-                          outcome: Math.abs(point.outcome),
-                          fill: point.scenario === 'Best Case' ? '#10b981' :
-                                point.scenario === 'Worst Case' ? '#ef4444' :
-                                '#3b82f6'
-                        }))}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                        <XAxis dataKey="name" tick={{ fontSize: 9 }} />
-                        <YAxis tick={{ fontSize: 9 }} />
-                        <Tooltip 
-                          formatter={(value: number, name: string) => [
-                            name === 'probability' ? `${value}%` : `€${value.toLocaleString()}`,
-                            name === 'probability' ? 'Probability' : 'Financial Impact'
-                          ]}
-                        />
-                        <Area 
-                          type="monotone" 
-                          dataKey="outcome" 
-                          stroke="#8b5cf6" 
-                          fill="url(#monteCarloGradient)"
-                          fillOpacity={0.6}
-                        />
-                        <defs>
-                          <linearGradient id="monteCarloGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.8}/>
-                            <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0.1}/>
-                          </linearGradient>
-                        </defs>
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  </div>
-
-                  <div className="mt-3 p-2 bg-purple-50 rounded text-xs">
-                    <div className="flex items-start space-x-2">
-                      <Activity className="h-3 w-3 text-purple-600 mt-0.5 flex-shrink-0" />
-                      <div className="text-purple-800">
-                        <span className="font-medium">Uncertainty Analysis:</span> Based on typical business volatility, 
-                        showing likely range of outcomes for this decision.
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
 
               {/* Confidence Indicator */}
               <div className="mt-4 p-3 bg-blue-50 rounded-lg">
