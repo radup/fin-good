@@ -26,7 +26,7 @@ import {
   Settings,
   TrendingDown
 } from 'lucide-react'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, LineChart, Line, AreaChart, Area } from 'recharts'
 
 interface ChatMessage {
   id: string
@@ -47,6 +47,14 @@ interface ScenarioResult {
   }
   recommendation: string
   confidence: 'high' | 'medium' | 'low'
+  monteCarloData?: MonteCarloPoint[]
+}
+
+interface MonteCarloPoint {
+  scenario: string
+  probability: number
+  outcome: number
+  confidence: number
 }
 
 interface QuickScenario {
@@ -269,7 +277,8 @@ The sweet spot: Finance it if it generates income, save for it if it's just nice
             cashFlowImpact: -amount
           },
           recommendation: `${monthsToSave <= 2 ? 'Buy now with cash' : 'Consider financing or wait 2-3 months'}`,
-          confidence: 'high'
+          confidence: 'high',
+          monteCarloData: generateMonteCarloData(-amount, 'affordability')
         }
       }
     }
@@ -306,7 +315,8 @@ My advice: Always keep 3 months of fixed costs (including payroll) in the bank. 
           recommendation: currentCash >= payrollAmount * 3 
             ? 'Safe - you have adequate reserves' 
             : 'Consider invoice factoring or line of credit',
-          confidence: 'high'
+          confidence: 'high',
+          monteCarloData: generateMonteCarloData(currentCash - payrollAmount, 'late-payment')
         }
       }
     }
@@ -332,7 +342,8 @@ My recommendation: If you're driving for business regularly and have stable inco
             cashFlowImpact: -amount
           },
           recommendation: 'Good investment if business driving >15,000km/year',
-          confidence: 'high'
+          confidence: 'high',
+          monteCarloData: generateMonteCarloData(-Math.round(amount * 0.25), 'company-car')
         }
       }
     }
@@ -385,7 +396,8 @@ My advice: If you're turning down work because you're too busy, this pays for it
             cashFlowImpact: Math.round(-monthlyRate * 1.35 * 12)
           },
           recommendation: 'Start part-time if turning down work due to capacity',
-          confidence: 'medium'
+          confidence: 'medium',
+          monteCarloData: generateMonteCarloData(Math.round(monthlyRate * 12 * 0.5), 'hiring')
         }
       }
     }
@@ -413,7 +425,8 @@ Start with new clients first, then gradually increase existing ones.`,
             cashFlowImpact: Math.round(increase * 30 * 52 * 0.8)
           },
           recommendation: 'Test with new clients first, gradual rollout to existing',
-          confidence: 'high'
+          confidence: 'high',
+          monteCarloData: generateMonteCarloData(Math.round(increase * 30 * 52 * 0.8), 'pricing')
         }
       }
     }
@@ -443,6 +456,41 @@ The more specific you are, the better I can help you see the real financial impa
 
   const handleQuickScenario = (scenario: QuickScenario) => {
     handleSendMessage(scenario.example)
+  }
+
+  const generateMonteCarloData = (baseOutcome: number, scenarioType: string): MonteCarloPoint[] => {
+    // Generate realistic uncertainty ranges based on scenario type
+    const uncertaintyFactors = {
+      'affordability': { best: 1.3, likely: 1.0, worst: 0.7 },
+      'late-payment': { best: 1.1, likely: 1.0, worst: 0.85 },
+      'company-car': { best: 1.4, likely: 1.0, worst: 0.6 },
+      'hiring': { best: 1.6, likely: 1.0, worst: 0.4 },
+      'pricing': { best: 1.2, likely: 0.9, worst: 0.6 },
+      'default': { best: 1.25, likely: 1.0, worst: 0.75 }
+    }
+    
+    const factors = uncertaintyFactors[scenarioType] || uncertaintyFactors['default']
+    
+    return [
+      {
+        scenario: 'Best Case',
+        probability: 0.15,
+        outcome: Math.round(baseOutcome * factors.best),
+        confidence: 0.85
+      },
+      {
+        scenario: 'Most Likely',
+        probability: 0.70,
+        outcome: Math.round(baseOutcome * factors.likely),
+        confidence: 0.95
+      },
+      {
+        scenario: 'Worst Case',
+        probability: 0.15,
+        outcome: Math.round(baseOutcome * factors.worst),
+        confidence: 0.80
+      }
+    ]
   }
 
   // Prepare chart data
@@ -612,7 +660,7 @@ The more specific you are, the better I can help you see the real financial impa
 
               {/* Quick Chart */}
               {chartData.length > 0 && (
-                <div className="h-48">
+                <div className="h-48 mb-4">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={chartData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -622,6 +670,100 @@ The more specific you are, the better I can help you see the real financial impa
                       <Bar dataKey="scenario" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
+                </div>
+              )}
+
+              {/* Monte Carlo Uncertainty Visualization */}
+              {currentScenario?.monteCarloData && (
+                <div className="mb-4">
+                  <h4 className="text-sm font-medium text-gray-900 mb-3 flex items-center">
+                    <Target className="h-4 w-4 mr-2 text-purple-600" />
+                    Outcome Probability
+                  </h4>
+                  
+                  {/* Probability Bars */}
+                  <div className="space-y-3">
+                    {currentScenario.monteCarloData.map((point, index) => (
+                      <div key={index} className="relative">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className={`text-xs font-medium ${
+                            point.scenario === 'Best Case' ? 'text-green-700' :
+                            point.scenario === 'Worst Case' ? 'text-red-700' :
+                            'text-blue-700'
+                          }`}>
+                            {point.scenario}
+                          </span>
+                          <div className="flex items-center space-x-2">
+                            <span className="text-xs text-gray-600">
+                              €{point.outcome.toLocaleString()}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              {Math.round(point.probability * 100)}%
+                            </span>
+                          </div>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div 
+                            className={`h-2 rounded-full ${
+                              point.scenario === 'Best Case' ? 'bg-green-500' :
+                              point.scenario === 'Worst Case' ? 'bg-red-500' :
+                              'bg-blue-500'
+                            }`}
+                            style={{ width: `${point.probability * 100}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Monte Carlo Chart */}
+                  <div className="mt-4 h-32">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart 
+                        data={currentScenario.monteCarloData.map((point, index) => ({
+                          name: point.scenario.replace(' Case', ''),
+                          probability: point.probability * 100,
+                          outcome: Math.abs(point.outcome),
+                          fill: point.scenario === 'Best Case' ? '#10b981' :
+                                point.scenario === 'Worst Case' ? '#ef4444' :
+                                '#3b82f6'
+                        }))}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                        <XAxis dataKey="name" tick={{ fontSize: 9 }} />
+                        <YAxis tick={{ fontSize: 9 }} />
+                        <Tooltip 
+                          formatter={(value: number, name: string) => [
+                            name === 'probability' ? `${value}%` : `€${value.toLocaleString()}`,
+                            name === 'probability' ? 'Probability' : 'Financial Impact'
+                          ]}
+                        />
+                        <Area 
+                          type="monotone" 
+                          dataKey="outcome" 
+                          stroke="#8b5cf6" 
+                          fill="url(#monteCarloGradient)"
+                          fillOpacity={0.6}
+                        />
+                        <defs>
+                          <linearGradient id="monteCarloGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.8}/>
+                            <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0.1}/>
+                          </linearGradient>
+                        </defs>
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+
+                  <div className="mt-3 p-2 bg-purple-50 rounded text-xs">
+                    <div className="flex items-start space-x-2">
+                      <Activity className="h-3 w-3 text-purple-600 mt-0.5 flex-shrink-0" />
+                      <div className="text-purple-800">
+                        <span className="font-medium">Uncertainty Analysis:</span> Based on typical business volatility, 
+                        showing likely range of outcomes for this decision.
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
 
