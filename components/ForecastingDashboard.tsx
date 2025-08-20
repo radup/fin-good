@@ -16,6 +16,18 @@ import {
   Eye,
   EyeOff
 } from 'lucide-react'
+import { 
+  LineChart, 
+  Line, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer, 
+  Area, 
+  ComposedChart,
+  ReferenceLine
+} from 'recharts'
 import { forecastingAPI } from '@/lib/api'
 import type { 
   ForecastRequest, 
@@ -25,6 +37,140 @@ import type {
   AccuracyHistoryResponse,
   EnsembleAnalysisResponse
 } from '@/types/api'
+
+// Forecast Chart Component
+interface ForecastChartProps {
+  data: ForecastResponse
+  showConfidenceIntervals: boolean
+}
+
+function ForecastChart({ data, showConfidenceIntervals }: ForecastChartProps) {
+  // Transform forecast data for Recharts
+  const chartData = data.predictions?.map((prediction, index) => ({
+    period: index + 1,
+    date: new Date(Date.now() + (index * 24 * 60 * 60 * 1000)).toISOString().split('T')[0],
+    value: prediction.value,
+    upperBound: prediction.upper_bound || prediction.value * 1.1,
+    lowerBound: prediction.lower_bound || prediction.value * 0.9,
+    confidence: prediction.confidence || data.confidence_score || 0
+  })) || []
+
+  const formatValue = (value: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(value)
+  }
+
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr)
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  }
+
+  if (!chartData.length) {
+    return (
+      <div className="h-64 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center">
+        <div className="text-center">
+          <BarChart3 className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+          <p className="text-gray-500">No forecast data available</p>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="h-80">
+      <ResponsiveContainer width="100%" height="100%">
+        <ComposedChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+          <XAxis 
+            dataKey="date" 
+            tickFormatter={formatDate}
+            stroke="#6b7280"
+            fontSize={12}
+          />
+          <YAxis 
+            tickFormatter={formatValue}
+            stroke="#6b7280"
+            fontSize={12}
+          />
+          <Tooltip
+            labelFormatter={(label) => `Date: ${formatDate(label)}`}
+            formatter={(value: number, name: string) => [
+              formatValue(value),
+              name === 'value' ? 'Forecast' : 
+              name === 'upperBound' ? 'Upper Bound' : 
+              name === 'lowerBound' ? 'Lower Bound' : name
+            ]}
+            contentStyle={{
+              backgroundColor: 'white',
+              border: '1px solid #e5e7eb',
+              borderRadius: '6px',
+              fontSize: '12px'
+            }}
+          />
+          
+          {/* Confidence interval areas */}
+          {showConfidenceIntervals && (
+            <Area
+              type="monotone"
+              dataKey="upperBound"
+              stroke="none"
+              fill="#3b82f6"
+              fillOpacity={0.1}
+            />
+          )}
+          {showConfidenceIntervals && (
+            <Area
+              type="monotone"
+              dataKey="lowerBound"
+              stroke="none"
+              fill="#ffffff"
+              fillOpacity={1}
+            />
+          )}
+          
+          {/* Main forecast line */}
+          <Line
+            type="monotone"
+            dataKey="value"
+            stroke="#3b82f6"
+            strokeWidth={3}
+            dot={{ r: 4, fill: '#3b82f6' }}
+            activeDot={{ r: 6, fill: '#1d4ed8' }}
+          />
+          
+          {/* Confidence interval lines */}
+          {showConfidenceIntervals && (
+            <Line
+              type="monotone"
+              dataKey="upperBound"
+              stroke="#93c5fd"
+              strokeWidth={1}
+              strokeDasharray="5 5"
+              dot={false}
+            />
+          )}
+          {showConfidenceIntervals && (
+            <Line
+              type="monotone"
+              dataKey="lowerBound"
+              stroke="#93c5fd"
+              strokeWidth={1}
+              strokeDasharray="5 5"
+              dot={false}
+            />
+          )}
+          
+          {/* Zero line reference */}
+          <ReferenceLine y={0} stroke="#6b7280" strokeDasharray="2 2" />
+        </ComposedChart>
+      </ResponsiveContainer>
+    </div>
+  )
+}
 
 interface ForecastingDashboardProps {
   className?: string
@@ -419,14 +565,11 @@ export function ForecastingDashboard({ className = '' }: ForecastingDashboardPro
             </div>
           </div>
 
-          {/* Forecast Chart Placeholder */}
-          <div className="h-64 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center">
-            <div className="text-center">
-              <BarChart3 className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-              <p className="text-gray-500">Forecast visualization will be implemented here</p>
-              <p className="text-sm text-gray-400">Showing {forecastResult.predictions?.length || 0} prediction points</p>
-            </div>
-          </div>
+          {/* Forecast Chart */}
+          <ForecastChart 
+            data={forecastResult} 
+            showConfidenceIntervals={showConfidenceIntervals}
+          />
 
           {/* Forecast Summary */}
           <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
