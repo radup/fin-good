@@ -6,6 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 FinGood is an AI-powered financial intelligence platform that automates transaction categorization and provides cash flow insights for small businesses. It's a full-stack application with a FastAPI backend and Next.js frontend.
 
+**Current Development Phase**: Advanced Feature Implementation (Phase 3-4) including budget analysis, multi-model forecasting, and enhanced analytics.
+
 ## Architecture
 
 ### Backend (FastAPI + PostgreSQL)
@@ -22,8 +24,10 @@ FinGood is an AI-powered financial intelligence platform that automates transact
 - **Entry point**: `app/layout.tsx` and `app/page.tsx`
 - **Components**: React components in `components/`
 - **Hooks**: Custom React hooks in `hooks/` for API integration
-- **API layer**: API client in `lib/api.ts`
+- **API layer**: API client in `lib/api.ts` with comprehensive API modules
 - **Styling**: Tailwind CSS with global styles in `app/globals.css`
+- **State Management**: TanStack React Query for server state
+- **Charts**: Recharts for data visualization
 
 ### Security Architecture
 This is a **financial application** with enterprise-grade security:
@@ -178,9 +182,27 @@ REDIS_URL=redis://:password@host:port/db  # Note: colon before password for Redi
 
 ## Advanced Features
 
+### Multi-Model Forecasting System
+- **Models**: Prophet, ARIMA, Neural Prophet, and ensemble methods
+- **Endpoints**: `/api/v1/forecasting/` for comprehensive forecasting
+- **Visualization**: Interactive charts with Recharts integration
+- **Configuration**: `backend/app/services/multi_model_forecasting_engine.py`
+
+### Budget Analysis System
+- **Complete CRUD**: Budget creation, management, variance analysis
+- **Performance metrics**: Budget adherence tracking, accuracy scoring
+- **Scenario modeling**: What-if analysis and optimization
+- **Demo page**: `/budget-analysis-demo` for testing functionality
+
+### Enhanced Analytics & Intelligence
+- **Bulk Operations API**: Transaction bulk categorization, updates, deletions
+- **Duplicate Detection**: Advanced algorithms for transaction deduplication
+- **Pattern Recognition**: ML-based pattern analysis for insights
+- **Enhanced Categorization**: ML and rule-based hybrid approach
+
 ### Background Job System (RQ)
 - **Job processing**: Redis Queue (RQ) for async transaction processing
-- **Job types**: File processing, categorization, export generation
+- **Job types**: File processing, categorization, export generation, forecasting
 - **Monitoring**: Job status tracking, retry logic, failure handling
 - **Configuration**: `backend/app/core/background_jobs.py`
 
@@ -196,9 +218,48 @@ REDIS_URL=redis://:password@host:port/db  # Note: colon before password for Redi
 - **Connection management**: User authentication, batch tracking
 - **Event streaming**: Transaction processing progress
 
+## Demo Pages and Testing
+All major features have dedicated demo pages for testing:
+- `/budget-analysis-demo` - Budget creation, analysis, and visualization
+- `/forecasting-demo` - Multi-model forecasting with interactive charts  
+- `/categorization-performance-demo` - Categorization metrics and improvement
+- `/auto-improvement-demo` - ML-based auto-improvement for categorization
+- `/ai-explanation-demo` - AI-powered transaction explanations
+- `/rate-limit-feedback-demo` - Rate limiting behavior testing
+
+## Critical React Query Patterns
+
+**IMPORTANT**: When working with API calls in React components, always extract the `.data` property from Axios responses:
+
+```typescript
+// ✅ CORRECT - Extract .data property
+const { data: budgets, isLoading, error } = useQuery({
+  queryKey: ['budgets'],
+  queryFn: async () => {
+    const response = await budgetAnalysisAPI.getBudgets()
+    return response.data  // Extract .data from Axios response
+  },
+})
+
+// ❌ INCORRECT - Using response directly
+const { data: budgets, isLoading, error } = useQuery({
+  queryKey: ['budgets'],
+  queryFn: () => budgetAnalysisAPI.getBudgets(), // Returns Axios response object
+})
+```
+
+This pattern applies to ALL API calls including mutations. The frontend expects arrays/objects but Axios returns `{ data: actualData, status, headers, ... }`.
+
 ## Security Considerations
 - All middleware disabled in main.py for development - **re-enable for production**
 - Configuration validator enforces financial-grade security
 - JWT tokens include jti for tracking and revocation
 - All database operations use parameterized queries
 - File uploads include malware scanning and quarantine
+
+# Important Instructions for Claude Code
+
+Do what has been asked; nothing more, nothing less.
+NEVER create files unless they're absolutely necessary for achieving your goal.
+ALWAYS prefer editing an existing file to creating a new one.
+NEVER proactively create documentation files (*.md) or README files. Only create documentation files if explicitly requested by the User.
