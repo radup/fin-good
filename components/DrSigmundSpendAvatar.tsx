@@ -98,7 +98,7 @@ const DrSigmundSpendAvatar: React.FC<DrSigmundSpendAvatarProps> = ({
   };
 
   const currentMood = moodConfig[mood];
-  const displayMessage = message || currentMood.message;
+  const displayMessage = message || currentMood?.message || "I'm here to help you with your finances!";
   
   return (
     <div className={`flex items-start gap-3 ${className}`}>
@@ -269,7 +269,7 @@ const DrSigmundSpendAvatar: React.FC<DrSigmundSpendAvatarProps> = ({
           {/* Message Header */}
           <div className="flex items-center gap-2 mb-3">
             <div className={`
-              w-3 h-3 rounded-full bg-gradient-to-r ${currentMood.bgGradient}
+              w-3 h-3 rounded-full bg-gradient-to-r ${currentMood?.bgGradient || 'from-blue-500 to-blue-700'}
               ${animated ? 'animate-pulse' : ''}
             `}></div>
             <p className={`${sizeTextClasses[size]} font-semibold text-gray-800`}>Dr. Sigmund Spend</p>
@@ -281,7 +281,7 @@ const DrSigmundSpendAvatar: React.FC<DrSigmundSpendAvatarProps> = ({
           {/* Mood Indicator */}
           <div className="flex items-center gap-2 mt-3">
             <div className={`
-              w-2 h-2 rounded-full bg-gradient-to-r ${currentMood.bgGradient}
+              w-2 h-2 rounded-full bg-gradient-to-r ${currentMood?.bgGradient || 'from-blue-500 to-blue-700'}
               ${animated ? 'animate-pulse' : ''}
             `}></div>
             <span className="text-xs text-gray-500 capitalize font-medium">{mood}</span>
