@@ -161,7 +161,7 @@ class Settings(BaseSettings):
     
     # AI/ML settings
     OLLAMA_BASE_URL: str = "http://localhost:11434"
-    OLLAMA_MODEL: str = "llama2"
+    OLLAMA_MODEL: str = "llama3.1"
     
     # Password Reset Security Settings
     PASSWORD_RESET_TOKEN_EXPIRE_HOURS: int = 1
