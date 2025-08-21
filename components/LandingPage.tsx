@@ -19,9 +19,9 @@ export default function LandingPage() {
         <header className="relative z-10 bg-white/80 backdrop-blur-sm border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center py-3">
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center">
                 <img 
-                  src="/spends-analysis-logo.png" 
+                  src="/spends-analysis-logo.svg" 
                   alt="Spend's Analysis Logo" 
                   className="h-8 w-auto"
                   onError={(e) => {
@@ -31,10 +31,12 @@ export default function LandingPage() {
                     if (fallback) fallback.style.display = 'flex';
                   }}
                 />
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg items-center justify-center hidden">
-                  <span className="text-white font-bold text-sm">S</span>
+                <div className="flex items-center space-x-3 hidden">
+                  <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg items-center justify-center">
+                    <span className="text-white font-bold text-sm">S</span>
+                  </div>
+                  <h1 className="text-lg font-bold text-gray-900">Spend's Analysis</h1>
                 </div>
-                <h1 className="text-lg font-bold text-gray-900">Spend's Analysis</h1>
               </div>
               <div className="flex items-center space-x-3">
                 <button
@@ -448,7 +450,7 @@ export default function LandingPage() {
             <div className="md:col-span-2">
               <div className="flex items-center space-x-3 mb-6">
                 <img 
-                  src="/spends-analysis-logo.png" 
+                  src="/spends-analysis-logo.svg" 
                   alt="Spend's Analysis Logo" 
                   className="h-10 w-auto brightness-0 invert"
                   onError={(e) => {
