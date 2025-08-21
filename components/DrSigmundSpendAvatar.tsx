@@ -276,7 +276,7 @@ const DrSigmundSpendAvatar: React.FC<DrSigmundSpendAvatarProps> = ({
           </div>
 
           {/* Message Content */}
-          <p className={`${sizeTextClasses[size]} text-gray-700 leading-relaxed`}>{displayMessage}</p>
+          <p className="text-sm text-gray-700 leading-relaxed text-left">{displayMessage}</p>
 
           {/* Mood Indicator */}
           <div className="flex items-center gap-2 mt-3">

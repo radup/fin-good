@@ -12,44 +12,47 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-green-50" style={{height: '100vh', overflowY: 'scroll', scrollSnapType: 'y mandatory'}}>
-      {/* Header */}
-      <header className="relative z-10 bg-white/80 backdrop-blur-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-3">
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">S</span>
+      
+      {/* Screen 1: Header + Hero Section */}
+      <div style={{minHeight: '100vh', scrollSnapAlign: 'start'}} className="bg-gradient-to-br from-blue-50 via-purple-50 to-green-50">
+        {/* Header */}
+        <header className="relative z-10 bg-white/80 backdrop-blur-sm border-b border-gray-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center py-3">
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">S</span>
+                </div>
+                <h1 className="text-lg font-bold text-gray-900">Spend's Analysis</h1>
               </div>
-              <h1 className="text-lg font-bold text-gray-900">Spend's Analysis</h1>
-            </div>
-            <div className="flex items-center space-x-3">
-              <button
-                onClick={() => setIsSignUp(false)}
-                className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
-                  !isSignUp 
-                    ? 'bg-blue-600 text-white' 
-                    : 'text-blue-600 hover:bg-blue-50'
-                }`}
-              >
-                Check In
-              </button>
-              <button
-                onClick={() => setIsSignUp(true)}
-                className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
-                  isSignUp 
-                    ? 'bg-green-600 text-white' 
-                    : 'text-green-600 hover:bg-green-50'
-                }`}
-              >
-                New Patient
-              </button>
+              <div className="flex items-center space-x-3">
+                <button
+                  onClick={() => setIsSignUp(false)}
+                  className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                    !isSignUp 
+                      ? 'bg-blue-600 text-white' 
+                      : 'text-blue-600 hover:bg-blue-50'
+                  }`}
+                >
+                  Check In
+                </button>
+                <button
+                  onClick={() => setIsSignUp(true)}
+                  className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                    isSignUp 
+                      ? 'bg-green-600 text-white' 
+                      : 'text-green-600 hover:bg-green-50'
+                  }`}
+                >
+                  New Patient
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      </header>
+        </header>
 
-      {/* Hero Section */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" style={{minHeight: '100vh', scrollSnapAlign: 'start'}}>
+        {/* Hero Section */}
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex-1 flex items-center" style={{minHeight: 'calc(100vh - 80px)'}}>
         <div className="grid lg:grid-cols-2 gap-12 xl:gap-16 py-6 items-start min-h-[600px]">
           {/* Left Column - Marketing Content */}
           <div className="space-y-8 pt-4">
@@ -265,8 +268,10 @@ export default function LandingPage() {
             </div>
           </div>
         </div>
+        </main>
+      </div>
 
-        {/* Features Preview - Full Screen Section */}
+      {/* Screen 2: Features Preview */}
         <section className="min-h-screen flex items-center justify-center py-20 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100" style={{scrollSnapAlign: 'start'}}>
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             {/* Section Header */}
@@ -366,9 +371,19 @@ export default function LandingPage() {
                 </div>
               </div>
             </div>
+          </div>
+        </section>
 
-            {/* Additional Features */}
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* Screen 3: Additional Features + Footer */}
+      <div style={{minHeight: '100vh', scrollSnapAlign: 'start'}} className="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+        {/* Additional Features */}
+        <section className="py-20">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-16">
+              <h3 className="text-3xl font-bold text-gray-900 mb-4">Complete Financial Toolkit</h3>
+              <p className="text-lg text-gray-600">Everything you need for financial wellness in one platform</p>
+            </div>
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
               <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-gray-200/50">
                 <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center mb-4">
                   <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -411,11 +426,10 @@ export default function LandingPage() {
             </div>
           </div>
         </section>
-      </main>
 
-      {/* Enhanced Footer */}
-      <footer className="bg-gradient-to-r from-gray-900 to-slate-800 text-white" style={{minHeight: '100vh', scrollSnapAlign: 'start'}}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        {/* Footer */}
+        <footer className="bg-gradient-to-r from-gray-900 to-slate-800 text-white py-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-4 gap-8">
             {/* Brand Section */}
             <div className="md:col-span-2">
@@ -484,7 +498,8 @@ export default function LandingPage() {
             </div>
           </div>
         </div>
-      </footer>
+        </footer>
+      </div>
     </div>
   )
 }
