@@ -22,8 +22,8 @@ export default function LandingPage() {
               <div className="flex items-center">
                 <img 
                   src="/spends-analysis-logo.png" 
-                  alt="Spend's Analysis Logo" 
-                  className="h-12 w-auto"
+                  alt="Spend's Analysis - AI Financial Therapy" 
+                  className="h-16 w-auto rounded-lg"
                   onError={(e) => {
                     // Fallback to original design if logo doesn't load
                     e.currentTarget.style.display = 'none';
@@ -448,11 +448,11 @@ export default function LandingPage() {
           <div className="grid md:grid-cols-4 gap-8">
             {/* Brand Section */}
             <div className="md:col-span-2">
-              <div className="flex items-center space-x-3 mb-6">
+              <div className="flex items-center mb-6">
                 <img 
                   src="/spends-analysis-logo.png" 
-                  alt="Spend's Analysis Logo" 
-                  className="h-16 w-auto brightness-0 invert"
+                  alt="Spend's Analysis - AI Financial Therapy" 
+                  className="h-20 w-auto rounded-lg"
                   onError={(e) => {
                     // Fallback to original design if logo doesn't load
                     e.currentTarget.style.display = 'none';
@@ -460,10 +460,12 @@ export default function LandingPage() {
                     if (fallback) fallback.style.display = 'flex';
                   }}
                 />
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl items-center justify-center hidden">
-                  <span className="text-white font-bold text-lg">S</span>
+                <div className="flex items-center space-x-3 hidden">
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl items-center justify-center">
+                    <span className="text-white font-bold text-lg">S</span>
+                  </div>
+                  <h3 className="text-2xl font-bold">Spend's Analysis</h3>
                 </div>
-                <h3 className="text-2xl font-bold">Spend's Analysis</h3>
               </div>
               <p className="text-gray-300 leading-relaxed mb-6 max-w-md">
                 Transform your relationship with money through AI-powered financial therapy. 
