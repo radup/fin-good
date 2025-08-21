@@ -65,7 +65,7 @@ export default function LandingPage() {
         </header>
 
         {/* Hero Section */}
-        <main className="flex-1 flex items-center justify-center" style={{minHeight: 'calc(100vh - 80px)', paddingTop: '4rem'}}>
+        <main className="flex-1 flex items-start justify-center" style={{minHeight: 'calc(100vh - 80px)', paddingTop: '1rem'}}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
           <div className="grid lg:grid-cols-2 gap-12 xl:gap-16 items-center">
           {/* Left Column - Marketing Content */}
