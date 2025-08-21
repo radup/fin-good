@@ -65,7 +65,7 @@ export default function LandingPage() {
         </header>
 
         {/* Hero Section */}
-        <main className="flex-1 flex items-center justify-center" style={{minHeight: 'calc(100vh - 80px)', paddingTop: '2rem'}}>
+        <main className="flex-1 flex items-center justify-center" style={{minHeight: 'calc(100vh - 80px)', paddingTop: '4rem'}}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
           <div className="grid lg:grid-cols-2 gap-12 xl:gap-16 items-center">
           {/* Left Column - Marketing Content */}
@@ -276,8 +276,8 @@ export default function LandingPage() {
               {/* Demo Account Notice - Only show for login */}
               {!isSignUp && (
                 <div className="mt-4 text-center">
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                    <p className="text-sm text-green-800">
+                  <div className="bg-brand-secondary-lightest border-brand-secondary-light rounded-lg p-3" style={{borderColor: 'var(--brand-secondary-light)'}}>
+                    <p className="text-sm text-brand-secondary">
                       <strong>Demo Account:</strong> sigmund@spendsanalysis.com / sigmund123_
                     </p>
                   </div>
