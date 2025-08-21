@@ -140,6 +140,15 @@
   background: var(--brand-gradient-hover) !important;
 }
 
+/* Dr. Sigmund brand gradient utilities */
+.dr-sigmund-gradient {
+  background: var(--brand-gradient) !important;
+}
+
+.dr-sigmund-mood-indicator {
+  background: var(--brand-gradient) !important;
+}
+
 /* Smooth transitions for therapeutic interactions */
 .therapeutic-transition {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);

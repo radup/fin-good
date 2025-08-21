@@ -64,35 +64,35 @@ const DrSigmundSpendAvatar: React.FC<DrSigmundSpendAvatarProps> = ({
   
   const moodConfig = {
     encouraging: {
-      bgGradient: 'from-blue-500 via-blue-600 to-blue-700',
+      bgGradient: 'dr-sigmund-gradient',
       message: "I'm here to help you understand your finances better!"
     },
     celebrating: {
-      bgGradient: 'from-green-500 via-emerald-600 to-green-700',
+      bgGradient: 'dr-sigmund-gradient',
       message: "Great job! You're making excellent progress!"
     },
     supportive: {
-      bgGradient: 'from-purple-500 via-purple-600 to-purple-700',
+      bgGradient: 'dr-sigmund-gradient',
       message: "Remember, every step forward is progress."
     },
     thinking: {
-      bgGradient: 'from-indigo-500 via-indigo-600 to-indigo-700',
+      bgGradient: 'dr-sigmund-gradient',
       message: "Let me analyze this for you..."
     },
     reassuring: {
-      bgGradient: 'from-cyan-500 via-cyan-600 to-cyan-700',
+      bgGradient: 'dr-sigmund-gradient',
       message: "Your financial data is safe and secure with us."
     },
     analytical: {
-      bgGradient: 'from-slate-500 via-slate-600 to-slate-700',
+      bgGradient: 'dr-sigmund-gradient',
       message: "Let me break down these patterns for you."
     },
     inspiring: {
-      bgGradient: 'from-amber-500 via-amber-600 to-amber-700',
+      bgGradient: 'dr-sigmund-gradient',
       message: "You have the power to transform your financial future!"
     },
     protective: {
-      bgGradient: 'from-red-500 via-red-600 to-red-700',
+      bgGradient: 'dr-sigmund-gradient',
       message: "I'm here to protect your financial wellbeing."
     }
   };
@@ -223,10 +223,10 @@ const DrSigmundSpendAvatar: React.FC<DrSigmundSpendAvatarProps> = ({
         )}
 
         {/* Enhanced status indicator */}
-        <div className="absolute top-[15%] right-[15%] w-[16%] h-[16%] bg-green-400 rounded-full animate-pulse border-2 border-white" style={{ animationDuration: '4s' }}></div>
+        <div className="absolute top-[15%] right-[15%] w-[16%] h-[16%] dr-sigmund-gradient rounded-full animate-pulse border-2 border-white" style={{ animationDuration: '4s' }}></div>
 
         {/* Brain glow effect */}
-        <div className="absolute top-[25%] right-[25%] w-[15%] h-[15%] bg-blue-400 rounded-full animate-pulse opacity-30" style={{ animationDuration: '5s' }}></div>
+        <div className="absolute top-[25%] right-[25%] w-[15%] h-[15%] dr-sigmund-gradient rounded-full animate-pulse opacity-30" style={{ animationDuration: '5s' }}></div>
 
         {/* Hair sway animation */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
@@ -241,7 +241,7 @@ const DrSigmundSpendAvatar: React.FC<DrSigmundSpendAvatarProps> = ({
         )}
 
         {/* Hover effect glow */}
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-400/10 to-blue-400/10 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+        <div className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" style={{background: 'linear-gradient(to bottom right, rgba(19, 137, 169, 0.1), rgba(98, 211, 242, 0.1))'}}></div>
       </div>
 
       {/* Message Bubble */}
@@ -269,7 +269,7 @@ const DrSigmundSpendAvatar: React.FC<DrSigmundSpendAvatarProps> = ({
           {/* Message Header */}
           <div className="flex items-center gap-2 mb-3">
             <div className={`
-              w-3 h-3 rounded-full bg-gradient-to-r ${currentMood?.bgGradient || 'from-blue-500 to-blue-700'}
+              w-3 h-3 rounded-full ${currentMood?.bgGradient || 'dr-sigmund-gradient'}
               ${animated ? 'animate-pulse' : ''}
             `}></div>
             <p className={`${sizeTextClasses[size]} font-semibold text-gray-800`}>Dr. Sigmund Spend</p>
@@ -281,7 +281,7 @@ const DrSigmundSpendAvatar: React.FC<DrSigmundSpendAvatarProps> = ({
           {/* Mood Indicator */}
           <div className="flex items-center gap-2 mt-3">
             <div className={`
-              w-2 h-2 rounded-full bg-gradient-to-r ${currentMood?.bgGradient || 'from-blue-500 to-blue-700'}
+              w-2 h-2 rounded-full ${currentMood?.bgGradient || 'dr-sigmund-gradient'}
               ${animated ? 'animate-pulse' : ''}
             `}></div>
             <span className="text-xs text-gray-500 capitalize font-medium">{mood}</span>
