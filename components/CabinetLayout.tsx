@@ -75,13 +75,62 @@ export default function CabinetLayout() {
                 </div>
               </div>
             ) : activeSection === 'new-session' ? (
-              <div className="h-full flex flex-col">
-                <div className="flex-shrink-0 mb-4">
-                  <h1 className="text-2xl font-bold text-gray-900">New Session</h1>
-                  <p className="mt-1 text-sm text-gray-500">
-                    Start a new therapy session with Dr. Sigmund
-                  </p>
+              <div className="h-full flex flex-col space-y-6">
+                {/* Enhanced Header Section */}
+                <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-2xl p-6 border border-purple-100">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h1 className="text-3xl font-bold text-gray-900">New Session</h1>
+                      <p className="mt-2 text-lg text-gray-600">
+                        Start a new therapy session with Dr. Sigmund Spend
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm text-gray-500">Session #6</div>
+                      <div className="text-xs text-gray-400">January 21, 2025</div>
+                    </div>
+                  </div>
                 </div>
+
+                {/* Pre-Session Quick Check */}
+                <div className="bg-white rounded-lg shadow border border-gray-200 p-4">
+                  <h3 className="text-sm font-medium text-gray-900 mb-3">Before We Begin</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                      <span className="text-gray-600">Financial data synced</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                      <span className="text-gray-600">AI tools ready</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
+                      <span className="text-gray-600">Safe space established</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Session Focus Quick Selector */}
+                <div className="bg-white rounded-lg shadow border border-gray-200 p-4">
+                  <h3 className="text-sm font-medium text-gray-900 mb-3">What would you like to focus on today?</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    <button className="px-3 py-2 text-xs bg-gray-50 hover:bg-purple-50 hover:text-purple-700 rounded-lg border border-gray-200 transition-colors">
+                      Cash Flow
+                    </button>
+                    <button className="px-3 py-2 text-xs bg-gray-50 hover:bg-purple-50 hover:text-purple-700 rounded-lg border border-gray-200 transition-colors">
+                      Tax Planning
+                    </button>
+                    <button className="px-3 py-2 text-xs bg-gray-50 hover:bg-purple-50 hover:text-purple-700 rounded-lg border border-gray-200 transition-colors">
+                      Investment Anxiety
+                    </button>
+                    <button className="px-3 py-2 text-xs bg-gray-50 hover:bg-purple-50 hover:text-purple-700 rounded-lg border border-gray-200 transition-colors">
+                      General Discussion
+                    </button>
+                  </div>
+                </div>
+
+                {/* Chat Interface */}
                 <div className="flex-1 min-h-0">
                   <EnhancedDrSigmundChat />
                 </div>
@@ -94,8 +143,138 @@ export default function CabinetLayout() {
                     View your past therapy sessions
                   </p>
                 </div>
-                <div className="bg-white rounded-lg shadow p-6">
-                  <p className="text-gray-600">Session history will be displayed here.</p>
+                <div className="space-y-4">
+                  {/* Recent Session */}
+                  <div className="bg-white rounded-lg shadow border border-gray-200 p-6">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h3 className="text-lg font-medium text-gray-900">Cash Flow Anxiety Discussion</h3>
+                        <p className="mt-1 text-sm text-gray-600">Explored Q1 cash flow forecasting and payment delays</p>
+                        <div className="mt-3 flex items-center space-x-4 text-sm text-gray-500">
+                          <span>January 18, 2025</span>
+                          <span>•</span>
+                          <span>45 minutes</span>
+                          <span>•</span>
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
+                            Completed
+                          </span>
+                        </div>
+                        <div className="mt-2 text-xs text-gray-600">
+                          Tools used: Cash Flow Forecast, Client Payment Prediction
+                        </div>
+                      </div>
+                      <button className="text-indigo-600 hover:text-indigo-900 text-sm font-medium">
+                        View Details
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Previous Session */}
+                  <div className="bg-white rounded-lg shadow border border-gray-200 p-6">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h3 className="text-lg font-medium text-gray-900">Tax Optimization Strategy</h3>
+                        <p className="mt-1 text-sm text-gray-600">Discussed Belgian tax structure and business expense optimization</p>
+                        <div className="mt-3 flex items-center space-x-4 text-sm text-gray-500">
+                          <span>January 15, 2025</span>
+                          <span>•</span>
+                          <span>38 minutes</span>
+                          <span>•</span>
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
+                            Completed
+                          </span>
+                        </div>
+                        <div className="mt-2 text-xs text-gray-600">
+                          Tools used: Tax Optimization, Scenario Analysis
+                        </div>
+                      </div>
+                      <button className="text-indigo-600 hover:text-indigo-900 text-sm font-medium">
+                        View Details
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Older Session */}
+                  <div className="bg-white rounded-lg shadow border border-gray-200 p-6">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h3 className="text-lg font-medium text-gray-900">Investment Anxiety & Surplus Planning</h3>
+                        <p className="mt-1 text-sm text-gray-600">Addressed concerns about investing business surplus and emergency fund sizing</p>
+                        <div className="mt-3 flex items-center space-x-4 text-sm text-gray-500">
+                          <span>January 10, 2025</span>
+                          <span>•</span>
+                          <span>52 minutes</span>
+                          <span>•</span>
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
+                            Completed
+                          </span>
+                        </div>
+                        <div className="mt-2 text-xs text-gray-600">
+                          Tools used: Investment Analysis, Budget Analysis
+                        </div>
+                      </div>
+                      <button className="text-indigo-600 hover:text-indigo-900 text-sm font-medium">
+                        View Details
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Earlier Session */}
+                  <div className="bg-white rounded-lg shadow border border-gray-200 p-6">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h3 className="text-lg font-medium text-gray-900">Rate Increase Decision Support</h3>
+                        <p className="mt-1 text-sm text-gray-600">Explored scenarios for raising hourly rate from €75 to €95</p>
+                        <div className="mt-3 flex items-center space-x-4 text-sm text-gray-500">
+                          <span>January 5, 2025</span>
+                          <span>•</span>
+                          <span>41 minutes</span>
+                          <span>•</span>
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
+                            Completed
+                          </span>
+                        </div>
+                        <div className="mt-2 text-xs text-gray-600">
+                          Tools used: Scenario Analysis, Client Payment Prediction
+                        </div>
+                      </div>
+                      <button className="text-indigo-600 hover:text-indigo-900 text-sm font-medium">
+                        View Details
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* First Session */}
+                  <div className="bg-white rounded-lg shadow border border-gray-200 p-6">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h3 className="text-lg font-medium text-gray-900">Initial Financial Health Assessment</h3>
+                        <p className="mt-1 text-sm text-gray-600">First consultation to understand financial situation and money relationship</p>
+                        <div className="mt-3 flex items-center space-x-4 text-sm text-gray-500">
+                          <span>December 28, 2024</span>
+                          <span>•</span>
+                          <span>37 minutes</span>
+                          <span>•</span>
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
+                            Completed
+                          </span>
+                        </div>
+                        <div className="mt-2 text-xs text-gray-600">
+                          Tools used: Budget Analysis, Cash Flow Forecast
+                        </div>
+                      </div>
+                      <button className="text-indigo-600 hover:text-indigo-900 text-sm font-medium">
+                        View Details
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Load More */}
+                  <div className="text-center pt-4">
+                    <button className="text-indigo-600 hover:text-indigo-900 text-sm font-medium">
+                      Load Earlier Sessions
+                    </button>
+                  </div>
                 </div>
               </div>
             ) : activeSection === 'scenario-engine' ? (

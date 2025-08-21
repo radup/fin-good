@@ -51,23 +51,13 @@ export default function EnhancedDrSigmundChat() {
     {
       id: '1',
       role: 'assistant',
-      content: `Guten Tag! I am Dr. Sigmund Spend, your AI financial therapist with enhanced analytical capabilities. 
+      content: `Hello! I am Dr. Sigmund Spend, your AI financial therapist.
 
-*adjusts his spectacles thoughtfully*
+I combine emotional support with financial analytics. As we say in German, "Geld allein macht nicht glücklich" - money alone does not make happiness.
 
-Ah, I see you've come to me for guidance on your financial journey. This is sehr gut - very good indeed! As we say in German, "Geld allein macht nicht glücklich" - money alone does not make happiness, but understanding your relationship with it certainly helps.
+I can help with scenario analysis, cash flow forecasting, tax optimization, and investment planning.
 
-I can now help you with:
-• **Emotional financial guidance** - Understanding your money feelings (or as we say, your "Geldgefühle")
-• **Scenario analysis** - "Was wäre wenn" simulations for big decisions  
-• **Cash flow forecasting** - Predicting your financial future with precision
-• **Tax optimization** - Multi-jurisdiction strategies (Steueroptimierung, as we call it)
-• **Client payment prediction** - For business owners (Kundenzahlungsprognose)
-• **Investment analysis** - Portfolio and treasury management
-
-*leans forward with a warm, understanding expression*
-
-So, mein Freund - how are you feeling about your finances today? What would you like to explore together? Remember, there are no foolish questions when it comes to money matters.`,
+How are you feeling about your finances today?`,
       timestamp: new Date(),
       type: 'text'
     }
@@ -320,31 +310,21 @@ So, mein Freund - how are you feeling about your finances today? What would you 
       return {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: `*adjusts spectacles and leans forward with interest*
+        content: `Excellent! Let me run a scenario analysis for you. As we say in German, "Vorsicht ist besser als Nachsicht" - forethought is better than hindsight.
 
-Ah, sehr interessant! Let me run a scenario analysis for you using my advanced simulation tools. As we say in German, "Vorsicht ist besser als Nachsicht" - forethought is better than hindsight.
+Scenario Results:
 
-**Current Scenario Results:**
-
-**Scenarios Analyzed:**
 ${scenarioData.data.scenarios.map(s => 
-  `• **${s.name}**: ${s.description} (Impact: ${s.impact}, Risk: ${s.risk})`
+  `• ${s.name}: ${s.description} (Impact: ${s.impact}, Risk: ${s.risk})`
 ).join('\n')}
 
-**Net Impact**: ${scenarioData.data.netImpact}
-**Risk Score**: ${scenarioData.data.riskScore}/100 (Low risk)
-**Breakeven**: ${scenarioData.data.timeToBreakeven}
+Net Impact: ${scenarioData.data.netImpact}
+Risk Score: ${scenarioData.data.riskScore}/100 (Low risk)
+Breakeven: ${scenarioData.data.timeToBreakeven}
 
-**Therapeutic Insight:**
-*gestures thoughtfully*
+These scenarios show positive potential! The anxiety around "what if" often comes from not having concrete data. The risk levels are manageable, and the financial impact is strongly positive.
 
-These scenarios show positive potential! The anxiety around "what if" - your "Was wäre wenn" worries - often comes from not having concrete data. Now that we can see the numbers, how does this make you feel? 
-
-The risk levels are manageable, and the financial impact is strongly positive. Remember, every successful business decision starts with asking "what if" - and now you have the analytical power to explore these possibilities safely.
-
-*nods warmly*
-
-Would you like to explore any specific scenario in more detail, or adjust the assumptions? I'm here to help you understand every aspect of these possibilities.`,
+Would you like to explore any specific scenario in more detail?`,
         timestamp: new Date(),
         type: 'tool_result',
         metadata: { 
@@ -360,34 +340,22 @@ Would you like to explore any specific scenario in more detail, or adjust the as
       return {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: `*adjusts spectacles and studies the data carefully*
+        content: `I've analyzed your cash flow patterns. As we say in German, "Geld ist rund und rollt weg" - money is round and rolls away, but with proper planning, we can catch it!
 
-Ah, ausgezeichnet! I've analyzed your cash flow patterns using my forecasting models. As we say in German, "Geld ist rund und rollt weg" - money is round and rolls away, but with proper planning, we can catch it!
-
-**Cash Flow Forecast - Next 5 Months:**
+Cash Flow Forecast - Next 5 Months:
 
 ${forecastData.data.forecast.map(month => 
-  `**${month.month}**: Income €${month.income.toLocaleString()} | Expenses €${month.expenses.toLocaleString()} | Net €${month.net.toLocaleString()}`
+  `${month.month}: Income €${month.income.toLocaleString()} | Expenses €${month.expenses.toLocaleString()} | Net €${month.net.toLocaleString()}`
 ).join('\n')}
 
-**Key Insights:**
-• Average monthly net cash flow: €${forecastData.data.trends.avgMonthlyNet.toLocaleString()}
-• Growth rate: ${forecastData.data.trends.growthRate}% positive trend
+Key Insights:
+• Average monthly net: €${forecastData.data.trends.avgMonthlyNet.toLocaleString()}
+• Growth rate: ${forecastData.data.trends.growthRate}% positive
 • Volatility: ${forecastData.data.trends.volatility}
 
-**AI Analysis:**
-${forecastData.data.insights.join('\n• ')}
+These numbers show healthy, growing financial position. Cash flow anxiety is common, but your data reveals strong fundamentals.
 
-**Therapeutic Perspective:**
-*gestures warmly*
-
-These numbers show a healthy, growing financial position! Cash flow anxiety - your "Cashflow-Angst" - is common, but your data reveals strong fundamentals. The consistency and growth trends suggest you're making sound financial decisions.
-
-*nods encouragingly*
-
-How does seeing this concrete forecast impact your feelings about financial security? Sometimes the anticipation is worse than the reality. Remember, "Ruhe ist die erste Bürgerpflicht" - calmness is the first duty of a citizen, especially when it comes to finances.
-
-What aspects of this forecast would you like to explore further?`,
+How does seeing this forecast impact your feelings about financial security?`,
         timestamp: new Date(),
         type: 'tool_result',
         metadata: { 
@@ -403,28 +371,24 @@ What aspects of this forecast would you like to explore further?`,
       return {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: `I've analyzed your tax situation using multi-jurisdiction optimization models...
+        content: `I've analyzed your tax situation using optimization models.
 
-**Tax Optimization Analysis (${taxData.data.jurisdiction}):**
+Tax Analysis (${taxData.data.jurisdiction}):
 
-**Current vs Optimized:**
 • Current tax burden: €${taxData.data.currentTaxBurden.toLocaleString()}
 • Optimized tax burden: €${taxData.data.optimizedTaxBurden.toLocaleString()}
-• **Potential savings: €${taxData.data.savings.toLocaleString()}/year**
+• Potential savings: €${taxData.data.savings.toLocaleString()}/year
 
-**Recommended Strategies:**
+Recommended Strategies:
 ${taxData.data.strategies.map(strategy => 
-  `• **${strategy.name}** (${strategy.complexity} complexity): €${strategy.savings.toLocaleString()} savings\n  ${strategy.description}`
-).join('\n\n')}
+  `• ${strategy.name} (${strategy.complexity} complexity): €${strategy.savings.toLocaleString()} savings - ${strategy.description}`
+).join('\n')}
 
-**Confidence Level:** ${taxData.data.confidence}%
+Confidence Level: ${taxData.data.confidence}%
 
-**Therapeutic Approach to Tax Optimization:**
-Tax anxiety often comes from feeling like we're "doing something wrong" or that it's too complex. But legal tax optimization is self-care - you're taking responsibility for your financial future.
+Tax anxiety often comes from feeling it's too complex, but legal optimization is taking responsibility for your financial future. These strategies are conservative and compliant.
 
-These strategies are conservative and compliant. The savings represent money you can redirect toward your goals rather than unnecessary tax burden.
-
-How do you feel about exploring these optimization strategies? Remember, we'll approach this step-by-step, ensuring you're comfortable with each decision.`,
+How do you feel about exploring these optimization strategies?`,
         timestamp: new Date(),
         type: 'tool_result',
         metadata: { 
@@ -556,36 +520,13 @@ Remember: budgets are tools for empowerment, not restriction. You're using money
     return {
       id: (Date.now() + 1).toString(),
       role: 'assistant',
-      content: `*nods thoughtfully and adjusts spectacles*
+      content: `I hear you, mein Freund. Whatever you're experiencing with your finances is completely valid. As we say in German, "Jeder hat seine eigenen Sorgen" - everyone has their own worries.
 
-Ah, I hear you, mein Freund, and I want you to know that whatever you're experiencing with your finances is completely valid. As we say in German, "Jeder hat seine eigenen Sorgen" - everyone has their own worries, and financial concerns are among the most human of all.
+I combine financial analysis with therapeutic support. I can help with scenario planning, cash flow forecasting, tax optimization, payment prediction, investment analysis, and budget analysis.
 
-*leans forward with a warm, understanding expression*
+What area of your finances would you like to explore? I can run analysis while helping you process the emotional aspects of financial decisions.
 
-As your enhanced AI financial therapist, I now have access to powerful analytical tools that can transform your "Geldangst" - your money anxiety - into actionable insights. You see, in my practice, I've learned that the best financial advice combines cold, hard data with warm, human understanding.
-
-**I can help you with:**
-• **Scenario planning** - Explore "Was wäre wenn" possibilities safely
-• **Cash flow forecasting** - Predict your financial future with confidence (Zukunftsprognose)
-• **Tax optimization** - Legal strategies to minimize your tax burden (Steueroptimierung)
-• **Client payment prediction** - Reduce uncertainty about when you'll be paid (Kundenzahlungsprognose)
-• **Investment analysis** - Make informed decisions about surplus cash (Anlageanalyse)
-• **Budget analysis** - Understand your spending patterns (Ausgabenanalyse)
-
-**My Enhanced Approach:**
-I combine deep financial analysis with therapeutic support. Numbers without emotional context can feel cold - "kalt" as we say - but data with compassionate guidance builds both confidence and competence. It's like having both a financial advisor and a trusted friend in one.
-
-*gestures warmly*
-
-What area of your finances would you like to explore together? I can run real analysis while helping you process the emotional aspects of financial decision-making. Remember, "Der Weg ist das Ziel" - the journey is the destination.
-
-Some starting points:
-• "Can you analyze my cash flow forecasts?"
-• "What scenarios should I consider for my business?"
-• "Help me understand my tax optimization options"
-• "I'm worried about client payments - can you predict them?"
-
-What feels most important to address right now? I'm here to listen and to help.`,
+What feels most important to address right now?`,
       timestamp: new Date(),
       type: 'insight',
       metadata: { 
@@ -667,7 +608,7 @@ What feels most important to address right now? I'm here to listen and to help.`
           />
         )}
         
-        <div className={`rounded-2xl p-4 max-w-2xl ${
+        <div className={`rounded-2xl p-4 max-w-lg ${
           isUser 
             ? 'bg-gray-100 rounded-tr-md' 
             : 'bg-gradient-to-r from-purple-50 to-blue-50 rounded-tl-md border border-purple-100'
@@ -696,19 +637,109 @@ What feels most important to address right now? I'm here to listen and to help.`
           )}
 
           <div className="text-sm text-gray-800 leading-relaxed">
-            {message.content.split('\n').map((paragraph, index) => {
-              if (paragraph.startsWith('**') && paragraph.endsWith('**')) {
-                return <h4 key={index} className="font-semibold mt-3 mb-2 text-gray-900">{paragraph.slice(2, -2)}</h4>
-              } else if (paragraph.startsWith('• ')) {
-                return <li key={index} className="ml-4 mb-1 text-gray-700">{paragraph.slice(2)}</li>
-              } else if (paragraph.startsWith('- ')) {
-                return <li key={index} className="ml-4 mb-1 text-gray-700">{paragraph.slice(2)}</li>
-              } else if (paragraph.trim()) {
-                return <p key={index} className="mb-2 text-gray-800">{paragraph}</p>
-              } else {
-                return <br key={index} />
+            {(() => {
+              const paragraphs = message.content.split('\n')
+              const elements: React.ReactNode[] = []
+              let currentList: React.ReactNode[] = []
+              let inList = false
+              
+              paragraphs.forEach((paragraph, index) => {
+                const trimmedParagraph = paragraph.trim()
+                
+                if (trimmedParagraph.startsWith('**') && trimmedParagraph.endsWith('**')) {
+                  // Close any open list before adding header
+                  if (inList && currentList.length > 0) {
+                    elements.push(
+                      <ul key={`list-${index}`} className="list-disc list-inside mb-3 space-y-1">
+                        {currentList}
+                      </ul>
+                    )
+                    currentList = []
+                    inList = false
+                  }
+                  elements.push(
+                    <h4 key={index} className="font-semibold mt-4 mb-2 text-gray-900 text-base">
+                      {trimmedParagraph.slice(2, -2)}
+                    </h4>
+                  )
+                } else if (trimmedParagraph.startsWith('*') && trimmedParagraph.endsWith('*')) {
+                  // Close any open list before adding italic text
+                  if (inList && currentList.length > 0) {
+                    elements.push(
+                      <ul key={`list-${index}`} className="list-disc list-inside mb-3 space-y-1">
+                        {currentList}
+                      </ul>
+                    )
+                    currentList = []
+                    inList = false
+                  }
+                  elements.push(
+                    <p key={index} className="mb-3 text-gray-600 italic text-sm">
+                      {trimmedParagraph.slice(1, -1)}
+                    </p>
+                  )
+                } else if (trimmedParagraph.startsWith('• ')) {
+                  // Start or continue list
+                  if (!inList) {
+                    inList = true
+                  }
+                  currentList.push(
+                    <li key={index} className="text-gray-700">
+                      {trimmedParagraph.slice(2)}
+                    </li>
+                  )
+                } else if (trimmedParagraph.startsWith('- ')) {
+                  // Start or continue list
+                  if (!inList) {
+                    inList = true
+                  }
+                  currentList.push(
+                    <li key={index} className="text-gray-700">
+                      {trimmedParagraph.slice(2)}
+                    </li>
+                  )
+                } else if (trimmedParagraph) {
+                  // Close any open list before adding regular paragraph
+                  if (inList && currentList.length > 0) {
+                    elements.push(
+                      <ul key={`list-${index}`} className="list-disc list-inside mb-3 space-y-1">
+                        {currentList}
+                      </ul>
+                    )
+                    currentList = []
+                    inList = false
+                  }
+                  elements.push(
+                    <p key={index} className="mb-3 text-gray-800 leading-relaxed">
+                      {trimmedParagraph}
+                    </p>
+                  )
+                } else {
+                  // Empty line - close any open list
+                  if (inList && currentList.length > 0) {
+                    elements.push(
+                      <ul key={`list-${index}`} className="list-disc list-inside mb-3 space-y-1">
+                        {currentList}
+                      </ul>
+                    )
+                    currentList = []
+                    inList = false
+                  }
+                  elements.push(<div key={index} className="h-2"></div>)
+                }
+              })
+              
+              // Close any remaining open list
+              if (inList && currentList.length > 0) {
+                elements.push(
+                  <ul key="list-final" className="list-disc list-inside mb-3 space-y-1">
+                    {currentList}
+                  </ul>
+                )
               }
-            })}
+              
+              return elements
+            })()}
           </div>
 
           {/* Render Tool Results */}
@@ -734,7 +765,7 @@ What feels most important to address right now? I'm here to listen and to help.`
   return (
     <div className="flex flex-col h-full bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 p-4">
       {/* Main Chat Card */}
-      <div className="max-w-6xl mx-auto w-full h-full">
+      <div className="max-w-3xl mx-auto w-full h-full">
         <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden h-full flex flex-col">
           {/* Enhanced Chat Header */}
           <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-4 flex-shrink-0">
