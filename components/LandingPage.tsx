@@ -41,9 +41,9 @@ export default function LandingPage() {
               <div className="flex items-center space-x-3">
                 <button
                   onClick={() => setIsSignUp(false)}
-                  className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                  className={`px-3 py-1.5 text-sm font-bold rounded-lg transition-all duration-300 ${
                     !isSignUp 
-                      ? 'bg-brand-secondary text-white bg-brand-secondary-hover' 
+                      ? 'bg-brand-gradient text-white shadow-lg hover:shadow-xl transform hover:scale-105' 
                       : 'bg-gray-700 text-brand-secondary-light border-brand-secondary-light hover:bg-gray-600'
                   }`}
                 >
@@ -51,9 +51,9 @@ export default function LandingPage() {
                 </button>
                 <button
                   onClick={() => setIsSignUp(true)}
-                  className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                  className={`px-3 py-1.5 text-sm font-bold rounded-lg transition-all duration-300 ${
                     isSignUp 
-                      ? 'bg-brand-secondary text-white bg-brand-secondary-hover' 
+                      ? 'bg-brand-gradient text-white shadow-lg hover:shadow-xl transform hover:scale-105' 
                       : 'bg-gray-700 text-brand-secondary-light border-brand-secondary-light hover:bg-gray-600'
                   }`}
                 >
@@ -253,7 +253,7 @@ export default function LandingPage() {
 
                   <Link
                     href="/cabinet"
-                    className="w-full bg-brand-secondary text-white py-3 px-6 rounded-lg font-semibold bg-brand-secondary-hover transition-colors flex items-center justify-center space-x-2"
+                    className="w-full bg-brand-gradient text-white py-3 px-6 rounded-lg font-bold transition-all duration-300 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl transform hover:scale-105"
                   >
                     <span>{isSignUp ? 'Begin Therapy' : 'Enter Cabinet'}</span>
                     <ArrowRight className="h-5 w-5" />
@@ -315,7 +315,7 @@ export default function LandingPage() {
             {/* Main Features Grid */}
             <div className="grid lg:grid-cols-3 gap-8 mb-16">
               {/* AI Chat Therapy */}
-              <div className="group bg-white/90 backdrop-blur-sm rounded-3xl p-8 border border-gray-200/50 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2">
+              <div className="group bg-white/90 backdrop-blur-sm rounded-3xl p-8 border border-gray-200/50 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 flex flex-col h-full">
                 <div className="relative mb-6">
                   <div className="w-16 h-16 bg-brand-secondary rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
                     <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -327,19 +327,19 @@ export default function LandingPage() {
                   </div>
                 </div>
                 <h3 className="text-2xl font-bold text-gray-900 mb-4">AI Chat Therapy</h3>
-                <p className="text-gray-600 leading-relaxed mb-6">
+                <p className="text-gray-600 leading-relaxed mb-6 flex-grow">
                   Have natural, therapeutic conversations about your finances. Dr. Sigmund Spend 
                   understands context, remembers your journey, and provides personalized insights 
                   that evolve with your financial growth.
                 </p>
-                <div className="flex items-center text-sm text-brand-secondary font-medium">
+                <div className="flex items-center text-sm text-brand-secondary font-bold mt-auto">
                   <span>Start Conversation</span>
                   <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                 </div>
               </div>
 
               {/* Smart Forecasting */}
-              <div className="group bg-white/90 backdrop-blur-sm rounded-3xl p-8 border border-gray-200/50 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2">
+              <div className="group bg-white/90 backdrop-blur-sm rounded-3xl p-8 border border-gray-200/50 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 flex flex-col h-full">
                 <div className="relative mb-6">
                   <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
                     <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -353,19 +353,19 @@ export default function LandingPage() {
                   </div>
                 </div>
                 <h3 className="text-2xl font-bold text-gray-900 mb-4">Smart Forecasting</h3>
-                <p className="text-gray-600 leading-relaxed mb-6">
+                <p className="text-gray-600 leading-relaxed mb-6 flex-grow">
                   Multi-model AI predicts your cash flow using Prophet, ARIMA, and ensemble methods. 
                   Get accurate financial projections with confidence intervals and scenario modeling 
                   for strategic planning.
                 </p>
-                <div className="flex items-center text-sm text-green-600 font-medium">
+                <div className="flex items-center text-sm text-green-600 font-bold mt-auto">
                   <span>View Forecasts</span>
                   <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                 </div>
               </div>
 
               {/* Emotional Intelligence */}
-              <div className="group bg-white/90 backdrop-blur-sm rounded-3xl p-8 border border-gray-200/50 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2">
+              <div className="group bg-white/90 backdrop-blur-sm rounded-3xl p-8 border border-gray-200/50 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 flex flex-col h-full">
                 <div className="relative mb-6">
                   <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
                     <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -379,12 +379,12 @@ export default function LandingPage() {
                   </div>
                 </div>
                 <h3 className="text-2xl font-bold text-gray-900 mb-4">Emotional Intelligence</h3>
-                <p className="text-gray-600 leading-relaxed mb-6">
+                <p className="text-gray-600 leading-relaxed mb-6 flex-grow">
                   Understand the emotional triggers behind your spending patterns. Our therapeutic 
                   approach helps you develop healthier financial behaviors and build a positive 
                   relationship with money.
                 </p>
-                <div className="flex items-center text-sm text-purple-600 font-medium">
+                <div className="flex items-center text-sm text-purple-600 font-bold mt-auto">
                   <span>Explore Insights</span>
                   <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                 </div>

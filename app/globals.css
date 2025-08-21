@@ -36,6 +36,8 @@
   --brand-secondary-light: #4aa3c2;
   --brand-secondary-lighter: #bde3f0;
   --brand-secondary-lightest: #e6f6fb;
+  --brand-gradient: linear-gradient(135deg, #1389a9 0%, #62d3f2 100%);
+  --brand-gradient-hover: linear-gradient(135deg, #0f7a96 0%, #4fc3e8 100%);
 }
 
 /* Therapeutic utility classes */
@@ -128,6 +130,14 @@
 
 .ring-brand-secondary:focus {
   ring-color: var(--brand-secondary) !important;
+}
+
+.bg-brand-gradient {
+  background: var(--brand-gradient) !important;
+}
+
+.bg-brand-gradient:hover {
+  background: var(--brand-gradient-hover) !important;
 }
 
 /* Smooth transitions for therapeutic interactions */
