@@ -270,7 +270,6 @@ const DrSigmundSpendAvatar: React.FC<DrSigmundSpendAvatarProps> = ({
           <div className="flex items-center gap-2 mb-3">
             <div className={`
               w-3 h-3 rounded-full ${currentMood?.bgGradient || 'dr-sigmund-gradient'}
-              ${animated ? 'animate-pulse' : ''}
             `}></div>
             <p className={`${sizeTextClasses[size]} font-semibold text-gray-800`}>Dr. Sigmund Spend</p>
           </div>
