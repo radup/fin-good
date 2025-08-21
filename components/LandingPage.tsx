@@ -140,24 +140,12 @@ export default function LandingPage() {
             <div className="w-full max-w-md">
               <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200 p-6">
                 <div className="text-center mb-6">
-                  <div className="relative inline-block mb-4">
-                    <DrSigmundSpendAvatar size="lg" className="mx-auto" />
-                    {/* Dr. Sigmund's chat bubble */}
-                    <div className="absolute -right-2 top-0 bg-blue-600 text-white text-xs px-3 py-2 rounded-full shadow-lg max-w-[140px] transform translate-x-full">
-                      <div className="absolute -left-1 top-3 w-2 h-2 bg-blue-600 rotate-45"></div>
-                      {isSignUp ? (
-                        <>
-                          <div className="font-semibold">Welcome New Patient!</div>
-                          <div className="mt-1">Ready to face your financial fears?</div>
-                        </>
-                      ) : (
-                        <>
-                          <div className="font-semibold">Welcome back!</div>
-                          <div className="mt-1">How are you feeling about your finances today?</div>
-                        </>
-                      )}
-                    </div>
-                  </div>
+                  <DrSigmundSpendAvatar 
+                    size="lg" 
+                    className="mx-auto mb-4" 
+                    message={isSignUp ? "Welcome New Patient! Ready to face your financial fears?" : "Welcome back! How are you feeling about your finances today?"}
+                    showMessage={true}
+                  />
                   <h2 className="text-xl font-bold text-gray-900">
                     {isSignUp ? 'Start Your Journey' : 'Check In'}
                   </h2>
