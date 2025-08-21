@@ -38,7 +38,7 @@ export default function LandingPage() {
                   <h1 className="text-lg font-bold text-gray-900">Spend's Analysis</h1>
                 </div>
               </div>
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-3 mr-8">
                 <button
                   onClick={() => setIsSignUp(false)}
                   className={`px-3 py-1.5 text-sm font-bold rounded-lg transition-all duration-300 ${
