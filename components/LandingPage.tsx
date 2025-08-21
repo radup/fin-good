@@ -11,7 +11,7 @@ export default function LandingPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-green-50">
+    <div className="h-screen overflow-y-scroll snap-y snap-mandatory bg-gradient-to-br from-blue-50 via-purple-50 to-green-50">
       {/* Header */}
       <header className="relative z-10 bg-white/80 backdrop-blur-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -48,9 +48,10 @@ export default function LandingPage() {
         </div>
       </header>
 
-      {/* Hero Section */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid lg:grid-cols-2 gap-12 xl:gap-16 py-6 items-start min-h-[600px]">
+      {/* Screen 1: Hero Section */}
+      <main className="h-screen snap-start flex items-center">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+          <div className="grid lg:grid-cols-2 gap-12 xl:gap-16 items-center">
           {/* Left Column - Marketing Content */}
           <div className="space-y-8 pt-4">
             <div className="space-y-6">
@@ -266,8 +267,8 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* Features Preview - Full Screen Section */}
-        <section className="min-h-screen flex items-center justify-center py-20 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+        {/* Screen 2: Features Preview */}
+        <section className="h-screen snap-start flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             {/* Section Header */}
             <div className="text-center mb-20">
@@ -413,9 +414,9 @@ export default function LandingPage() {
         </section>
       </main>
 
-      {/* Enhanced Footer */}
-      <footer className="bg-gradient-to-r from-gray-900 to-slate-800 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      {/* Screen 3: Enhanced Footer */}
+      <footer className="h-screen snap-start bg-gradient-to-r from-gray-900 to-slate-800 text-white flex items-center">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
           <div className="grid md:grid-cols-4 gap-8">
             {/* Brand Section */}
             <div className="md:col-span-2">
