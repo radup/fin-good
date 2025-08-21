@@ -23,7 +23,7 @@ export default function LandingPage() {
                 <img 
                   src="/spends-analysis-logo.svg" 
                   alt="Spend's Analysis Logo" 
-                  className="h-8 w-auto"
+                  className="h-12 w-auto"
                   onError={(e) => {
                     // Fallback to original design if logo doesn't load
                     e.currentTarget.style.display = 'none';
@@ -452,7 +452,7 @@ export default function LandingPage() {
                 <img 
                   src="/spends-analysis-logo.svg" 
                   alt="Spend's Analysis Logo" 
-                  className="h-10 w-auto brightness-0 invert"
+                  className="h-16 w-auto brightness-0 invert"
                   onError={(e) => {
                     // Fallback to original design if logo doesn't load
                     e.currentTarget.style.display = 'none';
