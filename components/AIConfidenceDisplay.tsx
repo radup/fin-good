@@ -45,8 +45,10 @@ const AIConfidenceDisplay: React.FC<AIConfidenceDisplayProps> = ({
     try {
       const response = await transactionAPI.submitFeedback(
         transactionId,
-        feedbackType,
-        suggestedCategory
+        {
+          feedback_type: feedbackType,
+          suggested_category: suggestedCategory
+        }
       );
       
       const result = response.data;

@@ -82,7 +82,7 @@ export function ExportManager() {
       
       setExportJobs(prev => prev.map(job => 
         job.job_id === jobId 
-          ? { ...job, status: progress.status, ...progress }
+          ? { ...job, ...progress }
           : job
       ))
 

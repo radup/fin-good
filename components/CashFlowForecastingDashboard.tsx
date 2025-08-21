@@ -483,7 +483,7 @@ export default function CashFlowForecastingDashboard() {
                 x="Dec 24" 
                 stroke="#ef4444" 
                 strokeDasharray="5 5" 
-                label={{ value: "Today", position: "topRight", fontSize: 10, fill: '#ef4444' }} 
+                label={{ value: "Today", position: "insideTopRight", fontSize: 10, fill: '#ef4444' }} 
               />
             </AreaChart>
           </ResponsiveContainer>

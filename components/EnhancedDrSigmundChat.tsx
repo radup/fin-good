@@ -51,17 +51,23 @@ export default function EnhancedDrSigmundChat() {
     {
       id: '1',
       role: 'assistant',
-      content: `Hello! I'm Dr. Sigmund Spend, your AI financial therapist with enhanced analytical capabilities. 
+      content: `Guten Tag! I am Dr. Sigmund Spend, your AI financial therapist with enhanced analytical capabilities. 
+
+*adjusts his spectacles thoughtfully*
+
+Ah, I see you've come to me for guidance on your financial journey. This is sehr gut - very good indeed! As we say in German, "Geld allein macht nicht glücklich" - money alone does not make happiness, but understanding your relationship with it certainly helps.
 
 I can now help you with:
-• **Emotional financial guidance** - Understanding your money feelings
-• **Scenario analysis** - "What if" simulations for big decisions  
-• **Cash flow forecasting** - Predicting your financial future
-• **Tax optimization** - Multi-jurisdiction strategies
-• **Client payment prediction** - For business owners
+• **Emotional financial guidance** - Understanding your money feelings (or as we say, your "Geldgefühle")
+• **Scenario analysis** - "Was wäre wenn" simulations for big decisions  
+• **Cash flow forecasting** - Predicting your financial future with precision
+• **Tax optimization** - Multi-jurisdiction strategies (Steueroptimierung, as we call it)
+• **Client payment prediction** - For business owners (Kundenzahlungsprognose)
 • **Investment analysis** - Portfolio and treasury management
 
-How are you feeling about your finances today? What would you like to explore together?`,
+*leans forward with a warm, understanding expression*
+
+So, mein Freund - how are you feeling about your finances today? What would you like to explore together? Remember, there are no foolish questions when it comes to money matters.`,
       timestamp: new Date(),
       type: 'text'
     }
@@ -314,7 +320,9 @@ How are you feeling about your finances today? What would you like to explore to
       return {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: `Let me run a scenario analysis for you using my advanced simulation tools...
+        content: `*adjusts spectacles and leans forward with interest*
+
+Ah, sehr interessant! Let me run a scenario analysis for you using my advanced simulation tools. As we say in German, "Vorsicht ist besser als Nachsicht" - forethought is better than hindsight.
 
 **Current Scenario Results:**
 
@@ -328,11 +336,15 @@ ${scenarioData.data.scenarios.map(s =>
 **Breakeven**: ${scenarioData.data.timeToBreakeven}
 
 **Therapeutic Insight:**
-These scenarios show positive potential! The anxiety around "what if" often comes from not having concrete data. Now that we can see the numbers, how does this make you feel? 
+*gestures thoughtfully*
+
+These scenarios show positive potential! The anxiety around "what if" - your "Was wäre wenn" worries - often comes from not having concrete data. Now that we can see the numbers, how does this make you feel? 
 
 The risk levels are manageable, and the financial impact is strongly positive. Remember, every successful business decision starts with asking "what if" - and now you have the analytical power to explore these possibilities safely.
 
-Would you like to explore any specific scenario in more detail, or adjust the assumptions?`,
+*nods warmly*
+
+Would you like to explore any specific scenario in more detail, or adjust the assumptions? I'm here to help you understand every aspect of these possibilities.`,
         timestamp: new Date(),
         type: 'tool_result',
         metadata: { 
@@ -348,7 +360,9 @@ Would you like to explore any specific scenario in more detail, or adjust the as
       return {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: `I've analyzed your cash flow patterns using my forecasting models...
+        content: `*adjusts spectacles and studies the data carefully*
+
+Ah, ausgezeichnet! I've analyzed your cash flow patterns using my forecasting models. As we say in German, "Geld ist rund und rollt weg" - money is round and rolls away, but with proper planning, we can catch it!
 
 **Cash Flow Forecast - Next 5 Months:**
 
@@ -365,9 +379,15 @@ ${forecastData.data.forecast.map(month =>
 ${forecastData.data.insights.join('\n• ')}
 
 **Therapeutic Perspective:**
-These numbers show a healthy, growing financial position! Cash flow anxiety is common, but your data reveals strong fundamentals. The consistency and growth trends suggest you're making sound financial decisions.
+*gestures warmly*
 
-How does seeing this concrete forecast impact your feelings about financial security? Sometimes the anticipation is worse than the reality.`,
+These numbers show a healthy, growing financial position! Cash flow anxiety - your "Cashflow-Angst" - is common, but your data reveals strong fundamentals. The consistency and growth trends suggest you're making sound financial decisions.
+
+*nods encouragingly*
+
+How does seeing this concrete forecast impact your feelings about financial security? Sometimes the anticipation is worse than the reality. Remember, "Ruhe ist die erste Bürgerpflicht" - calmness is the first duty of a citizen, especially when it comes to finances.
+
+What aspects of this forecast would you like to explore further?`,
         timestamp: new Date(),
         type: 'tool_result',
         metadata: { 
@@ -532,26 +552,32 @@ Remember: budgets are tools for empowerment, not restriction. You're using money
       }
     }
 
-    // Enhanced default response with tool awareness
+    // Enhanced default response with tool awareness and German accent
     return {
       id: (Date.now() + 1).toString(),
       role: 'assistant',
-      content: `I hear you, and I want you to know that whatever you're experiencing with your finances is completely valid.
+      content: `*nods thoughtfully and adjusts spectacles*
 
-As your enhanced AI financial therapist, I now have access to powerful analytical tools that can transform financial anxiety into actionable insights:
+Ah, I hear you, mein Freund, and I want you to know that whatever you're experiencing with your finances is completely valid. As we say in German, "Jeder hat seine eigenen Sorgen" - everyone has their own worries, and financial concerns are among the most human of all.
+
+*leans forward with a warm, understanding expression*
+
+As your enhanced AI financial therapist, I now have access to powerful analytical tools that can transform your "Geldangst" - your money anxiety - into actionable insights. You see, in my practice, I've learned that the best financial advice combines cold, hard data with warm, human understanding.
 
 **I can help you with:**
-• **Scenario planning** - Explore "what if" possibilities safely
-• **Cash flow forecasting** - Predict your financial future with confidence
-• **Tax optimization** - Legal strategies to minimize your tax burden
-• **Client payment prediction** - Reduce uncertainty about when you'll be paid
-• **Investment analysis** - Make informed decisions about surplus cash
-• **Budget analysis** - Understand your spending patterns
+• **Scenario planning** - Explore "Was wäre wenn" possibilities safely
+• **Cash flow forecasting** - Predict your financial future with confidence (Zukunftsprognose)
+• **Tax optimization** - Legal strategies to minimize your tax burden (Steueroptimierung)
+• **Client payment prediction** - Reduce uncertainty about when you'll be paid (Kundenzahlungsprognose)
+• **Investment analysis** - Make informed decisions about surplus cash (Anlageanalyse)
+• **Budget analysis** - Understand your spending patterns (Ausgabenanalyse)
 
 **My Enhanced Approach:**
-I combine deep financial analysis with therapeutic support. Numbers without emotional context can feel cold, but data with compassionate guidance builds both confidence and competence.
+I combine deep financial analysis with therapeutic support. Numbers without emotional context can feel cold - "kalt" as we say - but data with compassionate guidance builds both confidence and competence. It's like having both a financial advisor and a trusted friend in one.
 
-What area of your finances would you like to explore together? I can run real analysis while helping you process the emotional aspects of financial decision-making.
+*gestures warmly*
+
+What area of your finances would you like to explore together? I can run real analysis while helping you process the emotional aspects of financial decision-making. Remember, "Der Weg ist das Ziel" - the journey is the destination.
 
 Some starting points:
 • "Can you analyze my cash flow forecasts?"
@@ -559,7 +585,7 @@ Some starting points:
 • "Help me understand my tax optimization options"
 • "I'm worried about client payments - can you predict them?"
 
-What feels most important to address right now?`,
+What feels most important to address right now? I'm here to listen and to help.`,
       timestamp: new Date(),
       type: 'insight',
       metadata: { 
@@ -641,7 +667,7 @@ What feels most important to address right now?`,
           />
         )}
         
-        <div className={`rounded-2xl p-4 max-w-lg ${
+        <div className={`rounded-2xl p-4 max-w-2xl ${
           isUser 
             ? 'bg-gray-100 rounded-tr-md' 
             : 'bg-gradient-to-r from-purple-50 to-blue-50 rounded-tl-md border border-purple-100'
@@ -706,12 +732,12 @@ What feels most important to address right now?`,
   }
 
   return (
-    <div className="flex flex-col h-full bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 p-6">
+    <div className="flex flex-col h-full bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 p-4">
       {/* Main Chat Card */}
-      <div className="max-w-4xl mx-auto w-full">
-        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+      <div className="max-w-6xl mx-auto w-full h-full">
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden h-full flex flex-col">
           {/* Enhanced Chat Header */}
-          <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-4">
+          <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-4 flex-shrink-0">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <DrSigmundSpendAvatar size="sm" showMessage={false} animated={true} />
@@ -731,7 +757,7 @@ What feels most important to address right now?`,
           </div>
 
           {/* Chat Messages */}
-          <div className="p-6 space-y-4 h-96 overflow-y-auto flex flex-col">
+          <div className="p-6 space-y-4 flex-1 overflow-y-auto flex flex-col min-h-0">
             {messages.map(renderMessage)}
             
             {/* Enhanced Typing Indicator */}

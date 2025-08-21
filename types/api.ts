@@ -509,7 +509,6 @@ export interface EnsembleAnalysisResponse {
     confidence_score: number
   }>
   model_performances: Record<string, ModelPerformance>
-  ensemble_confidence: number
 }
 
 // Multi-Model Forecasting Types

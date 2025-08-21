@@ -73,12 +73,14 @@ export function BudgetAnalysis({ className = '' }: BudgetAnalysisProps) {
 
   // Fetch performance metrics
   const { data: performance, isLoading: performanceLoading } = useQuery({
-    queryKey: ['budget-performance'],
+    queryKey: ['budget-performance', selectedBudget?.id],
     queryFn: async () => {
-      const response = await budgetAnalysisAPI.getPerformance()
+      if (!selectedBudget) return null
+      const response = await budgetAnalysisAPI.getPerformance(selectedBudget.id.toString())
       return response.data
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: !!selectedBudget
   })
 
   // Variance analysis mutation
@@ -194,9 +196,9 @@ export function BudgetAnalysis({ className = '' }: BudgetAnalysisProps) {
               <div className="flex items-center">
                 <DollarSign className="h-8 w-8 text-green-600" />
                 <div className="ml-3">
-                  <p className="text-sm font-medium text-green-600">Total Budgeted Income</p>
+                  <p className="text-sm font-medium text-green-600">Active Budgets</p>
                   <p className="text-2xl font-bold text-green-900">
-                    ${summary.total_budgeted_income?.toLocaleString() || '0'}
+                    {summary.active_budgets}
                   </p>
                 </div>
               </div>
@@ -206,9 +208,9 @@ export function BudgetAnalysis({ className = '' }: BudgetAnalysisProps) {
               <div className="flex items-center">
                 <TrendingDown className="h-8 w-8 text-red-600" />
                 <div className="ml-3">
-                  <p className="text-sm font-medium text-red-600">Total Budgeted Expenses</p>
+                  <p className="text-sm font-medium text-red-600">Critical Alerts</p>
                   <p className="text-2xl font-bold text-red-900">
-                    ${summary.total_budgeted_expenses?.toLocaleString() || '0'}
+                    {summary.critical_alerts}
                   </p>
                 </div>
               </div>
@@ -230,13 +232,13 @@ export function BudgetAnalysis({ className = '' }: BudgetAnalysisProps) {
               <div className="flex items-center">
                 <BarChart3 className="h-8 w-8 text-purple-600" />
                 <div className="ml-3">
-                  <p className="text-sm font-medium text-purple-600">Overall Variance</p>
+                  <p className="text-sm font-medium text-purple-600">Average Variance</p>
                   <p className={`text-2xl font-bold ${
-                    (summary.overall_variance_percentage || 0) >= 0 
+                    (summary.average_variance || 0) >= 0 
                       ? 'text-green-900' 
                       : 'text-red-900'
                   }`}>
-                    {summary.overall_variance_percentage?.toFixed(1) || '0'}%
+                    {summary.average_variance?.toFixed(1) || '0'}%
                   </p>
                 </div>
               </div>
@@ -272,7 +274,7 @@ export function BudgetAnalysis({ className = '' }: BudgetAnalysisProps) {
                           <p className="text-sm text-gray-600">{budget.budget_type}</p>
                         </div>
                         <div className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          budget.status === 'active' 
+                          budget.status === 'ACTIVE' 
                             ? 'bg-green-100 text-green-800'
                             : 'bg-gray-100 text-gray-800'
                         }`}>
@@ -397,57 +399,28 @@ export function BudgetAnalysis({ className = '' }: BudgetAnalysisProps) {
               {activeTab === 'variance' && (
                 <div className="space-y-6">
                   <h3 className="text-lg font-semibold text-gray-900">Variance Analysis</h3>
-                  {varianceMutation.isLoading ? (
+                  {varianceMutation.isPending ? (
                     <div className="text-center py-8">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
                       <p className="text-gray-500 mt-2">Analyzing variance...</p>
                     </div>
                   ) : varianceMutation.data ? (
                     <div className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="bg-gray-50 rounded-lg p-4">
-                          <h4 className="font-medium text-gray-900 mb-2">Net Variance</h4>
-                          <p className={`text-2xl font-bold ${
-                            (varianceMutation.data.net_variance_amount || 0) >= 0
-                              ? 'text-green-600'
-                              : 'text-red-600'
-                          }`}>
-                            ${(varianceMutation.data.net_variance_amount || 0).toLocaleString()}
-                          </p>
-                          <p className="text-sm text-gray-600">
-                            {varianceMutation.data.net_variance_percentage?.toFixed(1)}% variance
-                          </p>
-                        </div>
-                        <div className="bg-gray-50 rounded-lg p-4">
-                          <h4 className="font-medium text-gray-900 mb-2">Income Variance</h4>
-                          <p className={`text-2xl font-bold ${
-                            (varianceMutation.data.total_income_actual || 0) >= (varianceMutation.data.total_income_budgeted || 0)
-                              ? 'text-green-600'
-                              : 'text-red-600'
-                          }`}>
-                            ${((varianceMutation.data.total_income_actual || 0) - (varianceMutation.data.total_income_budgeted || 0)).toLocaleString()}
-                          </p>
-                        </div>
-                        <div className="bg-gray-50 rounded-lg p-4">
-                          <h4 className="font-medium text-gray-900 mb-2">Expense Variance</h4>
-                          <p className={`text-2xl font-bold ${
-                            (varianceMutation.data.total_expense_actual || 0) <= (varianceMutation.data.total_expense_budgeted || 0)
-                              ? 'text-green-600'
-                              : 'text-red-600'
-                          }`}>
-                            ${((varianceMutation.data.total_expense_actual || 0) - (varianceMutation.data.total_expense_budgeted || 0)).toLocaleString()}
-                          </p>
-                        </div>
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <h4 className="font-medium text-blue-900 mb-2">Variance Analysis Available</h4>
+                        <p className="text-blue-800 text-sm">
+                          Variance analysis data has been loaded successfully. The analysis includes category details, alerts, and recommendations.
+                        </p>
                       </div>
 
                       {varianceMutation.data.recommendations && varianceMutation.data.recommendations.length > 0 && (
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                          <h4 className="font-medium text-blue-900 mb-2">Recommendations</h4>
+                        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                          <h4 className="font-medium text-green-900 mb-2">Recommendations</h4>
                           <ul className="space-y-1">
                             {varianceMutation.data.recommendations.map((rec, index) => (
-                              <li key={index} className="text-blue-800 text-sm flex items-start">
+                              <li key={index} className="text-green-800 text-sm flex items-start">
                                 <CheckCircle className="h-4 w-4 mr-2 mt-0.5 flex-shrink-0" />
-                                {rec}
+                                {rec.reasoning || `Recommendation ${index + 1}`}
                               </li>
                             ))}
                           </ul>
@@ -488,28 +461,28 @@ export function BudgetAnalysis({ className = '' }: BudgetAnalysisProps) {
                         <dl className="space-y-2">
                           <div className="flex justify-between">
                             <dt className="text-gray-600">Overall Accuracy:</dt>
-                            <dd className="font-medium">{(performance.accuracy_score * 100).toFixed(1)}%</dd>
+                            <dd className="font-medium">{(performance.performance_metrics.accuracy_score * 100).toFixed(1)}%</dd>
                           </div>
                           <div className="flex justify-between">
                             <dt className="text-gray-600">Budget Adherence:</dt>
-                            <dd className="font-medium">{(performance.budget_adherence_rate * 100).toFixed(1)}%</dd>
+                            <dd className="font-medium">{(performance.performance_metrics.adherence_rate * 100).toFixed(1)}%</dd>
                           </div>
                           <div className="flex justify-between">
-                            <dt className="text-gray-600">Variance Stability:</dt>
-                            <dd className="font-medium">{(performance.variance_stability * 100).toFixed(1)}%</dd>
+                            <dt className="text-gray-600">Forecast Accuracy:</dt>
+                            <dd className="font-medium">{(performance.performance_metrics.forecast_accuracy * 100).toFixed(1)}%</dd>
                           </div>
                         </dl>
                       </div>
                       <div className="bg-gray-50 rounded-lg p-4">
-                        <h4 className="font-medium text-gray-900 mb-3">Engagement & Trends</h4>
+                        <h4 className="font-medium text-gray-900 mb-3">Trend Analysis</h4>
                         <dl className="space-y-2">
                           <div className="flex justify-between">
-                            <dt className="text-gray-600">User Engagement:</dt>
-                            <dd className="font-medium">{(performance.user_engagement_score * 100).toFixed(1)}%</dd>
+                            <dt className="text-gray-600">Accuracy Trend:</dt>
+                            <dd className="font-medium capitalize">{performance.trend_analysis.accuracy_trend}</dd>
                           </div>
                           <div className="flex justify-between">
-                            <dt className="text-gray-600">Forecast Improvement:</dt>
-                            <dd className="font-medium">{(performance.forecasting_improvement * 100).toFixed(1)}%</dd>
+                            <dt className="text-gray-600">Adherence Trend:</dt>
+                            <dd className="font-medium capitalize">{performance.trend_analysis.adherence_trend}</dd>
                           </div>
                         </dl>
                       </div>

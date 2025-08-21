@@ -8,6 +8,7 @@ import {
   BarChart3, 
   Target, 
   AlertTriangle, 
+  AlertCircle,
   CheckCircle, 
   Clock,
   RefreshCw,
@@ -160,7 +161,7 @@ function MultiModelForecastChart({ data, showConfidenceIntervals }: MultiModelFo
           {/* Individual model lines */}
           {data.model_results.map((model) => {
             const modelKey = model.model_name.toLowerCase().replace(' ', '_')
-            const color = modelColors[modelKey] || '#6b7280'
+            const color = (modelColors as any)[modelKey] || '#6b7280'
             
             return (
               <Line
@@ -461,7 +462,7 @@ export function ForecastingDashboard({ className = '' }: ForecastingDashboardPro
         custom_days: selectedHorizon === 'custom' ? customDays : undefined,
         category_filter: categoryFilter || undefined,
         confidence_level: confidenceLevel,
-        models: selectedModels,
+        models: selectedModels as any,
       }
       generateMultiModelForecastMutation.mutate(request)
     } else {
@@ -963,25 +964,25 @@ export function ForecastingDashboard({ className = '' }: ForecastingDashboardPro
             <div className="bg-gray-50 p-4 rounded-lg">
               <h4 className="font-medium text-gray-900">Average Accuracy</h4>
               <p className="text-2xl font-bold text-gray-600">
-                {Math.round(accuracyHistory.average_accuracy * 100)}%
+                {Math.round((accuracyHistory.data?.average_accuracy || 0) * 100)}%
               </p>
             </div>
             <div className="bg-gray-50 p-4 rounded-lg">
               <h4 className="font-medium text-gray-900">Forecasts Generated</h4>
               <p className="text-2xl font-bold text-gray-600">
-                {accuracyHistory.forecast_count}
+                {accuracyHistory.data?.forecast_count || 0}
               </p>
             </div>
             <div className="bg-gray-50 p-4 rounded-lg">
               <h4 className="font-medium text-gray-900">Accuracy Trend</h4>
               <p className="text-2xl font-bold text-gray-600 capitalize">
-                {accuracyHistory.accuracy_trend}
+                {accuracyHistory.data?.accuracy_trend || 'stable'}
               </p>
             </div>
             <div className="bg-gray-50 p-4 rounded-lg">
               <h4 className="font-medium text-gray-900">Best Type</h4>
               <p className="text-2xl font-bold text-gray-600 capitalize">
-                {accuracyHistory.best_forecast_type.replace('_', ' ')}
+                {(accuracyHistory.data?.best_forecast_type || 'ensemble').replace('_', ' ')}
               </p>
             </div>
           </div>
@@ -990,7 +991,7 @@ export function ForecastingDashboard({ className = '' }: ForecastingDashboardPro
           <div className="mt-6">
             <h4 className="font-medium text-gray-900 mb-3">Accuracy by Horizon</h4>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {Object.entries(accuracyHistory.accuracy_by_horizon).map(([horizon, accuracy]) => (
+              {Object.entries(accuracyHistory.data?.accuracy_by_horizon || {}).map(([horizon, accuracy]) => (
                 <div key={horizon} className="bg-blue-50 p-3 rounded-lg">
                   <h5 className="text-sm font-medium text-blue-900 capitalize">
                     {horizon.replace('_', ' ')}

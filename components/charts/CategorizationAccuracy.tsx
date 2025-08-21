@@ -113,13 +113,13 @@ export default function CategorizationAccuracy({ data = mockData, className = ''
         <div>
           <p className="text-sm text-gray-600">Average Accuracy</p>
           <p className="text-lg font-semibold text-blue-600">
-            {formatPercentage(averageAccuracy.toFixed(1))}
+            {formatPercentage(parseFloat(averageAccuracy.toFixed(1)))}
           </p>
         </div>
         <div>
           <p className="text-sm text-gray-600">Average Confidence</p>
           <p className="text-lg font-semibold text-green-600">
-            {formatPercentage(averageConfidence.toFixed(1))}
+            {formatPercentage(parseFloat(averageConfidence.toFixed(1)))}
           </p>
         </div>
         <div>

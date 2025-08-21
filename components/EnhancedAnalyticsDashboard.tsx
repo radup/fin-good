@@ -835,7 +835,7 @@ export default function EnhancedAnalyticsDashboard() {
         {/* Dr. Sigmund Business Intelligence Insights */}
         <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-xl p-6 border border-green-200">
           <div className="flex items-start space-x-4">
-            <DrSigmundSpendAvatar size="sm" mood="thoughtful" />
+            <DrSigmundSpendAvatar size="sm" mood="analytical" />
             <div className="flex-1">
               <div className="flex items-center space-x-2 mb-2">
                 <h3 className="text-lg font-semibold text-green-900">Business Intelligence Insights</h3>

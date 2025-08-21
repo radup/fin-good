@@ -521,7 +521,7 @@ export default function ScenarioSimulationDashboard() {
       }
 
       setMessages(prev => [...prev, botMessage])
-      setCurrentScenario(botResponse.scenario)
+      setCurrentScenario(botResponse.scenario || null)
       setIsAnalyzing(false)
     }, 1500)
   }
@@ -745,7 +745,7 @@ The more specific you are, the better I can help you see the real financial impa
       'default': { best: 1.25, likely: 1.0, worst: 0.75 }
     }
     
-    const factors = uncertaintyFactors[scenarioType] || uncertaintyFactors['default']
+    const factors = (uncertaintyFactors as any)[scenarioType] || uncertaintyFactors['default']
     
     return [
       {

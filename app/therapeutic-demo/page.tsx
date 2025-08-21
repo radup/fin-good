@@ -234,6 +234,7 @@ export default function TherapeuticDemo() {
             <div>
               <h3 className="font-medium text-gray-800 mb-3">High Confidence</h3>
               <AIConfidenceDisplay 
+                transactionId={1}
                 confidence={95}
                 category="Restaurants"
                 reasoning="This transaction clearly matches the 'Restaurants' category based on the merchant name and transaction pattern."
@@ -244,6 +245,7 @@ export default function TherapeuticDemo() {
             <div>
               <h3 className="font-medium text-gray-800 mb-3">Medium Confidence</h3>
               <AIConfidenceDisplay 
+                transactionId={2}
                 confidence={65}
                 category="Entertainment"
                 reasoning="This could be either 'Entertainment' or 'Shopping' based on the merchant type, but I'm not entirely certain."
@@ -254,6 +256,7 @@ export default function TherapeuticDemo() {
             <div>
               <h3 className="font-medium text-gray-800 mb-3">Low Confidence</h3>
               <AIConfidenceDisplay 
+                transactionId={3}
                 confidence={25}
                 category="Uncategorized"
                 reasoning="This transaction is unclear and may need manual categorization. The merchant name doesn't provide enough context."
