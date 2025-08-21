@@ -101,7 +101,11 @@
       "Bash(COMPLIANCE_SECRET_KEY=\"mK8PlqR2NxF_uwPo5zXcY1GtRhfhLv2WcVbdE5qQ84F\" REDIS_URL=\"redis://:secure_dev_password_2024@localhost:6379\" python backend/main.py)",
       "mcp__playwright__browser_close",
       "Bash(npm install:*)",
-      "WebFetch(domain:towardsdatascience.com)"
+      "WebFetch(domain:towardsdatascience.com)",
+      "Bash(git commit:*)",
+      "Bash(sed:*)",
+      "Bash(npm run build:*)",
+      "Bash(git checkout:*)"
     ],
     "deny": [],
     "ask": [],
