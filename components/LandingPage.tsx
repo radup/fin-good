@@ -21,7 +21,7 @@ export default function LandingPage() {
             <div className="flex justify-between items-center py-3">
               <div className="flex items-center">
                 <img 
-                  src="/spends-analysis-logo.png" 
+                  src="/logo.png" 
                   alt="Spend's Analysis - AI Financial Therapy" 
                   className="h-16 w-auto rounded-lg"
                   onError={(e) => {
@@ -450,7 +450,7 @@ export default function LandingPage() {
             <div className="md:col-span-2">
               <div className="flex items-center mb-6">
                 <img 
-                  src="/spends-analysis-logo.png" 
+                  src="/logo.png" 
                   alt="Spend's Analysis - AI Financial Therapy" 
                   className="h-20 w-auto rounded-lg"
                   onError={(e) => {
