@@ -63,10 +63,11 @@ export default function LandingPage() {
         </header>
 
         {/* Hero Section */}
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex-1 flex items-center" style={{minHeight: 'calc(100vh - 80px)'}}>
-        <div className="grid lg:grid-cols-2 gap-12 xl:gap-16 py-6 items-start min-h-[600px]">
+        <main className="flex-1 flex items-center" style={{minHeight: 'calc(100vh - 80px)'}}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+          <div className="grid lg:grid-cols-2 gap-12 xl:gap-16 items-center">
           {/* Left Column - Marketing Content */}
-          <div className="space-y-8 pt-4">
+          <div className="space-y-8">
             <div className="space-y-6">
               <div className="flex items-center space-x-2 text-blue-600">
                 <Brain className="h-5 w-5" />
@@ -277,6 +278,7 @@ export default function LandingPage() {
                 </div>
               )}
             </div>
+          </div>
           </div>
         </div>
         </main>
