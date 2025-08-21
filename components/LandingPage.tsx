@@ -137,7 +137,7 @@ export default function LandingPage() {
 
           {/* Right Column - Sign In/Up Form */}
           <div className="flex items-start justify-center pt-0">
-            <div className="w-full max-w-md">
+            <div className="w-full max-w-lg">
               <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200 p-6">
                 <div className="text-center mb-6">
                   <DrSigmundSpendAvatar 
@@ -252,14 +252,16 @@ export default function LandingPage() {
                 </div>
               </div>
 
-              {/* Demo Account Notice */}
-              <div className="mt-4 text-center">
-                <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                  <p className="text-sm text-green-800">
-                    <strong>Demo Account:</strong> sigmund@spendsanalysis.com / sigmund123_
-                  </p>
+              {/* Demo Account Notice - Only show for login */}
+              {!isSignUp && (
+                <div className="mt-4 text-center">
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                    <p className="text-sm text-green-800">
+                      <strong>Demo Account:</strong> sigmund@spendsanalysis.com / sigmund123_
+                    </p>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         </div>
