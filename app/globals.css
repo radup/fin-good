@@ -29,6 +29,13 @@
   --gradient-trust: linear-gradient(135deg, #DBEAFE 0%, #E0F2FE 100%);
   --gradient-empowerment: linear-gradient(135deg, #D1FAE5 0%, #E0F2FE 100%);
   --gradient-celebration: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+  
+  /* Custom brand colors */
+  --brand-secondary: #1389a9;
+  --brand-secondary-hover: #0f7a96;
+  --brand-secondary-light: #4aa3c2;
+  --brand-secondary-lighter: #bde3f0;
+  --brand-secondary-lightest: #e6f6fb;
 }
 
 /* Therapeutic utility classes */
@@ -76,6 +83,51 @@
 
 .empowerment {
   background-color: var(--color-empowerment);
+}
+
+/* Custom brand color utilities */
+.bg-brand-secondary {
+  background-color: var(--brand-secondary) !important;
+}
+
+.bg-brand-secondary-hover:hover {
+  background-color: var(--brand-secondary-hover) !important;
+}
+
+.bg-brand-secondary-light {
+  background-color: var(--brand-secondary-light) !important;
+}
+
+.bg-brand-secondary-lighter {
+  background-color: var(--brand-secondary-lighter) !important;
+}
+
+.bg-brand-secondary-lightest {
+  background-color: var(--brand-secondary-lightest) !important;
+}
+
+.text-brand-secondary {
+  color: var(--brand-secondary) !important;
+}
+
+.text-brand-secondary-light {
+  color: var(--brand-secondary-light) !important;
+}
+
+.text-brand-secondary-hover:hover {
+  color: var(--brand-secondary-hover) !important;
+}
+
+.border-brand-secondary {
+  border-color: var(--brand-secondary) !important;
+}
+
+.border-brand-secondary-light {
+  border-color: var(--brand-secondary-light) !important;
+}
+
+.ring-brand-secondary:focus {
+  ring-color: var(--brand-secondary) !important;
 }
 
 /* Smooth transitions for therapeutic interactions */

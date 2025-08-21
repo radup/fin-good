@@ -43,8 +43,8 @@ export default function LandingPage() {
                   onClick={() => setIsSignUp(false)}
                   className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
                     !isSignUp 
-                      ? 'bg-emerald-600 text-white' 
-                      : 'bg-gray-700 text-emerald-400 border border-emerald-400 hover:bg-gray-600'
+                      ? 'bg-brand-secondary text-white bg-brand-secondary-hover' 
+                      : 'bg-gray-700 text-brand-secondary-light border-brand-secondary-light hover:bg-gray-600'
                   }`}
                 >
                   Check In
@@ -53,8 +53,8 @@ export default function LandingPage() {
                   onClick={() => setIsSignUp(true)}
                   className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
                     isSignUp 
-                      ? 'bg-emerald-600 text-white' 
-                      : 'bg-gray-700 text-emerald-400 border border-emerald-400 hover:bg-gray-600'
+                      ? 'bg-brand-secondary text-white bg-brand-secondary-hover' 
+                      : 'bg-gray-700 text-brand-secondary-light border-brand-secondary-light hover:bg-gray-600'
                   }`}
                 >
                   New Patient
@@ -71,14 +71,14 @@ export default function LandingPage() {
           {/* Left Column - Marketing Content */}
           <div className="space-y-8">
             <div className="space-y-6">
-              <div className="flex items-center space-x-2 text-emerald-700">
+              <div className="flex items-center space-x-2 text-brand-secondary">
                 <Brain className="h-5 w-5" />
                 <span className="text-sm font-semibold">AI-Powered Financial Therapy</span>
               </div>
               
               <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 leading-tight">
                 Heal Your Relationship with{' '}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-600">
+                <span className="text-brand-secondary font-bold">
                   Money
                 </span>
               </h1>
@@ -91,8 +91,8 @@ export default function LandingPage() {
 
             {/* Key Benefits */}
             <div className={`grid grid-cols-1 md:grid-cols-2 gap-6 transition-all duration-700 ${
-              isSignUp ? 'scale-105 border-2 border-emerald-300 rounded-xl p-4 bg-gradient-to-br from-emerald-50 to-teal-50 shadow-lg' : ''
-            }`}>
+              isSignUp ? 'scale-105 border-2 bg-brand-secondary-lightest rounded-xl p-4 shadow-lg' : ''
+            }`} style={isSignUp ? {borderColor: 'var(--brand-secondary-lighter)'} : {}}>
               <div className={`flex items-start space-x-3 transition-all duration-500 ${
                 isSignUp ? 'transform translate-x-2' : ''
               }`}>
@@ -116,7 +116,7 @@ export default function LandingPage() {
               <div className={`flex items-start space-x-3 transition-all duration-500 delay-200 ${
                 isSignUp ? 'transform translate-x-2' : ''
               }`}>
-                <Shield className="h-6 w-6 text-emerald-600 mt-1 flex-shrink-0" />
+                <Shield className="h-6 w-6 text-brand-secondary mt-1 flex-shrink-0" />
                 <div>
                   <h3 className="font-semibold text-gray-900">Bank-Grade Security</h3>
                   <p className="text-sm text-gray-600">Your data is encrypted and protected</p>
@@ -179,7 +179,8 @@ export default function LandingPage() {
                         <input
                           type="text"
                           id="name"
-                          className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                          className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                          style={{'--tw-ring-color': 'var(--brand-secondary)'} as React.CSSProperties}
                           placeholder="Enter your full name"
                         />
                       </div>
@@ -193,7 +194,8 @@ export default function LandingPage() {
                     <input
                       type="email"
                       id="email"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                      style={{'--tw-ring-color': 'var(--brand-secondary)'} as React.CSSProperties}
                       placeholder="Enter your email"
                       defaultValue="sigmund@spendsanalysis.com"
                     />
@@ -208,7 +210,8 @@ export default function LandingPage() {
                       <input
                         type={showPassword ? "text" : "password"}
                         id="password"
-                        className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                        className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                        style={{'--tw-ring-color': 'var(--brand-secondary)'} as React.CSSProperties}
                         placeholder="Enter your password"
                         defaultValue="sigmund123_"
                       />
@@ -232,7 +235,8 @@ export default function LandingPage() {
                         <input
                           type={showConfirmPassword ? "text" : "password"}
                           id="confirmPassword"
-                          className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                          className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                          style={{'--tw-ring-color': 'var(--brand-secondary)'} as React.CSSProperties}
                           placeholder="Re-enter your password"
                         />
                         <button
@@ -249,7 +253,7 @@ export default function LandingPage() {
 
                   <Link
                     href="/cabinet"
-                    className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white py-3 px-6 rounded-lg font-semibold hover:from-emerald-700 hover:to-teal-700 transition-colors flex items-center justify-center space-x-2"
+                    className="w-full bg-brand-secondary text-white py-3 px-6 rounded-lg font-semibold bg-brand-secondary-hover transition-colors flex items-center justify-center space-x-2"
                   >
                     <span>{isSignUp ? 'Begin Therapy' : 'Enter Cabinet'}</span>
                     <ArrowRight className="h-5 w-5" />
@@ -261,7 +265,7 @@ export default function LandingPage() {
                     {isSignUp ? 'Already a patient?' : 'New to financial therapy?'}{' '}
                     <button
                       onClick={() => setIsSignUp(!isSignUp)}
-                      className="text-emerald-600 hover:text-emerald-700 font-medium"
+                      className="text-brand-secondary text-brand-secondary-hover font-medium"
                     >
                       {isSignUp ? 'Check In' : 'Start Journey'}
                     </button>
@@ -297,7 +301,7 @@ export default function LandingPage() {
               </div>
               <h2 className="text-5xl font-bold text-gray-900 mb-6 leading-tight">
                 Your Complete{' '}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-600">
+                <span className="text-brand-secondary font-bold">
                   Financial Therapy
                 </span>{' '}
                 Toolkit
@@ -313,7 +317,7 @@ export default function LandingPage() {
               {/* AI Chat Therapy */}
               <div className="group bg-white/90 backdrop-blur-sm rounded-3xl p-8 border border-gray-200/50 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2">
                 <div className="relative mb-6">
-                  <div className="w-16 h-16 bg-gradient-to-br from-emerald-600 to-teal-700 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                  <div className="w-16 h-16 bg-brand-secondary rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
                     <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                     </svg>
@@ -328,7 +332,7 @@ export default function LandingPage() {
                   understands context, remembers your journey, and provides personalized insights 
                   that evolve with your financial growth.
                 </p>
-                <div className="flex items-center text-sm text-emerald-600 font-medium">
+                <div className="flex items-center text-sm text-brand-secondary font-medium">
                   <span>Start Conversation</span>
                   <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                 </div>
