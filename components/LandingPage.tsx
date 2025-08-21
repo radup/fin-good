@@ -21,7 +21,7 @@ export default function LandingPage() {
             <div className="flex justify-between items-center py-3">
               <div className="flex items-center">
                 <img 
-                  src="/spends-analysis-logo.svg" 
+                  src="/spends-analysis-logo.png" 
                   alt="Spend's Analysis Logo" 
                   className="h-12 w-auto"
                   onError={(e) => {
@@ -450,7 +450,7 @@ export default function LandingPage() {
             <div className="md:col-span-2">
               <div className="flex items-center space-x-3 mb-6">
                 <img 
-                  src="/spends-analysis-logo.svg" 
+                  src="/spends-analysis-logo.png" 
                   alt="Spend's Analysis Logo" 
                   className="h-16 w-auto brightness-0 invert"
                   onError={(e) => {
