@@ -166,7 +166,7 @@ const EnhancedAnalytics: React.FC = () => {
                       {performanceMetrics.api_response_times.average.toFixed(1)}ms
                     </p>
                   </div>
-                  <BarChart3 className="w-8 h-8 text-blue-500" />
+                  <BarChart3 className="w-8 h-8 text-brand-primary" />
                 </div>
               </div>
               <div className="bg-white p-4 rounded-lg border">
@@ -188,7 +188,7 @@ const EnhancedAnalytics: React.FC = () => {
                       {performanceMetrics.system_health.uptime.toFixed(1)}h
                     </p>
                   </div>
-                  <TrendingUp className="w-8 h-8 text-purple-500" />
+                  <TrendingUp className="w-8 h-8 text-brand-primary" />
                 </div>
               </div>
               <div className="bg-white p-4 rounded-lg border">
@@ -217,12 +217,12 @@ const EnhancedAnalytics: React.FC = () => {
                 </div>
                 
                 <div className="space-y-4">
-                  <div className="bg-blue-50 border border-blue-200 rounded p-4">
-                    <h4 className="font-medium text-blue-900 mb-2">Spending Forecast</h4>
-                    <p className="text-2xl font-bold text-blue-900">
+                  <div className="bg-brand-primary-lightest border border-brand-primary-light rounded p-4">
+                    <h4 className="font-medium text-brand-primary mb-2">Spending Forecast</h4>
+                    <p className="text-2xl font-bold text-brand-primary">
                       ${predictiveInsights.spending_forecast[0]?.predicted_amount.toLocaleString() || 0}
                     </p>
-                    <p className="text-sm text-blue-700">
+                    <p className="text-sm text-brand-primary">
                       Predicted for next month
                     </p>
                   </div>
@@ -232,7 +232,7 @@ const EnhancedAnalytics: React.FC = () => {
                     <ul className="space-y-1">
                       {predictiveInsights.budget_recommendations.slice(0, 3).map((rec, index) => (
                         <li key={index} className="text-sm text-gray-600 flex items-center">
-                          <div className="w-2 h-2 bg-blue-500 rounded-full mr-2" />
+                          <div className="w-2 h-2 bg-brand-primary rounded-full mr-2" />
                           {rec.category}: ${rec.recommended_budget.toLocaleString()}
                         </li>
                       ))}
@@ -302,7 +302,7 @@ const EnhancedAnalytics: React.FC = () => {
                   <div className="space-y-2">
                     {vendorAnalysis.vendor_insights.top_vendors.slice(0, 3).map((vendor, index) => (
                       <div key={index} className="text-sm text-gray-600 flex items-center">
-                        <div className="w-2 h-2 bg-purple-500 rounded-full mr-2" />
+                        <div className="w-2 h-2 bg-brand-primary rounded-full mr-2" />
                         {vendor.vendor}: ${vendor.total_spent.toLocaleString()}
                       </div>
                     ))}

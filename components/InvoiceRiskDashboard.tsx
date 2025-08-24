@@ -358,7 +358,7 @@ export default function InvoiceRiskDashboard() {
                 <button className="bg-yellow-600 text-white px-3 py-1.5 rounded text-sm hover:bg-yellow-700 transition-colors">
                   Email Payment Reminders
                 </button>
-                <button className="bg-blue-600 text-white px-3 py-1.5 rounded text-sm hover:bg-blue-700 transition-colors">
+                <button className="bg-brand-gradient text-white px-3 py-1.5 rounded text-sm transition-all duration-300 shadow-sm hover:shadow-lg transform hover:scale-105">
                   Update Payment Terms
                 </button>
                 <button className="bg-green-600 text-white px-3 py-1.5 rounded text-sm hover:bg-green-700 transition-colors">
@@ -766,7 +766,7 @@ export default function InvoiceRiskDashboard() {
         <div className="bg-white rounded-lg p-6 border border-gray-200">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Bulk Actions</h3>
           <div className="flex flex-wrap gap-3">
-            <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2">
+                            <button className="bg-brand-gradient text-white px-4 py-2 rounded-lg transition-all duration-300 shadow-sm hover:shadow-lg transform hover:scale-105 flex items-center space-x-2">
               <Send className="w-4 h-4" />
               <span>Send Reminders</span>
             </button>
@@ -1194,7 +1194,7 @@ export default function InvoiceRiskDashboard() {
           <p className="text-gray-600 mt-1">Monitor client payment patterns, predict risks, and optimize cash flow</p>
         </div>
         <div className="flex space-x-3">
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2">
+                          <button className="px-4 py-2 bg-brand-gradient text-white rounded-lg transition-all duration-300 shadow-sm hover:shadow-lg transform hover:scale-105 flex items-center space-x-2">
             <Send className="w-4 h-4" />
             <span>Send Reminders</span>
           </button>

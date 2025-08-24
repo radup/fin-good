@@ -338,7 +338,7 @@ export default function FeedbackForm({
             className={`px-4 py-2 text-sm font-medium rounded-md transition-colors flex items-center ${
               isSubmitting || (feedbackType === 'suggest_alternative' && !suggestedCategory.trim())
                 ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                : 'bg-blue-600 text-white hover:bg-blue-700'
+                : 'bg-brand-gradient text-white transition-all duration-300 shadow-sm hover:shadow-lg transform hover:scale-105'
             }`}
           >
             {isSubmitting ? (

@@ -736,7 +736,7 @@ export function ErrorFallback({
             {error?.recovery?.strategy === 'session_restore' && onRecover && (
               <button
                 onClick={onRecover}
-                className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded font-medium text-sm transition-colors"
+                className="inline-flex items-center px-4 py-2 bg-brand-gradient text-white rounded font-medium text-sm transition-all duration-300 shadow-sm hover:shadow-lg transform hover:scale-105"
               >
                 <LogIn className="w-4 h-4 mr-2" />
                 Restore Session

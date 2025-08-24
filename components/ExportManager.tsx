@@ -176,7 +176,7 @@ export function ExportManager() {
     switch (status) {
       case 'completed': return <CheckCircle className="w-4 h-4 text-green-500" />
       case 'failed': return <XCircle className="w-4 h-4 text-red-500" />
-      case 'processing': return <RefreshCw className="w-4 h-4 text-blue-500 animate-spin" />
+      case 'processing': return <RefreshCw className="w-4 h-4 text-teal-500 animate-spin" />
       case 'pending': return <Clock className="w-4 h-4 text-yellow-500" />
       case 'cancelled': return <XCircle className="w-4 h-4 text-gray-500" />
       default: return <AlertCircle className="w-4 h-4 text-gray-500" />
@@ -187,7 +187,7 @@ export function ExportManager() {
     switch (status) {
       case 'completed': return 'text-green-600 bg-green-50 border-green-200'
       case 'failed': return 'text-red-600 bg-red-50 border-red-200'
-      case 'processing': return 'text-blue-600 bg-blue-50 border-blue-200'
+      case 'processing': return 'text-teal-600 bg-teal-50 border-teal-200'
       case 'pending': return 'text-yellow-600 bg-yellow-50 border-yellow-200'
       case 'cancelled': return 'text-gray-600 bg-gray-50 border-gray-200'
       default: return 'text-gray-600 bg-gray-50 border-gray-200'
@@ -206,7 +206,7 @@ export function ExportManager() {
           <button
             onClick={loadExportHistory}
             disabled={isLoading}
-            className="btn-secondary flex items-center gap-2"
+            className="bg-gray-200 hover:bg-gray-300 text-gray-900 font-medium py-2 px-4 rounded-lg transition-colors duration-200 flex items-center gap-2"
           >
             <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
             Refresh
@@ -224,7 +224,7 @@ export function ExportManager() {
         )}
 
         {/* Create Export Job */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200 p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Create New Export</h3>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
@@ -236,7 +236,7 @@ export function ExportManager() {
               <select
                 value={selectedFormat}
                 onChange={(e) => setSelectedFormat(e.target.value as any)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
               >
                 <option value="csv">CSV</option>
                 <option value="excel">Excel</option>
@@ -255,7 +255,7 @@ export function ExportManager() {
                 value={exportName}
                 onChange={(e) => setExportName(e.target.value)}
                 placeholder="My Export"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
               />
             </div>
 
@@ -264,7 +264,7 @@ export function ExportManager() {
               <button
                 onClick={createExportJob}
                 disabled={isCreatingJob}
-                className="btn-primary w-full flex items-center justify-center gap-2"
+                className="w-full bg-brand-gradient text-white py-3 px-6 rounded-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center gap-2"
               >
                 {isCreatingJob ? (
                   <>
@@ -282,7 +282,7 @@ export function ExportManager() {
           </div>
 
           {/* Format Information */}
-          <div className="bg-gray-50 rounded-md p-4">
+          <div className="bg-white/40 backdrop-blur-sm rounded-xl p-4 border border-gray-100">
             <h4 className="text-sm font-medium text-gray-900 mb-2">Format Information</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
               <div>
@@ -302,8 +302,8 @@ export function ExportManager() {
         </div>
 
         {/* Export History */}
-        <div className="bg-white rounded-lg border border-gray-200">
-          <div className="px-6 py-4 border-b border-gray-200">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200">
+          <div className="px-6 py-4 border-b border-gray-200/50">
             <h3 className="text-lg font-semibold text-gray-900">Export History</h3>
           </div>
           
@@ -320,7 +320,7 @@ export function ExportManager() {
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+                <thead className="bg-white/40 backdrop-blur-sm">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Export
@@ -339,7 +339,7 @@ export function ExportManager() {
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-white/20 backdrop-blur-sm divide-y divide-gray-200/50">
                   {exportJobs.map((job) => (
                     <tr key={job.job_id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -381,7 +381,7 @@ export function ExportManager() {
                           {job.status === 'completed' && job.download_url && (
                             <button
                               onClick={() => downloadExport(job)}
-                              className="text-blue-600 hover:text-blue-900 flex items-center gap-1"
+                              className="text-teal-600 hover:text-teal-800 flex items-center gap-1 font-medium transition-colors duration-200"
                             >
                               <Download className="w-4 h-4" />
                               Download
@@ -390,7 +390,7 @@ export function ExportManager() {
                           {(job.status === 'pending' || job.status === 'processing') && (
                             <button
                               onClick={() => cancelExportJob(job.job_id)}
-                              className="text-red-600 hover:text-red-900"
+                              className="text-red-600 hover:text-red-800 font-medium transition-colors duration-200"
                             >
                               Cancel
                             </button>

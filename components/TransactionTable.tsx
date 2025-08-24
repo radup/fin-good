@@ -497,7 +497,7 @@ export function TransactionTable({ transactions: initialTransactions, isLoading,
 						<button
 							onClick={applyBulkCategorization}
 							disabled={isApplyingBulk || selectedIds.size === 0 || !bulkCategory}
-							className="btn-primary disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+							className="bg-brand-gradient text-white px-4 py-2 rounded-lg font-medium transition-all duration-300 shadow-sm hover:shadow-lg transform hover:scale-105 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-brand-primary"
 						>
 							{isApplyingBulk ? 'Categorizing...' : `Categorize ${selectedIds.size} selected`}
 						</button>

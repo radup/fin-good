@@ -95,7 +95,7 @@ const AIConfidenceDisplay: React.FC<AIConfidenceDisplayProps> = ({
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <span className="font-medium text-gray-900">AI Suggestion:</span>
-          <span className="font-semibold text-blue-600">{category}</span>
+                          <span className="font-semibold text-brand-primary">{category}</span>
         </div>
         <span className={`px-3 py-1 rounded-full text-xs font-medium border ${confidenceColorClasses[confidenceInfo.level]}`}>
           {confidence}% confident
@@ -103,9 +103,9 @@ const AIConfidenceDisplay: React.FC<AIConfidenceDisplayProps> = ({
       </div>
       
       {reasoning && (
-        <div className="mb-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
-          <p className="text-xs font-medium text-blue-800 mb-1">Why this category?</p>
-          <p className="text-sm text-blue-700">{reasoning}</p>
+        <div className="mb-3 p-3 bg-brand-primary-lightest rounded-lg border border-brand-primary-light">
+          <p className="text-xs font-medium text-brand-primary mb-1">Why this category?</p>
+          <p className="text-sm text-brand-primary">{reasoning}</p>
         </div>
       )}
       

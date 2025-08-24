@@ -30,7 +30,7 @@
   --gradient-empowerment: linear-gradient(135deg, #D1FAE5 0%, #E0F2FE 100%);
   --gradient-celebration: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
   
-  /* Custom brand colors */
+  /* Custom brand colors - Updated to match home page */
   --brand-secondary: #1389a9;
   --brand-secondary-hover: #0f7a96;
   --brand-secondary-light: #4aa3c2;
@@ -38,6 +38,13 @@
   --brand-secondary-lightest: #e6f6fb;
   --brand-gradient: linear-gradient(135deg, #1389a9 0%, #62d3f2 100%);
   --brand-gradient-hover: linear-gradient(135deg, #0f7a96 0%, #4fc3e8 100%);
+  
+  /* Primary brand colors for consistency */
+  --brand-primary: #1389a9;
+  --brand-primary-hover: #0f7a96;
+  --brand-primary-light: #4aa3c2;
+  --brand-primary-lighter: #bde3f0;
+  --brand-primary-lightest: #e6f6fb;
 }
 
 /* Therapeutic utility classes */
@@ -140,6 +147,47 @@
   background: var(--brand-gradient-hover) !important;
 }
 
+/* Primary brand color utilities */
+.bg-brand-primary {
+  background-color: var(--brand-primary) !important;
+}
+
+.bg-brand-primary-hover:hover {
+  background-color: var(--brand-primary-hover) !important;
+}
+
+.bg-brand-primary-light {
+  background-color: var(--brand-primary-light) !important;
+}
+
+.bg-brand-primary-lighter {
+  background-color: var(--brand-primary-lighter) !important;
+}
+
+.bg-brand-primary-lightest {
+  background-color: var(--brand-primary-lightest) !important;
+}
+
+.text-brand-primary {
+  color: var(--brand-primary) !important;
+}
+
+.text-brand-primary-light {
+  color: var(--brand-primary-light) !important;
+}
+
+.text-brand-primary-hover:hover {
+  color: var(--brand-primary-hover) !important;
+}
+
+.border-brand-primary {
+  border-color: var(--brand-primary) !important;
+}
+
+.border-brand-primary-light {
+  border-color: var(--brand-primary-light) !important;
+}
+
 /* Dr. Sigmund brand gradient utilities */
 .dr-sigmund-gradient {
   background: var(--brand-gradient) !important;
@@ -224,7 +272,7 @@
   }
   
   .card {
-    @apply bg-white rounded-lg shadow-sm border border-gray-200 p-6;
+    @apply bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200 p-6;
   }
   
   .table-container {

@@ -559,7 +559,7 @@ What feels most important to address right now?`,
               </div>
               <div className="bg-white rounded-lg p-3">
                 <div className="font-medium text-gray-800">Risk Score</div>
-                <div className="text-lg font-bold text-blue-600">{data.riskScore}/100</div>
+                <div className="text-lg font-bold text-brand-primary">{data.riskScore}/100</div>
               </div>
             </div>
           </div>
@@ -579,11 +579,11 @@ What feels most important to address right now?`,
               </div>
               <div className="bg-white rounded-lg p-2 text-center">
                 <div className="font-medium text-gray-600">Growth</div>
-                <div className="text-sm font-bold text-blue-600">{data.trends.growthRate}%</div>
+                <div className="text-sm font-bold text-brand-primary">{data.trends.growthRate}%</div>
               </div>
               <div className="bg-white rounded-lg p-2 text-center">
                 <div className="font-medium text-gray-600">Volatility</div>
-                <div className="text-sm font-bold text-purple-600">{data.trends.volatility}</div>
+                <div className="text-sm font-bold text-brand-primary">{data.trends.volatility}</div>
               </div>
             </div>
           </div>
@@ -611,17 +611,17 @@ What feels most important to address right now?`,
         <div className={`rounded-2xl p-4 max-w-lg ${
           isUser 
             ? 'bg-gray-100 rounded-tr-md' 
-            : 'bg-gradient-to-r from-purple-50 to-blue-50 rounded-tl-md border border-purple-100'
+                          : 'bg-gradient-to-r from-brand-primary-lightest to-brand-primary-lighter rounded-tl-md border border-brand-primary-light'
         }`}>
           {/* Enhanced Message Type Indicator */}
           {!isUser && message.type !== 'text' && (
-            <div className="flex items-center space-x-2 mb-3 pb-2 border-b border-purple-100">
+            <div className="flex items-center space-x-2 mb-3 pb-2 border-b border-brand-primary-light">
               {message.type === 'insight' && <Lightbulb className="h-4 w-4 text-yellow-500" />}
-              {message.type === 'recommendation' && <Target className="h-4 w-4 text-purple-500" />}
+                              {message.type === 'recommendation' && <Target className="h-4 w-4 text-brand-primary" />}
               {message.type === 'tool_result' && <Zap className="h-4 w-4 text-indigo-500" />}
               {message.type === 'scenario_analysis' && <Brain className="h-4 w-4 text-indigo-500" />}
               
-              <span className="text-xs font-medium text-purple-600 capitalize">
+                              <span className="text-xs font-medium text-brand-primary capitalize">
                 {message.type === 'tool_result' ? `${message.metadata?.financialTool || 'Financial Tool'} Analysis` :
                  message.type === 'insight' ? 'Therapeutic Insight' : 
                  message.type === 'recommendation' ? 'Personalized Recommendation' : 
@@ -629,7 +629,7 @@ What feels most important to address right now?`,
               </span>
               
               {message.metadata?.confidence && (
-                <span className="text-xs text-purple-500">
+                <span className="text-xs text-brand-primary">
                   {Math.round(message.metadata.confidence * 100)}% confidence
                 </span>
               )}
@@ -763,12 +763,12 @@ What feels most important to address right now?`,
   }
 
   return (
-    <div className="flex flex-col h-full bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 p-4">
+    <div className="flex flex-col h-full bg-gradient-to-br from-brand-primary-lightest via-brand-primary-lighter to-brand-primary-light p-4">
       {/* Main Chat Card */}
       <div className="max-w-3xl mx-auto w-full h-full">
         <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden h-full flex flex-col">
           {/* Enhanced Chat Header */}
-          <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-4 flex-shrink-0">
+          <div className="bg-gradient-to-r from-brand-primary to-brand-primary-light p-4 flex-shrink-0">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <DrSigmundSpendAvatar size="sm" showMessage={false} animated={true} />
@@ -776,11 +776,11 @@ What feels most important to address right now?`,
                   <h3 className="font-bold text-white">Dr. Sigmund Spend AI</h3>
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                    <span className="text-purple-100 text-sm">Enhanced • Financial Therapist + AI Tools</span>
+                    <span className="text-brand-primary-light text-sm">Enhanced • Financial Therapist + AI Tools</span>
                   </div>
                 </div>
               </div>
-              <div className="flex items-center gap-1 text-purple-100 text-xs">
+              <div className="flex items-center gap-1 text-brand-primary-light text-xs">
                 <Brain className="h-3 w-3" />
                 <span>6 AI Tools Active</span>
               </div>
@@ -795,7 +795,7 @@ What feels most important to address right now?`,
             {isTyping && (
               <div className="flex items-start gap-3">
                 <DrSigmundSpendAvatar size="sm" showMessage={false} isTyping={true} animated={true} />
-                <div className="rounded-2xl p-4 max-w-sm rounded-tl-md bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-100">
+                <div className="rounded-2xl p-4 max-w-sm rounded-tl-md bg-gradient-to-r from-brand-primary-lightest to-brand-primary-lighter border border-brand-primary-light">
                   <div className="flex items-center gap-2">
                     <div className="flex space-x-1">
                       <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce"></div>
@@ -812,7 +812,7 @@ What feels most important to address right now?`,
           </div>
 
           {/* Enhanced Chat Input */}
-          <div className="p-4 border-t border-gray-100 bg-gradient-to-r from-purple-50 to-blue-50">
+          <div className="p-4 border-t border-gray-100 bg-gradient-to-r from-brand-primary-lightest to-brand-primary-lighter">
             <div className="flex items-center gap-2 bg-white rounded-full px-4 py-3 border border-gray-200 shadow-sm">
               <input 
                 type="text" 
@@ -828,7 +828,7 @@ What feels most important to address right now?`,
                 disabled={!inputValue.trim() || isTyping}
                 className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
                   inputValue.trim() && !isTyping
-                    ? 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700'
+                    ? 'bg-gradient-to-r from-brand-primary to-brand-primary-light hover:from-brand-primary-hover hover:to-brand-primary-light'
                     : 'bg-gray-200 cursor-not-allowed'
                 }`}
               >
@@ -846,7 +846,7 @@ What feels most important to address right now?`,
         {/* Enhanced Info Section with Tool Showcase */}
         <div className="mt-8 bg-white rounded-2xl shadow-xl border border-gray-100 p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <Brain className="h-5 w-5 text-indigo-600" />
+            <Brain className="h-5 w-5 text-brand-primary" />
             Enhanced Dr. Sigmund Spend - AI Financial Therapist
           </h3>
           
@@ -859,12 +859,12 @@ What feels most important to address right now?`,
           {/* Available Tools */}
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-4">
             {financialTools.map((tool, index) => (
-              <div key={index} className="bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-xl p-3">
+              <div key={index} className="bg-gradient-to-r from-brand-primary-lightest to-brand-primary-lighter border border-brand-primary-light rounded-xl p-3">
                 <div className="flex items-center gap-2 mb-1">
                   {tool.icon}
-                  <span className="text-xs font-medium text-indigo-800">{tool.name}</span>
+                  <span className="text-xs font-medium text-brand-primary">{tool.name}</span>
                 </div>
-                <p className="text-xs text-indigo-600">{tool.description}</p>
+                <p className="text-xs text-brand-primary">{tool.description}</p>
               </div>
             ))}
           </div>
@@ -888,7 +888,7 @@ What feels most important to address right now?`,
         {/* How It Works Section */}
         <div className="mt-8 bg-white rounded-2xl shadow-xl border border-gray-100 p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <Zap className="h-5 w-5 text-purple-600" />
+            <Zap className="h-5 w-5 text-brand-primary" />
             How Dr. Sigmund's AI Enhancement Works
           </h3>
           
@@ -897,19 +897,19 @@ What feels most important to address right now?`,
               <h4 className="font-medium text-gray-900 mb-3">🧠 Therapeutic Foundation</h4>
               <ul className="space-y-2 text-sm text-gray-700">
                 <li className="flex items-start gap-2">
-                  <span className="text-purple-600 mt-1">•</span>
+                  <span className="text-brand-primary mt-1">•</span>
                   <span>Emotional financial intelligence and anxiety reduction</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-purple-600 mt-1">•</span>
+                  <span className="text-brand-primary mt-1">•</span>
                   <span>Non-judgmental approach to money decisions</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-purple-600 mt-1">•</span>
+                  <span className="text-brand-primary mt-1">•</span>
                   <span>Understanding your relationship with money</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-purple-600 mt-1">•</span>
+                  <span className="text-brand-primary mt-1">•</span>
                   <span>Building confidence through knowledge</span>
                 </li>
               </ul>
@@ -919,19 +919,19 @@ What feels most important to address right now?`,
               <h4 className="font-medium text-gray-900 mb-3">⚡ AI-Powered Analysis</h4>
               <ul className="space-y-2 text-sm text-gray-700">
                 <li className="flex items-start gap-2">
-                  <span className="text-blue-600 mt-1">•</span>
+                  <span className="text-brand-primary mt-1">•</span>
                   <span>Real-time scenario simulations and "what-if" analysis</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-blue-600 mt-1">•</span>
+                  <span className="text-brand-primary mt-1">•</span>
                   <span>Cash flow forecasting with machine learning</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-blue-600 mt-1">•</span>
+                  <span className="text-brand-primary mt-1">•</span>
                   <span>Multi-jurisdiction tax optimization strategies</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-blue-600 mt-1">•</span>
+                  <span className="text-brand-primary mt-1">•</span>
                   <span>Client payment prediction and risk assessment</span>
                 </li>
               </ul>
@@ -940,35 +940,35 @@ What feels most important to address right now?`,
         </div>
 
         {/* Sample Conversations */}
-        <div className="mt-6 bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-2xl p-4">
-          <h4 className="font-medium text-purple-900 mb-3">💬 Try These Conversation Starters</h4>
+        <div className="mt-6 bg-gradient-to-r from-brand-primary-lightest to-brand-primary-lighter border border-brand-primary-light rounded-2xl p-4">
+          <h4 className="font-medium text-brand-primary mb-3">💬 Try These Conversation Starters</h4>
           <div className="grid md:grid-cols-2 gap-3 text-sm">
             <div className="space-y-2">
-              <div className="bg-white rounded-lg p-2 border border-purple-200">
-                <div className="font-medium text-purple-800 text-xs">Scenario Planning</div>
-                <p className="text-purple-700 text-xs">"What if I increase my rates to €95/hour?"</p>
+              <div className="bg-white rounded-lg p-2 border border-brand-primary-light">
+                <div className="font-medium text-brand-primary text-xs">Scenario Planning</div>
+                <p className="text-brand-primary text-xs">"What if I increase my rates to €95/hour?"</p>
               </div>
-              <div className="bg-white rounded-lg p-2 border border-purple-200">
-                <div className="font-medium text-purple-800 text-xs">Cash Flow</div>
-                <p className="text-purple-700 text-xs">"Can you forecast my cash flow for the next 6 months?"</p>
+              <div className="bg-white rounded-lg p-2 border border-brand-primary-light">
+                <div className="font-medium text-brand-primary text-xs">Cash Flow</div>
+                <p className="text-brand-primary text-xs">"Can you forecast my cash flow for the next 6 months?"</p>
               </div>
-              <div className="bg-white rounded-lg p-2 border border-purple-200">
-                <div className="font-medium text-purple-800 text-xs">Tax Optimization</div>
-                <p className="text-purple-700 text-xs">"Help me understand my tax optimization options in Belgium"</p>
+              <div className="bg-white rounded-lg p-2 border border-brand-primary-light">
+                <div className="font-medium text-brand-primary text-xs">Tax Optimization</div>
+                <p className="text-brand-primary text-xs">"Help me understand my tax optimization options in Belgium"</p>
               </div>
             </div>
             <div className="space-y-2">
-              <div className="bg-white rounded-lg p-2 border border-purple-200">
-                <div className="font-medium text-purple-800 text-xs">Client Analysis</div>
-                <p className="text-purple-700 text-xs">"I'm worried about client payments - can you analyze the risks?"</p>
+              <div className="bg-white rounded-lg p-2 border border-brand-primary-light">
+                <div className="font-medium text-brand-primary text-xs">Client Analysis</div>
+                <p className="text-brand-primary text-xs">"I'm worried about client payments - can you analyze the risks?"</p>
               </div>
-              <div className="bg-white rounded-lg p-2 border border-purple-200">
-                <div className="font-medium text-purple-800 text-xs">Investment Planning</div>
-                <p className="text-purple-700 text-xs">"What should I do with my surplus cash?"</p>
+              <div className="bg-white rounded-lg p-2 border border-brand-primary-light">
+                <div className="font-medium text-brand-primary text-xs">Investment Planning</div>
+                <p className="text-brand-primary text-xs">"What should I do with my surplus cash?"</p>
               </div>
-              <div className="bg-white rounded-lg p-2 border border-purple-200">
-                <div className="font-medium text-purple-800 text-xs">Emotional Support</div>
-                <p className="text-purple-700 text-xs">"I'm feeling anxious about my financial future"</p>
+              <div className="bg-white rounded-lg p-2 border border-brand-primary-light">
+                <div className="font-medium text-brand-primary text-xs">Emotional Support</div>
+                <p className="text-brand-primary text-xs">"I'm feeling anxious about my financial future"</p>
               </div>
             </div>
           </div>
@@ -986,12 +986,12 @@ What feels most important to address right now?`,
             />
             <div className="flex-1">
               <h4 className="font-medium text-gray-900 mb-2">Dr. Sigmund's Enhanced Philosophy</h4>
-              <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-xl p-3">
-                <p className="text-xs text-purple-800 leading-relaxed mb-2">
+              <div className="bg-gradient-to-r from-brand-primary-lightest to-brand-primary-lighter border border-brand-primary-light rounded-xl p-3">
+                <p className="text-xs text-brand-primary leading-relaxed mb-2">
                   "Technology should enhance human connection, not replace it. My AI capabilities are tools to provide you with 
                   better insights and reduce financial uncertainty, but the heart of our work together remains deeply human."
                 </p>
-                <p className="text-xs text-purple-800 leading-relaxed">
+                <p className="text-xs text-brand-primary leading-relaxed">
                   "Whether I'm running complex financial simulations or simply listening to your money worries, my goal is the same: 
                   to help you feel more confident, informed, and emotionally secure in your financial journey."
                 </p>

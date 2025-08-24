@@ -73,6 +73,20 @@ module.exports = {
         'calm-green': '#059669',
         'warm-gold': '#F59E0B',
         'soft-background': '#F8FAFC',
+        
+        // Brand colors (matching home page)
+        'brand': {
+          'primary': '#1389a9',
+          'primary-hover': '#0f7a96',
+          'primary-light': '#4aa3c2',
+          'primary-lighter': '#bde3f0',
+          'primary-lightest': '#e6f6fb',
+          'secondary': '#1389a9',
+          'secondary-hover': '#0f7a96',
+          'secondary-light': '#4aa3c2',
+          'secondary-lighter': '#bde3f0',
+          'secondary-lightest': '#e6f6fb',
+        },
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],

@@ -66,7 +66,7 @@ export default function Breadcrumbs({ className = '' }: BreadcrumbsProps) {
             )}
             
             {item.current ? (
-              <span className="text-sm font-medium text-gray-500">
+              <span className="text-sm font-medium text-gray-300">
                 {item.name === 'Home' ? (
                   <Home className="w-4 h-4" />
                 ) : (
@@ -76,7 +76,7 @@ export default function Breadcrumbs({ className = '' }: BreadcrumbsProps) {
             ) : (
               <Link
                 href={item.href}
-                className="text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors flex items-center"
+                className="text-sm font-medium text-gray-400 hover:text-white transition-colors flex items-center"
               >
                 {item.name === 'Home' ? (
                   <Home className="w-4 h-4" />

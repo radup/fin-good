@@ -98,8 +98,14 @@ export default function CategorizationPerformance({
     fetchPerformanceData()
   }, [])
 
-  const formatPercentage = (value: number) => `${(value * 100).toFixed(1)}%`
-  const formatNumber = (value: number) => value.toLocaleString()
+  const formatPercentage = (value: number | undefined | null) => {
+    if (value === undefined || value === null) return '0.0%'
+    return `${(value * 100).toFixed(1)}%`
+  }
+  const formatNumber = (value: number | undefined | null) => {
+    if (value === undefined || value === null) return '0'
+    return value.toLocaleString()
+  }
 
   if (loading) {
     return (
@@ -148,7 +154,7 @@ export default function CategorizationPerformance({
     )
   }
 
-  const { overall_metrics } = performanceData
+  const { overall_metrics } = performanceData || {}
 
   return (
     <div className={`bg-white rounded-lg shadow-sm border ${className}`}>
@@ -177,7 +183,7 @@ export default function CategorizationPerformance({
               <div>
                 <p className="text-sm font-medium text-blue-700">Total Transactions</p>
                 <p className="text-2xl font-bold text-blue-900">
-                  {formatNumber(overall_metrics.total_transactions)}
+                  {formatNumber(overall_metrics?.total_transactions)}
                 </p>
               </div>
               <BarChart3 className="w-8 h-8 text-blue-600" />
@@ -189,10 +195,14 @@ export default function CategorizationPerformance({
               <div>
                 <p className="text-sm font-medium text-green-700">Categorized</p>
                 <p className="text-2xl font-bold text-green-900">
-                  {formatNumber(overall_metrics.categorized_count)}
+                  {formatNumber(overall_metrics?.categorized_count)}
                 </p>
                 <p className="text-sm text-green-600">
-                  {formatPercentage(overall_metrics.categorized_count / overall_metrics.total_transactions)}
+                  {formatPercentage(
+                    overall_metrics?.total_transactions && overall_metrics?.categorized_count 
+                      ? overall_metrics.categorized_count / overall_metrics.total_transactions 
+                      : 0
+                  )}
                 </p>
               </div>
               <CheckCircle className="w-8 h-8 text-green-600" />
@@ -204,7 +214,7 @@ export default function CategorizationPerformance({
               <div>
                 <p className="text-sm font-medium text-purple-700">Accuracy Rate</p>
                 <p className="text-2xl font-bold text-purple-900">
-                  {formatPercentage(overall_metrics.accuracy_rate)}
+                  {formatPercentage(overall_metrics?.accuracy_rate)}
                 </p>
               </div>
               <Target className="w-8 h-8 text-purple-600" />
@@ -216,7 +226,7 @@ export default function CategorizationPerformance({
               <div>
                 <p className="text-sm font-medium text-orange-700">Avg Confidence</p>
                 <p className="text-2xl font-bold text-orange-900">
-                  {formatPercentage(overall_metrics.average_confidence)}
+                  {formatPercentage(overall_metrics?.average_confidence)}
                 </p>
               </div>
               <Brain className="w-8 h-8 text-orange-600" />

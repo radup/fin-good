@@ -44,7 +44,7 @@ interface AdvancedAIExplanationProps {
 
 const CONFIDENCE_LEVELS = {
   very_high: { min: 90, label: 'Very High', color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-200' },
-  high: { min: 75, label: 'High', color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200' },
+  high: { min: 75, label: 'High', color: 'text-brand-primary', bg: 'bg-brand-primary-lightest', border: 'border-brand-primary-light' },
   medium: { min: 60, label: 'Medium', color: 'text-yellow-600', bg: 'bg-yellow-50', border: 'border-yellow-200' },
   low: { min: 40, label: 'Low', color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-200' },
   very_low: { min: 0, label: 'Very Low', color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-200' }
@@ -127,9 +127,9 @@ export default function AdvancedAIExplanation({
       <div className="card therapeutic-transition">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <Brain className="w-6 h-6 text-blue-600" />
-            </div>
+                    <div className="p-2 bg-brand-primary-lightest rounded-lg">
+          <Brain className="w-6 h-6 text-brand-primary" />
+        </div>
             <div>
               <h3 className="text-lg font-semibold text-gray-900">AI Reasoning</h3>
               <p className="text-sm text-gray-600">How I categorized this transaction</p>
@@ -144,11 +144,11 @@ export default function AdvancedAIExplanation({
         </div>
 
         {/* Category Display */}
-        <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+        <div className="mb-4 p-4 bg-brand-primary-lightest rounded-lg border border-brand-primary-light">
           <div className="flex items-center justify-between">
             <div>
-              <h4 className="font-medium text-blue-900">Suggested Category</h4>
-              <p className="text-lg font-semibold text-blue-800">{reasoning.category}</p>
+              <h4 className="font-medium text-brand-primary">Suggested Category</h4>
+              <p className="text-lg font-semibold text-brand-primary">{reasoning.category}</p>
             </div>
             <div className="flex gap-2">
               <button
@@ -182,8 +182,8 @@ export default function AdvancedAIExplanation({
           <div className="mt-4 space-y-3">
             {reasoning.reasoning.map((point, index) => (
               <div key={index} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                <div className="flex-shrink-0 w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
-                  <span className="text-xs font-medium text-blue-600">{index + 1}</span>
+                <div className="flex-shrink-0 w-6 h-6 bg-brand-primary-lightest rounded-full flex items-center justify-center">
+                  <span className="text-xs font-medium text-brand-primary">{index + 1}</span>
                 </div>
                 <p className="text-gray-700">{point}</p>
               </div>
@@ -199,7 +199,7 @@ export default function AdvancedAIExplanation({
           onClick={() => toggleSection('factors')}
         >
           <div className="flex items-center gap-3">
-            <BarChart3 className="w-5 h-5 text-purple-600" />
+            <BarChart3 className="w-5 h-5 text-brand-primary" />
             <h3 className="text-lg font-medium text-gray-900">Decision Factors</h3>
           </div>
           <span className="text-sm text-gray-500">
@@ -295,15 +295,15 @@ export default function AdvancedAIExplanation({
                 <p className="text-sm text-green-600">Current accuracy rate</p>
               </div>
 
-              <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <div className="p-4 bg-brand-primary-lightest rounded-lg border border-brand-primary-light">
                 <div className="flex items-center gap-2 mb-2">
-                  <Zap className="w-4 h-4 text-blue-600" />
-                  <h4 className="font-medium text-blue-900">Last Updated</h4>
+                  <Zap className="w-4 h-4 text-brand-primary" />
+                  <h4 className="font-medium text-brand-primary">Last Updated</h4>
                 </div>
-                <p className="text-sm font-medium text-blue-800">
+                <p className="text-sm font-medium text-brand-primary">
                   {reasoning.learningData.lastUpdated.toLocaleDateString()}
                 </p>
-                <p className="text-sm text-blue-600">Model training date</p>
+                <p className="text-sm text-brand-primary">Model training date</p>
               </div>
             </div>
           )}

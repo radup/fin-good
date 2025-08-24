@@ -284,7 +284,7 @@ export default function EnhancedAnalyticsDashboard() {
             <option value="medium">Medium Confidence (70-89%)</option>
             <option value="low">Low Confidence (50-69%)</option>
           </select>
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2">
+          <button className="px-4 py-2 bg-brand-gradient text-white rounded-lg transition-all duration-300 shadow-sm hover:shadow-lg transform hover:scale-105 flex items-center space-x-2">
             <RefreshCw className="w-4 h-4" />
             <span>Retrain Model</span>
           </button>
@@ -1073,7 +1073,7 @@ export default function EnhancedAnalyticsDashboard() {
           <p className="text-gray-600 mt-1">AI-powered expense categorization and business intelligence</p>
         </div>
         <div className="flex space-x-3">
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2">
+          <button className="px-4 py-2 bg-brand-gradient text-white rounded-lg transition-all duration-300 shadow-sm hover:shadow-lg transform hover:scale-105 flex items-center space-x-2">
             <Download className="w-4 h-4" />
             <span>Export Analysis</span>
           </button>

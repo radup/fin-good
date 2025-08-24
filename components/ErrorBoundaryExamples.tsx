@@ -236,7 +236,7 @@ export function RecoveryManager() {
       <div className="flex gap-2 mt-3">
         <button
           onClick={handleRestore}
-          className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
+                          className="px-3 py-1 bg-brand-gradient text-white text-sm rounded transition-all duration-300 shadow-sm hover:shadow-lg transform hover:scale-105"
         >
           Restore
         </button>

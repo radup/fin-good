@@ -39,12 +39,13 @@ import AutoImprovement from './AutoImprovement'
 import SuggestionDisplay from './SuggestionDisplay'
 import DashboardComponent from '@/app/DashboardComponent'
 import { ExportManager } from '@/components/ExportManager'
+import UserProfile from './UserProfile'
 
 export default function CabinetLayout() {
   const [activeSection, setActiveSection] = useState('dashboard')
 
   return (
-    <div className="h-screen bg-gray-50 flex">
+    <div className="h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-green-50 flex">
       {/* Navigation */}
       <div className="w-64 flex-shrink-0">
         <CabinetNavigation 
@@ -56,7 +57,10 @@ export default function CabinetLayout() {
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <CabinetHeader title="Cabinet" />
+        <CabinetHeader 
+          title="Cabinet" 
+          onUserProfileClick={() => setActiveSection('user-profile')}
+        />
 
         {/* Main Content Interface */}
         <div className="flex-1 overflow-y-auto">
@@ -77,7 +81,7 @@ export default function CabinetLayout() {
             ) : activeSection === 'new-session' ? (
               <div className="h-full flex flex-col space-y-6">
                 {/* Enhanced Header Section */}
-                <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-2xl p-6 border border-purple-100">
+                <div className="bg-gradient-to-r from-brand-primary-lightest to-brand-primary-lighter rounded-2xl p-6 border border-brand-primary-light shadow-lg">
                   <div className="flex items-center justify-between">
                     <div>
                       <h1 className="text-3xl font-bold text-gray-900">New Session</h1>
@@ -93,7 +97,7 @@ export default function CabinetLayout() {
                 </div>
 
                 {/* Pre-Session Quick Check */}
-                <div className="bg-white rounded-lg shadow border border-gray-200 p-4">
+                <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-gray-200/50 p-4">
                   <h3 className="text-sm font-medium text-gray-900 mb-3">Before We Begin</h3>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                     <div className="flex items-center space-x-2">
@@ -112,19 +116,19 @@ export default function CabinetLayout() {
                 </div>
 
                 {/* Session Focus Quick Selector */}
-                <div className="bg-white rounded-lg shadow border border-gray-200 p-4">
+                <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-gray-200/50 p-4">
                   <h3 className="text-sm font-medium text-gray-900 mb-3">What would you like to focus on today?</h3>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                    <button className="px-3 py-2 text-xs bg-gray-50 hover:bg-purple-50 hover:text-purple-700 rounded-lg border border-gray-200 transition-colors">
+                    <button className="px-3 py-2 text-xs bg-brand-gradient text-white rounded-lg border border-transparent transition-all duration-300 shadow-sm hover:shadow-lg transform hover:scale-105">
                       Cash Flow
                     </button>
-                    <button className="px-3 py-2 text-xs bg-gray-50 hover:bg-purple-50 hover:text-purple-700 rounded-lg border border-gray-200 transition-colors">
+                    <button className="px-3 py-2 text-xs bg-brand-gradient text-white rounded-lg border border-transparent transition-all duration-300 shadow-sm hover:shadow-lg transform hover:scale-105">
                       Tax Planning
                     </button>
-                    <button className="px-3 py-2 text-xs bg-gray-50 hover:bg-purple-50 hover:text-purple-700 rounded-lg border border-gray-200 transition-colors">
+                    <button className="px-3 py-2 text-xs bg-brand-gradient text-white rounded-lg border border-transparent transition-all duration-300 shadow-sm hover:shadow-lg transform hover:scale-105">
                       Investment Anxiety
                     </button>
-                    <button className="px-3 py-2 text-xs bg-gray-50 hover:bg-purple-50 hover:text-purple-700 rounded-lg border border-gray-200 transition-colors">
+                    <button className="px-3 py-2 text-xs bg-brand-gradient text-white rounded-lg border border-transparent transition-all duration-300 shadow-sm hover:shadow-lg transform hover:scale-105">
                       General Discussion
                     </button>
                   </div>
@@ -145,7 +149,7 @@ export default function CabinetLayout() {
                 </div>
                 <div className="space-y-4">
                   {/* Recent Session */}
-                  <div className="bg-white rounded-lg shadow border border-gray-200 p-6">
+                  <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-gray-200/50 p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <h3 className="text-lg font-medium text-gray-900">Cash Flow Anxiety Discussion</h3>
@@ -163,14 +167,14 @@ export default function CabinetLayout() {
                           Tools used: Cash Flow Forecast, Client Payment Prediction
                         </div>
                       </div>
-                      <button className="text-indigo-600 hover:text-indigo-900 text-sm font-medium">
+                      <button className="bg-brand-gradient text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 shadow-sm hover:shadow-lg transform hover:scale-105">
                         View Details
                       </button>
                     </div>
                   </div>
 
                   {/* Previous Session */}
-                  <div className="bg-white rounded-lg shadow border border-gray-200 p-6">
+                  <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-gray-200/50 p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <h3 className="text-lg font-medium text-gray-900">Tax Optimization Strategy</h3>
@@ -188,14 +192,14 @@ export default function CabinetLayout() {
                           Tools used: Tax Optimization, Scenario Analysis
                         </div>
                       </div>
-                      <button className="text-indigo-600 hover:text-indigo-900 text-sm font-medium">
+                      <button className="bg-brand-gradient text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 shadow-sm hover:shadow-lg transform hover:scale-105">
                         View Details
                       </button>
                     </div>
                   </div>
 
                   {/* Older Session */}
-                  <div className="bg-white rounded-lg shadow border border-gray-200 p-6">
+                  <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-gray-200/50 p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <h3 className="text-lg font-medium text-gray-900">Investment Anxiety & Surplus Planning</h3>
@@ -213,14 +217,14 @@ export default function CabinetLayout() {
                           Tools used: Investment Analysis, Budget Analysis
                         </div>
                       </div>
-                      <button className="text-indigo-600 hover:text-indigo-900 text-sm font-medium">
+                      <button className="bg-brand-gradient text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 shadow-sm hover:shadow-lg transform hover:scale-105">
                         View Details
                       </button>
                     </div>
                   </div>
 
                   {/* Earlier Session */}
-                  <div className="bg-white rounded-lg shadow border border-gray-200 p-6">
+                  <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-gray-200/50 p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <h3 className="text-lg font-medium text-gray-900">Rate Increase Decision Support</h3>
@@ -238,14 +242,14 @@ export default function CabinetLayout() {
                           Tools used: Scenario Analysis, Client Payment Prediction
                         </div>
                       </div>
-                      <button className="text-indigo-600 hover:text-indigo-900 text-sm font-medium">
+                      <button className="text-brand-secondary hover:text-brand-secondary-hover text-sm font-medium transition-colors">
                         View Details
                       </button>
                     </div>
                   </div>
 
                   {/* First Session */}
-                  <div className="bg-white rounded-lg shadow border border-gray-200 p-6">
+                  <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-gray-200/50 p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <h3 className="text-lg font-medium text-gray-900">Initial Financial Health Assessment</h3>
@@ -263,7 +267,7 @@ export default function CabinetLayout() {
                           Tools used: Budget Analysis, Cash Flow Forecast
                         </div>
                       </div>
-                      <button className="text-indigo-600 hover:text-indigo-900 text-sm font-medium">
+                      <button className="text-brand-secondary hover:text-brand-secondary-hover text-sm font-medium transition-colors">
                         View Details
                       </button>
                     </div>
@@ -271,7 +275,7 @@ export default function CabinetLayout() {
 
                   {/* Load More */}
                   <div className="text-center pt-4">
-                    <button className="text-indigo-600 hover:text-indigo-900 text-sm font-medium">
+                    <button className="text-brand-secondary hover:text-brand-secondary-hover text-sm font-medium transition-colors">
                       Load Earlier Sessions
                     </button>
                   </div>
@@ -325,7 +329,7 @@ export default function CabinetLayout() {
                     Budget planning and analysis tools
                   </p>
                 </div>
-                <div className="bg-white rounded-lg shadow p-6">
+                <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-gray-200/50 p-6">
                   <p className="text-gray-600">Budget analysis tools will be displayed here.</p>
                 </div>
               </div>
@@ -387,7 +391,7 @@ export default function CabinetLayout() {
                     Track your financial emotions and wellness
                   </p>
                 </div>
-                <div className="bg-white rounded-lg shadow p-6">
+                <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-gray-200/50 p-6">
                   <p className="text-gray-600">Emotional check-in tools will be displayed here.</p>
                 </div>
               </div>
@@ -399,7 +403,7 @@ export default function CabinetLayout() {
                     Personalized financial insights
                   </p>
                 </div>
-                <div className="bg-white rounded-lg shadow p-6">
+                <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-gray-200/50 p-6">
                   <p className="text-gray-600">Personalized insights will be displayed here.</p>
                 </div>
               </div>
@@ -411,7 +415,7 @@ export default function CabinetLayout() {
                     Set and track your financial goals
                   </p>
                 </div>
-                <div className="bg-white rounded-lg shadow p-6">
+                <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-gray-200/50 p-6">
                   <p className="text-gray-600">Goal setting tools will be displayed here.</p>
                 </div>
               </div>
@@ -423,15 +427,17 @@ export default function CabinetLayout() {
                     Manage your preferences and account
                   </p>
                 </div>
-                <div className="bg-white rounded-lg shadow p-6">
+                <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-gray-200/50 p-6">
                   <p className="text-gray-600">Settings will be displayed here.</p>
                 </div>
               </div>
+            ) : activeSection === 'user-profile' ? (
+              <UserProfile />
             ) : (
               <div className="flex items-center justify-center h-full">
                 <div className="text-center">
-                  <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Brain className="h-8 w-8 text-blue-600" />
+                                  <div className="w-16 h-16 bg-brand-primary-lightest rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Brain className="h-8 w-8 text-brand-primary" />
                   </div>
                   <h3 className="text-xl font-semibold text-gray-900 mb-2">Welcome to Cabinet</h3>
                   <p className="text-gray-600">Select a section from the navigation to get started.</p>
@@ -678,8 +684,8 @@ function UploadSection() {
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Upload New File</h2>
           <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6">
             <div className="text-center">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Upload className="h-8 w-8 text-blue-600" />
+                              <div className="w-16 h-16 bg-brand-primary-lightest rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Upload className="h-8 w-8 text-brand-primary" />
               </div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">Upload CSV File</h3>
               <p className="text-gray-600 mb-6">
@@ -687,7 +693,7 @@ function UploadSection() {
               </p>
               <button
                 onClick={() => setIsUploadModalOpen(true)}
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="px-6 py-3 bg-gradient-to-r from-brand-secondary to-brand-secondary-hover text-white rounded-lg hover:shadow-lg transform hover:scale-105 transition-all duration-200"
               >
                 Choose File
               </button>

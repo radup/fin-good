@@ -181,7 +181,7 @@ export function BudgetAnalysis({ className = '' }: BudgetAnalysisProps) {
             </button>
             <button
               onClick={() => setIsCreatingBudget(true)}
-              className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                              className="flex items-center px-4 py-2 bg-brand-gradient text-white rounded-md transition-all duration-300 shadow-sm hover:shadow-lg transform hover:scale-105"
             >
               <Plus className="h-4 w-4 mr-2" />
               New Budget
@@ -592,7 +592,7 @@ export function BudgetAnalysis({ className = '' }: BudgetAnalysisProps) {
                 <button
                   type="submit"
                   disabled={createBudgetMutation.isPending}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
+                  className="px-4 py-2 bg-brand-gradient text-white rounded-md transition-all duration-300 shadow-sm hover:shadow-lg transform hover:scale-105 disabled:opacity-50"
                 >
                   {createBudgetMutation.isPending ? 'Creating...' : 'Create Budget'}
                 </button>

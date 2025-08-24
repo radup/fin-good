@@ -273,24 +273,24 @@ export function UploadModal({ isOpen, onClose, onUploadSuccess }: UploadModalPro
 
                 {/* Parsing Results */}
                 {uploadStatus.parsing_results && (
-                  <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-                    <h4 className="font-medium text-blue-900 mb-3">Parsing Results</h4>
+                  <div className="mt-4 p-4 bg-brand-primary-lightest rounded-lg">
+                    <h4 className="font-medium text-brand-primary mb-3">Parsing Results</h4>
                     <div className="space-y-2">
                       <div className="flex justify-between">
-                        <span className="text-blue-700">Successful:</span>
-                        <span className="font-medium text-blue-900">{uploadStatus.parsing_results.successful_parsing}</span>
+                        <span className="text-brand-primary">Successful:</span>
+                        <span className="font-medium text-brand-primary">{uploadStatus.parsing_results.successful_parsing}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-blue-700">Failed:</span>
-                        <span className="font-medium text-blue-900">{uploadStatus.parsing_results.failed_parsing}</span>
+                        <span className="text-brand-primary">Failed:</span>
+                        <span className="font-medium text-brand-primary">{uploadStatus.parsing_results.failed_parsing}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-blue-700">Success Rate:</span>
-                        <span className="font-medium text-blue-900">{uploadStatus.parsing_results.success_rate}%</span>
+                        <span className="text-brand-primary">Success Rate:</span>
+                        <span className="font-medium text-brand-primary">{uploadStatus.parsing_results.success_rate}%</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-blue-700">Warnings:</span>
-                        <span className="font-medium text-blue-900">{uploadStatus.parsing_results.warning_count}</span>
+                        <span className="text-brand-primary">Warnings:</span>
+                        <span className="font-medium text-brand-primary">{uploadStatus.parsing_results.warning_count}</span>
                       </div>
                     </div>
                   </div>
@@ -315,16 +315,16 @@ export function UploadModal({ isOpen, onClose, onUploadSuccess }: UploadModalPro
 
                 {/* Categorization Results */}
                 {uploadStatus.categorization_results && (
-                  <div className="mt-4 p-4 bg-purple-50 rounded-lg">
-                    <h4 className="font-medium text-purple-900 mb-3">Categorization Results</h4>
+                  <div className="mt-4 p-4 bg-brand-primary-lightest rounded-lg">
+                    <h4 className="font-medium text-brand-primary mb-3">Categorization Results</h4>
                     <div className="space-y-2">
                       <div className="flex justify-between">
-                        <span className="text-purple-700">Categorized:</span>
-                        <span className="font-medium text-purple-900">{uploadStatus.categorization_results.categorized_count}</span>
+                        <span className="text-brand-primary">Categorized:</span>
+                        <span className="font-medium text-brand-primary">{uploadStatus.categorization_results.categorized_count}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-purple-700">Categorization Rate:</span>
-                        <span className="font-medium text-purple-900">{uploadStatus.categorization_results.categorization_rate}%</span>
+                        <span className="text-brand-primary">Categorization Rate:</span>
+                        <span className="font-medium text-brand-primary">{uploadStatus.categorization_results.categorization_rate}%</span>
                       </div>
                     </div>
                   </div>
@@ -336,7 +336,7 @@ export function UploadModal({ isOpen, onClose, onUploadSuccess }: UploadModalPro
                 <div className="text-center">
                   <button
                     onClick={() => setShowDetails(!showDetails)}
-                    className="btn-secondary"
+                    className="bg-brand-gradient text-white px-4 py-2 rounded-lg font-medium transition-all duration-300 shadow-sm hover:shadow-lg transform hover:scale-105"
                   >
                     {showDetails ? 'Hide' : 'Show'} Details
                   </button>
@@ -403,7 +403,7 @@ export function UploadModal({ isOpen, onClose, onUploadSuccess }: UploadModalPro
           <div className="flex justify-end gap-3 mt-6">
             <button
               onClick={onClose}
-              className="btn-secondary"
+              className="bg-gray-200 hover:bg-gray-300 text-gray-900 px-4 py-2 rounded-lg font-medium transition-colors duration-200"
               disabled={uploading}
             >
               {uploadStatus ? 'Close' : 'Cancel'}
@@ -417,7 +417,7 @@ export function UploadModal({ isOpen, onClose, onUploadSuccess }: UploadModalPro
                     onUploadSuccess()
                   }
                 }}
-                className="btn-primary"
+                className="bg-brand-gradient text-white px-4 py-2 rounded-lg font-medium transition-all duration-300 shadow-sm hover:shadow-lg transform hover:scale-105"
               >
                 View Transactions
               </button>

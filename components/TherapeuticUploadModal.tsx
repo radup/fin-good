@@ -308,7 +308,7 @@ export function TherapeuticUploadModal({ isOpen, onClose, onUploadSuccess }: The
                   <div className="space-y-3">
                     <button
                       type="button"
-                      className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium therapeutic-transition therapeutic-hover"
+                      className="w-full bg-brand-gradient text-white py-3 px-4 rounded-lg font-medium transition-all duration-300 shadow-sm hover:shadow-lg transform hover:scale-105"
                       onClick={() => (document.querySelector('input[type="file"]') as HTMLInputElement)?.click()}
                     >
                       <div className="flex items-center justify-center gap-2">
@@ -630,7 +630,7 @@ export function TherapeuticUploadModal({ isOpen, onClose, onUploadSuccess }: The
                 {uploadStatus.success && (
                   <button
                     onClick={onClose}
-                    className={`bg-blue-600 text-white rounded-lg hover:bg-blue-700 therapeutic-transition therapeutic-hover ${
+                    className={`bg-brand-gradient text-white rounded-lg transition-all duration-300 shadow-sm hover:shadow-lg transform hover:scale-105 ${
                       isMobile 
                         ? 'w-full py-3 px-4 font-medium' 
                         : 'px-4 py-2'

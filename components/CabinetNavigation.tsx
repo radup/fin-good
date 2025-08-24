@@ -15,7 +15,6 @@ import {
   BarChart3, 
   Heart, 
   Settings, 
-  LogOut,
   User,
   ChevronDown,
   ChevronRight,
@@ -152,12 +151,7 @@ const navigation: NavItem[] = [
       }
     ]
   },
-  {
-    id: 'settings',
-    name: 'Settings',
-    icon: <Settings className="w-5 h-5" />,
-    description: 'Preferences and account'
-  }
+
 ]
 
 export default function CabinetNavigation({ activeSection, onSectionChange }: CabinetNavigationProps) {
@@ -177,18 +171,7 @@ export default function CabinetNavigation({ activeSection, onSectionChange }: Ca
     return activeSection === itemId
   }
 
-  const handleLogout = async () => {
-    try {
-      const { authAPI } = await import('../lib/api')
-      await authAPI.logout()
-      // Redirect to home page after successful logout
-      window.location.href = '/'
-    } catch (error) {
-      console.error('Logout failed:', error)
-      // Still redirect to home even if logout API call fails
-      window.location.href = '/'
-    }
-  }
+
 
   const renderNavItem = (item: NavItem, level: number = 0) => {
     const active = isActive(item.id)
@@ -205,13 +188,13 @@ export default function CabinetNavigation({ activeSection, onSectionChange }: Ca
               onSectionChange(item.id)
             }
           }}
-          className={`w-full group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+          className={`w-full group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
             active
-              ? 'bg-blue-100 text-blue-900 border-r-2 border-blue-600'
-              : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+              ? 'bg-brand-primary-lightest text-brand-primary border-r-2 border-brand-primary shadow-sm'
+              : 'text-gray-600 hover:bg-brand-primary-lightest/50 hover:text-brand-primary'
           } ${level > 0 ? 'ml-4' : ''}`}
         >
-          <div className={`mr-3 ${active ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-500'}`}>
+          <div className={`mr-3 ${active ? 'text-brand-primary' : 'text-gray-400 group-hover:text-brand-primary'}`}>
             {item.icon}
           </div>
           <div className="flex-1 text-left">
@@ -235,18 +218,28 @@ export default function CabinetNavigation({ activeSection, onSectionChange }: Ca
   }
 
   return (
-    <div className="flex flex-col h-full bg-white border-r border-gray-200">
+    <div className="flex flex-col h-full bg-white/95 backdrop-blur-sm border-r border-gray-200/50">
       {/* Logo Header */}
-      <div className="flex items-center h-16 flex-shrink-0 px-4 bg-gray-50 border-b border-gray-200">
+      <div className="flex items-center h-16 flex-shrink-0 px-4 bg-gradient-to-r from-gray-900 to-slate-800 border-b border-gray-700">
         <div className="flex items-center">
           <div className="flex-shrink-0">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">FG</span>
+            <img 
+              src="/logo.png" 
+              alt="Spend's Analysis - AI Financial Therapy" 
+              className="h-8 w-auto rounded-lg"
+              onError={(e) => {
+                // Fallback to original design if logo doesn't load
+                e.currentTarget.style.display = 'none';
+                const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                if (fallback) fallback.style.display = 'flex';
+              }}
+            />
+            <div className="w-8 h-8 bg-gradient-to-br from-brand-primary to-brand-primary-light rounded-lg flex items-center justify-center shadow-lg hidden">
+              <span className="text-white font-bold text-sm">S</span>
             </div>
           </div>
           <div className="ml-3">
-            <h1 className="text-lg font-semibold text-gray-900">Spend's Analysis</h1>
-            <p className="text-xs text-gray-500">AI Financial Therapy</p>
+            {/* Logo contains the app name, so no additional text needed */}
           </div>
         </div>
       </div>
@@ -258,27 +251,7 @@ export default function CabinetNavigation({ activeSection, onSectionChange }: Ca
         </nav>
       </div>
 
-      {/* User Footer */}
-      <div className="flex-shrink-0 flex border-t border-gray-200 p-4">
-        <div className="flex items-center w-full">
-          <div className="flex-shrink-0">
-            <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
-              <User className="w-4 h-4 text-gray-600" />
-            </div>
-          </div>
-          <div className="ml-3 flex-1">
-            <p className="text-sm font-medium text-gray-700">Demo User</p>
-            <p className="text-xs text-gray-500">demo@fingood.com</p>
-          </div>
-          <button
-            onClick={handleLogout}
-            className="ml-2 p-1 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100"
-            title="Logout"
-          >
-            <LogOut className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
+
     </div>
   )
 }

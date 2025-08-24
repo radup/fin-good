@@ -476,15 +476,15 @@ export default function ScenarioSimulationEngine() {
               </div>
             </div>
 
-            <div className="bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-2xl p-4">
+            <div className="bg-gradient-to-r from-brand-primary-lightest to-brand-primary-lighter border border-brand-primary-light rounded-2xl p-4">
               <div className="flex items-center gap-2 mb-2">
-                <Euro className="h-4 w-4 text-blue-600" />
-                <span className="font-medium text-blue-800">Net Position</span>
+                <Euro className="h-4 w-4 text-brand-primary" />
+                <span className="font-medium text-brand-primary">Net Position</span>
               </div>
-              <div className="text-2xl font-medium text-blue-900">
+              <div className="text-2xl font-medium text-brand-primary">
                 €{simulationResults.netPositionChange.toLocaleString()}
               </div>
-              <div className="text-sm text-blue-700">After taxes & fees</div>
+              <div className="text-sm text-brand-primary">After taxes & fees</div>
             </div>
 
             <div className={`bg-gradient-to-r ${simulationResults.riskScore <= 30 ? 'from-green-50 to-green-100 border-green-200' : simulationResults.riskScore <= 60 ? 'from-yellow-50 to-yellow-100 border-yellow-200' : 'from-red-50 to-red-100 border-red-200'} border rounded-2xl p-4`}>
@@ -502,15 +502,15 @@ export default function ScenarioSimulationEngine() {
               </div>
             </div>
 
-            <div className="bg-gradient-to-r from-purple-50 to-purple-100 border border-purple-200 rounded-2xl p-4">
+            <div className="bg-gradient-to-r from-brand-primary-lightest to-brand-primary-lighter border border-brand-primary-light rounded-2xl p-4">
               <div className="flex items-center gap-2 mb-2">
-                <Clock className="h-4 w-4 text-purple-600" />
-                <span className="font-medium text-purple-800">Breakeven</span>
+                <Clock className="h-4 w-4 text-brand-primary" />
+                <span className="font-medium text-brand-primary">Breakeven</span>
               </div>
-              <div className="text-2xl font-medium text-purple-900">
+              <div className="text-2xl font-medium text-brand-primary">
                 {simulationResults.timeToBreakeven ? `${simulationResults.timeToBreakeven}mo` : 'N/A'}
               </div>
-              <div className="text-sm text-purple-700">
+              <div className="text-sm text-brand-primary">
                 {simulationResults.timeToBreakeven ? 'Recovery time' : 'Positive scenario'}
               </div>
             </div>
@@ -535,13 +535,13 @@ export default function ScenarioSimulationEngine() {
 
             <div>
               <h3 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
-                <Target className="h-4 w-4 text-purple-600" />
+                <Target className="h-4 w-4 text-brand-primary" />
                 Recommendations
               </h3>
               <div className="space-y-2">
                 {simulationResults.recommendations.map((rec, index) => (
                   <div key={index} className="flex items-start gap-2 text-sm">
-                    <ArrowRight className="h-4 w-4 text-purple-600 mt-0.5 flex-shrink-0" />
+                    <ArrowRight className="h-4 w-4 text-brand-primary mt-0.5 flex-shrink-0" />
                     <span className="text-gray-700">{rec}</span>
                   </div>
                 ))}
@@ -550,7 +550,7 @@ export default function ScenarioSimulationEngine() {
           </div>
 
           {/* Dr. Sigmund's Advice */}
-          <div className="mt-6 bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-2xl p-6">
+          <div className="mt-6 bg-gradient-to-r from-brand-primary-lightest to-brand-primary-lighter border border-brand-primary-light rounded-2xl p-6">
             <div className="flex items-start gap-4">
               <DrSigmundSpendAvatar
                 size="sm"
@@ -560,8 +560,8 @@ export default function ScenarioSimulationEngine() {
                 variant="professional"
               />
               <div>
-                <h3 className="font-medium text-purple-900 mb-2">Dr. Sigmund's Therapeutic Perspective</h3>
-                <p className="text-sm text-purple-800 leading-relaxed">{simulationResults.drSigmundAdvice}</p>
+                <h3 className="font-medium text-brand-primary mb-2">Dr. Sigmund's Therapeutic Perspective</h3>
+                <p className="text-sm text-brand-primary leading-relaxed">{simulationResults.drSigmundAdvice}</p>
               </div>
             </div>
           </div>

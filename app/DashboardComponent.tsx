@@ -491,13 +491,13 @@ export default function DashboardComponent() {
           <div className="space-y-4">
             <a 
               href="/login" 
-              className="btn-primary block w-full"
+              className="bg-brand-gradient text-white px-4 py-2 rounded-lg font-medium transition-all duration-300 shadow-sm hover:shadow-lg transform hover:scale-105 block w-full text-center"
             >
               Login
             </a>
             <button 
               onClick={handleDemoLogin}
-              className="btn-secondary block w-full"
+              className="bg-white/80 backdrop-blur-sm text-gray-700 border border-gray-300 hover:border-brand-primary-light hover:text-brand-primary px-4 py-2 rounded-lg font-medium transition-all duration-300 shadow-sm hover:shadow-md transform hover:scale-105 block w-full text-center"
             >
               Try Demo (demo@fingood.com)
             </button>
@@ -533,16 +533,10 @@ export default function DashboardComponent() {
                   // Upload modal opened
                   setIsUploadModalOpen(true)
                 }}
-                className="btn-primary flex items-center gap-2 therapeutic-hover"
+                className="bg-brand-gradient text-white px-4 py-2 rounded-lg font-medium transition-all duration-300 shadow-sm hover:shadow-lg transform hover:scale-105 flex items-center gap-2"
               >
                 <Upload className="w-4 h-4" />
                 Upload CSV
-              </button>
-              <button
-                onClick={handleLogout}
-                className="btn-secondary therapeutic-hover"
-              >
-                Logout
               </button>
             </div>
           </div>
@@ -717,14 +711,14 @@ export default function DashboardComponent() {
                 <div className="flex gap-2">
                   <button 
                     onClick={() => {/* Export functionality */}}
-                    className="btn-secondary"
+                    className="bg-white/80 backdrop-blur-sm text-gray-700 border border-gray-300 hover:border-brand-primary-light hover:text-brand-primary px-4 py-2 rounded-lg font-medium transition-all duration-300 shadow-sm hover:shadow-md transform hover:scale-105"
                   >
                     Export
                   </button>
                   <button 
                     onClick={handleCategorizeAll}
                     disabled={isCategorizing}
-                    className="btn-primary"
+                    className="bg-brand-gradient text-white px-4 py-2 rounded-lg font-medium transition-all duration-300 shadow-sm hover:shadow-lg transform hover:scale-105 disabled:opacity-50"
                   >
                     {isCategorizing ? 'Categorizing...' : 'Categorize All'}
                   </button>
