@@ -219,30 +219,7 @@ export default function CabinetNavigation({ activeSection, onSectionChange }: Ca
 
   return (
     <div className="flex flex-col h-full bg-white/95 backdrop-blur-sm border-r border-gray-200/50">
-      {/* Logo Header */}
-      <div className="flex items-center h-16 flex-shrink-0 px-4 bg-gradient-to-r from-gray-900 to-slate-800 border-b border-gray-700">
-        <div className="flex items-center">
-          <div className="flex-shrink-0">
-            <img 
-              src="/logo.png" 
-              alt="Spend's Analysis - AI Financial Therapy" 
-              className="h-8 w-auto rounded-lg"
-              onError={(e) => {
-                // Fallback to original design if logo doesn't load
-                e.currentTarget.style.display = 'none';
-                const fallback = e.currentTarget.nextElementSibling as HTMLElement;
-                if (fallback) fallback.style.display = 'flex';
-              }}
-            />
-            <div className="w-8 h-8 bg-gradient-to-br from-brand-primary to-brand-primary-light rounded-lg flex items-center justify-center shadow-lg hidden">
-              <span className="text-white font-bold text-sm">S</span>
-            </div>
-          </div>
-          <div className="ml-3">
-            {/* Logo contains the app name, so no additional text needed */}
-          </div>
-        </div>
-      </div>
+      {/* Navigation starts directly */}
 
       {/* Navigation */}
       <div className="flex-1 flex flex-col overflow-y-auto">
@@ -250,8 +227,6 @@ export default function CabinetNavigation({ activeSection, onSectionChange }: Ca
           {navigation.map((item) => renderNavItem(item))}
         </nav>
       </div>
-
-
     </div>
   )
 }

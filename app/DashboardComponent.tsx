@@ -483,10 +483,10 @@ export default function DashboardComponent() {
           <DrSigmundSpendAvatar 
             size="xl" 
             mood="encouraging"
-            message="Welcome to FinGood! I'm here to help you understand your finances better."
+            message="Welcome to Spend's Analysis! I'm here to help you understand your finances better."
             className="mb-6"
           />
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">Welcome to FinGood</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">Welcome to Spend's Analysis</h1>
           <p className="text-gray-600 mb-8">Your AI-powered financial companion is ready to help you achieve financial wellness</p>
           <div className="space-y-4">
             <a 
@@ -523,7 +523,7 @@ export default function DashboardComponent() {
                 showMessage={false}
               />
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">FinGood</h1>
+                <h1 className="text-3xl font-bold text-gray-900">Spend's Analysis</h1>
                 <p className="text-gray-600">AI-Powered Financial Intelligence</p>
               </div>
             </div>

@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import DashboardLayout from '@/components/DashboardLayout'
+import CabinetPageLayout from '../../../components/CabinetPageLayout'
 import { User, Bell, Shield, Palette, Database, Globe } from 'lucide-react'
 
 export default function SettingsPage() {
@@ -15,8 +15,8 @@ export default function SettingsPage() {
   const [theme, setTheme] = useState('light')
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
+    <CabinetPageLayout title="Settings" description="Manage your account preferences and settings">
+      <div className="p-6 space-y-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
           <p className="mt-1 text-sm text-gray-500">
@@ -39,7 +39,7 @@ export default function SettingsPage() {
                 </label>
                 <input
                   type="email"
-                  defaultValue="demo@fingood.com"
+                  defaultValue="demo@spendsanalysis.com"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
@@ -213,6 +213,6 @@ export default function SettingsPage() {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </CabinetPageLayout>
   )
 }

@@ -10,27 +10,61 @@ interface CabinetHeaderProps {
   title: string
   description?: string
   onUserProfileClick?: () => void
+  onLogout?: () => void
+  user?: any
 }
 
-export default function CabinetHeader({ title, description, onUserProfileClick }: CabinetHeaderProps) {
-  const { user, logout } = useAuth()
+export default function CabinetHeader({ 
+  title, 
+  description, 
+  onUserProfileClick, 
+  onLogout,
+  user: propUser 
+}: CabinetHeaderProps) {
+  const { user: authUser, logout: authLogout } = useAuth()
+  
+  // Use prop user if provided, otherwise use auth user
+  const user = propUser || authUser
 
   const handleLogout = async () => {
-    try {
-      await logout()
-      // Redirect to home page after successful logout
-      window.location.href = '/'
-    } catch (error) {
-      console.error('Logout failed:', error)
-      // Still redirect to home even if logout API call fails
-      window.location.href = '/'
+    if (onLogout) {
+      onLogout()
+    } else {
+      try {
+        await authLogout()
+        // Redirect to home page after successful logout
+        window.location.href = '/'
+      } catch (error) {
+        console.error('Logout failed:', error)
+        // Still redirect to home even if logout API call fails
+        window.location.href = '/'
+      }
     }
   }
   return (
     <div className="flex-shrink-0 bg-gradient-to-r from-gray-900 to-slate-800 border-b border-gray-700 shadow-sm">
       <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
-        {/* Breadcrumbs */}
-        <div className="flex items-center">
+        {/* Logo and Breadcrumbs */}
+        <div className="flex items-center space-x-4">
+          {/* Logo */}
+          <div className="flex-shrink-0">
+            <img 
+              src="/logo.png" 
+              alt="Spend's Analysis - AI Financial Therapy" 
+              className="h-8 w-auto rounded-lg"
+              onError={(e) => {
+                // Fallback to original design if logo doesn't load
+                e.currentTarget.style.display = 'none';
+                const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                if (fallback) fallback.style.display = 'flex';
+              }}
+            />
+            <div className="w-8 h-8 bg-gradient-to-br from-brand-primary to-brand-primary-light rounded-lg flex items-center justify-center shadow-lg hidden">
+              <span className="text-white font-bold text-sm">S</span>
+            </div>
+          </div>
+          
+          {/* Breadcrumbs */}
           <Breadcrumbs />
         </div>
         

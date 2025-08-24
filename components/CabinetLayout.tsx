@@ -20,7 +20,10 @@ import {
   ChevronDown,
   Send,
   User,
-  Bot
+  Bot,
+  Home,
+  ChevronRight,
+  LogOut
 } from 'lucide-react'
 import DrSigmundSpendAvatar from './DrSigmundSpendAvatar'
 import EnhancedDrSigmundChat from './EnhancedDrSigmundChat'
@@ -44,27 +47,81 @@ import UserProfile from './UserProfile'
 export default function CabinetLayout() {
   const [activeSection, setActiveSection] = useState('dashboard')
 
+  const handleLogout = async () => {
+    try {
+      const { authAPI } = await import('../lib/api')
+      await authAPI.logout()
+      window.location.href = '/'
+    } catch (error) {
+      console.error('Logout failed:', error)
+      window.location.href = '/'
+    }
+  }
+
   return (
-    <div className="h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-green-50 flex">
-      {/* Navigation */}
-      <div className="w-64 flex-shrink-0">
-        <CabinetNavigation 
-          activeSection={activeSection}
-          onSectionChange={setActiveSection}
-        />
-      </div>
+    <div className="h-screen bg-gradient-to-br from-teal-50 via-cyan-50 to-emerald-50 flex flex-col">
+      {/* Full-width Header Bar */}
+      <header className="flex items-center h-16 bg-gradient-to-r from-gray-900 to-slate-800 border-b border-gray-700 shadow-lg">
+        {/* Logo */}
+        <div className="flex items-center px-4">
+          <div className="w-8 h-8 bg-gradient-to-br from-teal-600 to-cyan-600 rounded-lg flex items-center justify-center shadow-lg">
+            <span className="text-white font-bold text-sm">FG</span>
+          </div>
+          <div className="ml-3">
+            <h1 className="text-lg font-semibold text-white">Spend's Analysis</h1>
+          </div>
+        </div>
 
-      {/* Main Content Area */}
-      <main className="flex-1 flex flex-col overflow-hidden">
-        {/* Header */}
-        <CabinetHeader 
-          title="Cabinet" 
-          onUserProfileClick={() => setActiveSection('user-profile')}
-        />
+        {/* Breadcrumb */}
+        <div className="flex-1 px-4">
+          <nav className="flex" aria-label="Breadcrumb">
+            <ol className="flex items-center space-x-2 text-sm">
+              <li>
+                <a href="/" className="text-gray-300 hover:text-white transition-colors">
+                  <Home className="w-4 h-4" />
+                </a>
+              </li>
+              <ChevronRight className="w-4 h-4 text-gray-400" />
+              <li className="text-white font-medium">Cabinet</li>
+            </ol>
+          </nav>
+        </div>
 
-        {/* Main Content Interface */}
-        <div className="flex-1 overflow-y-auto">
-          <div className="py-6 px-4 sm:px-6 lg:px-8">
+        {/* User Profile */}
+        <div className="flex items-center px-4">
+          <div className="flex items-center">
+            <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
+              <User className="w-4 h-4 text-gray-600" />
+            </div>
+            <div className="ml-3">
+              <p className="text-sm font-medium text-white">Demo User</p>
+              <p className="text-xs text-gray-300">demo@fingood.com</p>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="ml-4 p-2 rounded-md text-gray-300 hover:text-white hover:bg-gray-800 transition-colors"
+              title="Logout"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Layout: Navigation + Content */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Navigation Sidebar */}
+        <div className="w-64 flex-shrink-0">
+          <CabinetNavigation 
+            activeSection={activeSection}
+            onSectionChange={setActiveSection}
+          />
+        </div>
+
+        {/* Main Content Area */}
+        <main className="flex-1 overflow-y-auto">
+          {/* Main Content Interface */}
+          <div className="p-6">
             {activeSection === 'dashboard' ? (
               <div className="space-y-6">
                 <div>
@@ -445,8 +502,8 @@ export default function CabinetLayout() {
               </div>
             )}
           </div>
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
   )
 }
