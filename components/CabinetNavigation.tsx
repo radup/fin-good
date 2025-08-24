@@ -177,9 +177,17 @@ export default function CabinetNavigation({ activeSection, onSectionChange }: Ca
     return activeSection === itemId
   }
 
-  const handleLogout = () => {
-    // TODO: Implement logout functionality
-    console.log('Logout clicked')
+  const handleLogout = async () => {
+    try {
+      const { authAPI } = await import('../lib/api')
+      await authAPI.logout()
+      // Redirect to home page after successful logout
+      window.location.href = '/'
+    } catch (error) {
+      console.error('Logout failed:', error)
+      // Still redirect to home even if logout API call fails
+      window.location.href = '/'
+    }
   }
 
   const renderNavItem = (item: NavItem, level: number = 0) => {

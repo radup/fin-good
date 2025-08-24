@@ -197,10 +197,10 @@ api.interceptors.response.use(
       const isLoginRequest = error.config?.url?.includes('/auth/login')
       const isAuthCheckRequest = error.config?.url?.includes('/auth/me')
       const isRefreshCsrfRequest = error.config?.url?.includes('/auth/refresh-csrf')
-      const isOnLoginPage = typeof window !== 'undefined' && window.location.pathname === '/login'
+      const isOnHomePage = typeof window !== 'undefined' && window.location.pathname === '/'
       
-      if (!isLoginRequest && !isAuthCheckRequest && !isRefreshCsrfRequest && !isOnLoginPage) {
-        window.location.href = '/login'
+      if (!isLoginRequest && !isAuthCheckRequest && !isRefreshCsrfRequest && !isOnHomePage) {
+        window.location.href = '/'
       }
     } else if (error.response?.status === 429) {
       // Handle rate limiting

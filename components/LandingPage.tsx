@@ -2,13 +2,76 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { ArrowRight, Brain, Heart, TrendingUp, Shield, Sparkles, CheckCircle, Star, User, Lock, Eye, EyeOff } from 'lucide-react'
 import DrSigmundSpendAvatar from './DrSigmundSpendAvatar'
+import { authAPI, setGlobalCsrfToken } from '../lib/api'
 
 export default function LandingPage() {
   const [isSignUp, setIsSignUp] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [formData, setFormData] = useState({
+    email: 'sigmund@spendsanalysis.com',
+    password: 'sigmund123_',
+    name: '',
+    confirmPassword: ''
+  })
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
+  const router = useRouter()
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }))
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
+    setError('')
+
+    try {
+      if (isSignUp) {
+        // Sign up flow
+        if (formData.password !== formData.confirmPassword) {
+          setError('Passwords do not match')
+          return
+        }
+        
+        await authAPI.register({
+          email: formData.email,
+          password: formData.password,
+          full_name: formData.name
+        })
+        
+        // After successful registration, log in automatically
+        const loginResponse = await authAPI.login(formData.email, formData.password)
+        
+        if (loginResponse.data.csrf_token) {
+          setGlobalCsrfToken(loginResponse.data.csrf_token)
+        }
+        
+        router.push('/cabinet')
+      } else {
+        // Sign in flow
+        const response = await authAPI.login(formData.email, formData.password)
+        
+        if (response.data.csrf_token) {
+          setGlobalCsrfToken(response.data.csrf_token)
+        }
+        
+        router.push('/cabinet')
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.detail || `${isSignUp ? 'Registration' : 'Login'} failed`)
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-green-50" style={{height: '100vh', overflowY: 'scroll', scrollSnapType: 'y mandatory'}}>
@@ -168,7 +231,7 @@ export default function LandingPage() {
                   </h2>
                 </div>
 
-                <form className="space-y-5">
+                <form className="space-y-5" onSubmit={handleSubmit}>
                   {isSignUp && (
                     <div>
                       <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
@@ -179,9 +242,13 @@ export default function LandingPage() {
                         <input
                           type="text"
                           id="name"
+                          name="name"
+                          value={formData.name}
+                          onChange={handleInputChange}
                           className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
                           style={{'--tw-ring-color': 'var(--brand-secondary)'} as React.CSSProperties}
                           placeholder="Enter your full name"
+                          required={isSignUp}
                         />
                       </div>
                     </div>
@@ -194,10 +261,13 @@ export default function LandingPage() {
                     <input
                       type="email"
                       id="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
                       style={{'--tw-ring-color': 'var(--brand-secondary)'} as React.CSSProperties}
                       placeholder="Enter your email"
-                      defaultValue="sigmund@spendsanalysis.com"
+                      required
                     />
                   </div>
 
@@ -210,10 +280,13 @@ export default function LandingPage() {
                       <input
                         type={showPassword ? "text" : "password"}
                         id="password"
+                        name="password"
+                        value={formData.password}
+                        onChange={handleInputChange}
                         className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
                         style={{'--tw-ring-color': 'var(--brand-secondary)'} as React.CSSProperties}
                         placeholder="Enter your password"
-                        defaultValue="sigmund123_"
+                        required
                       />
                       <button
                         type="button"
@@ -235,9 +308,13 @@ export default function LandingPage() {
                         <input
                           type={showConfirmPassword ? "text" : "password"}
                           id="confirmPassword"
+                          name="confirmPassword"
+                          value={formData.confirmPassword}
+                          onChange={handleInputChange}
                           className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
                           style={{'--tw-ring-color': 'var(--brand-secondary)'} as React.CSSProperties}
                           placeholder="Re-enter your password"
+                          required={isSignUp}
                         />
                         <button
                           type="button"
@@ -250,14 +327,25 @@ export default function LandingPage() {
                     </div>
                   )}
 
+                  {error && (
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                      <p className="text-sm text-red-800">{error}</p>
+                    </div>
+                  )}
 
-                  <Link
-                    href="/cabinet"
-                    className="w-full bg-brand-gradient text-white py-3 px-6 rounded-lg font-bold transition-all duration-300 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl transform hover:scale-105"
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full bg-brand-gradient text-white py-3 px-6 rounded-lg font-bold transition-all duration-300 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                   >
-                    <span>{isSignUp ? 'Begin Therapy' : 'Enter Cabinet'}</span>
-                    <ArrowRight className="h-5 w-5" />
-                  </Link>
+                    <span>
+                      {isLoading 
+                        ? (isSignUp ? 'Creating Account...' : 'Signing In...') 
+                        : (isSignUp ? 'Begin Therapy' : 'Enter Cabinet')
+                      }
+                    </span>
+                    {!isLoading && <ArrowRight className="h-5 w-5" />}
+                  </button>
                 </form>
 
                 <div className="mt-5 text-center">
