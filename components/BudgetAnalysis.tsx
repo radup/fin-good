@@ -203,8 +203,7 @@ export function BudgetAnalysis({ className = '' }: BudgetAnalysisProps) {
             >
               <Plus className="w-4 h-4 mr-2" />
               New Budget
-            </button>
-          </div>
+          </button>
         </div>
       </div>
 
