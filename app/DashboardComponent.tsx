@@ -10,7 +10,7 @@ import { ImportBatchManager } from '@/components/ImportBatchManager'
 import { ErrorBoundary, ErrorFallback } from '@/components/ErrorBoundary'
 import DrSigmundSpendAvatar from '@/components/DrSigmundSpendAvatar'
 import EmotionalCheckIn from '@/components/EmotionalCheckIn'
-import AdvancedAIExplanation from '@/components/AdvancedAIExplanation'
+
 import { authAPI, transactionAPI, analyticsAPI } from '@/lib/api'
 
 // Progressive Disclosure Section Component
@@ -43,16 +43,16 @@ function ProgressiveSection({
   const getBadgeColorClass = (color: 'success' | 'warning' | 'danger' | 'info') => getBadgeColorClasses(color)
 
   return (
-    <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6">
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
       <div 
         className="flex items-center justify-between cursor-pointer"
         onClick={onToggle}
       >
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {icon && <div className="text-brand-primary">{icon}</div>}
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-lg font-medium text-gray-900">{title}</h3>
+              <h3 className="text-base font-medium text-gray-900">{title}</h3>
               {badge && (
                 <span className={`px-2 py-1 text-xs font-medium rounded-full ${getBadgeColorClass(badgeColor)}`}>
                   {badge}
@@ -60,7 +60,7 @@ function ProgressiveSection({
               )}
             </div>
             {description && (
-              <p className="text-sm text-gray-600 mt-1">{description}</p>
+              <p className="text-xs text-gray-600 mt-1">{description}</p>
             )}
           </div>
         </div>
@@ -78,23 +78,23 @@ function ProgressiveSection({
                 <HelpCircle className="w-4 h-4" />
               </button>
               {showHelp && (
-                <div className="absolute right-0 top-8 w-64 p-3 bg-brand-primary-lightest border border-brand-primary-light rounded-lg shadow-lg z-10">
-                  <p className="text-sm text-brand-primary-dark">{helpText}</p>
-                  <div className="absolute -top-1 right-3 w-2 h-2 bg-brand-primary-lightest border-l border-t border-brand-primary-light transform rotate-45"></div>
+                <div className="absolute right-0 top-8 w-64 p-3 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                  <p className="text-sm text-gray-700">{helpText}</p>
+                  <div className="absolute -top-1 right-3 w-2 h-2 bg-white border-l border-t border-gray-200 transform rotate-45"></div>
                 </div>
               )}
             </div>
           )}
           {isExpanded ? (
-            <ChevronDown className="w-5 h-5 text-brand-primary" />
+            <ChevronDown className="w-4 h-4 text-brand-primary" />
           ) : (
-            <ChevronRight className="w-5 h-5 text-brand-primary" />
+            <ChevronRight className="w-4 h-4 text-brand-primary" />
           )}
         </div>
       </div>
       
       {isExpanded && (
-        <div className="mt-4 pt-4 border-t border-gray-200">
+        <div className="mt-3 pt-3 border-t border-gray-100">
           {children}
         </div>
       )}
@@ -129,35 +129,43 @@ function WellnessCard({ title, value, description, icon, color, trend, trendValu
   }
 
   return (
-    <div className={`p-4 rounded-2xl bg-white shadow-xl border border-gray-100 transition-all hover:shadow-md`}>
-      <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-            <div className={`p-2 rounded-lg ${iconColors[color].replace('text-', 'bg-').replace('-600', '-100')} ${iconColors[color]}`}>
-              {icon}
-            </div>
-          <div>
-            <h4 className="font-medium text-gray-900">{title}</h4>
-            <p className="text-sm text-gray-600">{description}</p>
-          </div>
-        </div>
-        <div className="text-right">
-          <div className={`text-2xl font-bold ${
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+      <div className="flex items-center gap-2 mb-2">
+        <div className={`p-2 rounded-lg ${
+          color === 'success' ? 'bg-emerald-100' : 
+          color === 'danger' ? 'bg-red-100' : 
+          color === 'warning' ? 'bg-amber-100' : 'bg-gray-100'
+        }`}>
+          <div className={`${
             color === 'success' ? 'text-emerald-600' : 
             color === 'danger' ? 'text-red-600' : 
-            color === 'warning' ? 'text-amber-600' : 'text-gray-900'
-          }`}>{value}</div>
-          {trend && trendValue && (
-            <div className={`text-sm flex items-center gap-1 justify-end ${
-              trend === 'up' ? 'text-emerald-600' : 
-              trend === 'down' ? 'text-red-600' : 'text-amber-600'
-            }`}>
-              {trend === 'up' && <TrendingUp className="w-3 h-3" />}
-              {trend === 'down' && <TrendingDown className="w-3 h-3" />}
-              {trendValue}
-            </div>
-          )}
+            color === 'warning' ? 'text-amber-600' : 'text-gray-600'
+          }`}>
+            {icon}
+          </div>
         </div>
+        <h4 className="text-sm font-medium text-gray-700">{title}</h4>
       </div>
+      <div className={`text-xl font-bold mb-1 ${
+        color === 'success' ? 'text-emerald-600' : 
+        color === 'danger' ? 'text-red-600' : 
+        color === 'warning' ? 'text-amber-600' : 'text-gray-900'
+      }`}>
+        {value}
+      </div>
+      <div className="text-xs text-gray-600">
+        {description}
+      </div>
+      {trend && trendValue && (
+        <div className={`text-xs flex items-center gap-1 mt-1 ${
+          trend === 'up' ? 'text-emerald-600' : 
+          trend === 'down' ? 'text-red-600' : 'text-amber-600'
+        }`}>
+          {trend === 'up' && <TrendingUp className="w-3 h-3" />}
+          {trend === 'down' && <TrendingDown className="w-3 h-3" />}
+          {trendValue}
+        </div>
+      )}
     </div>
   )
 }
@@ -191,75 +199,14 @@ export default function DashboardComponent({ showHeader = true }: DashboardCompo
     actions: false,
     transactions: false,
     insights: false,
-    emotional: false,
-    aiExplanation: false
+    emotional: false
   })
 
   // Emotional check-in state
   const [userMood, setUserMood] = useState<any>(null)
   const [achievements, setAchievements] = useState<any[]>([])
 
-  // AI Explanation state
-  const [aiReasoning, setAiReasoning] = useState({
-    id: 'demo_reasoning',
-    category: 'Food & Dining',
-    confidence: 87,
-    reasoning: [
-      'Transaction description contains "STARBUCKS" which is a known coffee chain',
-      'Amount ($4.50) is typical for a coffee purchase',
-      'Previous transactions with this vendor were categorized as Food & Dining',
-      'Time of transaction (9:30 AM) is consistent with morning coffee purchases'
-    ],
-    factors: [
-      {
-        name: 'Vendor Name',
-        weight: 35,
-        description: 'Starbucks is a well-known coffee chain with high confidence mapping',
-        impact: 'positive' as const
-      },
-      {
-        name: 'Transaction Amount',
-        weight: 25,
-        description: '$4.50 is within typical coffee price range ($3-7)',
-        impact: 'positive' as const
-      },
-      {
-        name: 'Time Pattern',
-        weight: 20,
-        description: 'Morning transaction aligns with coffee consumption patterns',
-        impact: 'positive' as const
-      },
-      {
-        name: 'Historical Data',
-        weight: 15,
-        description: 'Previous Starbucks transactions were correctly categorized',
-        impact: 'positive' as const
-      },
-      {
-        name: 'Location Data',
-        weight: 5,
-        description: 'GPS coordinates match known Starbucks location',
-        impact: 'neutral' as const
-      }
-    ],
-    alternatives: [
-      {
-        category: 'Entertainment',
-        confidence: 8,
-        reasoning: 'Could be a purchase at a Starbucks with entertainment venue'
-      },
-      {
-        category: 'Transportation',
-        confidence: 3,
-        reasoning: 'Unlikely given vendor type and amount'
-      }
-    ],
-    learningData: {
-      userCorrections: 12,
-      accuracy: 94.2,
-      lastUpdated: new Date('2024-01-15')
-    }
-  })
+
 
   useEffect(() => {
     // Mark component as mounted
@@ -435,24 +382,7 @@ export default function DashboardComponent({ showHeader = true }: DashboardCompo
     console.log('Mood submitted:', moodData)
   }
 
-  // AI Explanation handlers
-  const handleAIFeedback = (feedback: any) => {
-    console.log('AI feedback received:', feedback)
-    // In a real app, this would be sent to the backend for model training
-    // For demo purposes, we'll simulate learning by adjusting confidence
-    setAiReasoning(prev => ({
-      ...prev,
-      confidence: Math.min(100, prev.confidence + (feedback.type === 'correct' ? 1 : -2))
-    }))
-  }
 
-  const handleAIConfidenceAdjust = (newConfidence: number) => {
-    console.log('AI confidence adjusted to:', newConfidence)
-    setAiReasoning(prev => ({
-      ...prev,
-      confidence: newConfidence
-    }))
-  }
 
   // Generate mock achievements based on user activity
   const generateAchievements = () => {
@@ -571,7 +501,7 @@ export default function DashboardComponent({ showHeader = true }: DashboardCompo
 
   // Show dashboard if authenticated
   return (
-    <div className="max-w-6xl mx-auto space-y-6 pt-0">
+    <div className="max-w-6xl mx-auto space-y-4 pt-0">
         {/* Overview Section */}
         <ProgressiveSection
           title="Financial Overview"
@@ -648,39 +578,39 @@ export default function DashboardComponent({ showHeader = true }: DashboardCompo
           icon={<Lightbulb className="w-5 h-5" />}
           helpText="Quick access to the most common financial management tasks. Upload new data, categorize transactions, or export your information."
         >
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="card therapeutic-hover therapeutic-transition cursor-pointer" onClick={() => setIsUploadModalOpen(true)}>
-              <div className="flex items-center">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 cursor-pointer hover:shadow-md transition-shadow" onClick={() => setIsUploadModalOpen(true)}>
+              <div className="flex items-center gap-3">
                 <div className="p-2 bg-brand-primary-lightest rounded-lg">
-                  <Upload className="w-6 h-6 text-brand-primary" />
+                  <Upload className="w-5 h-5 text-brand-primary" />
                 </div>
-                <div className="ml-4">
-                  <h3 className="text-lg font-medium text-gray-900">Upload Data</h3>
-                  <p className="text-gray-600">Import transactions from CSV</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="card therapeutic-hover therapeutic-transition">
-              <div className="flex items-center">
-                <div className="p-2 bg-green-100 rounded-lg">
-                  <BarChart3 className="w-6 h-6 text-green-600" />
-                </div>
-                <div className="ml-4">
-                  <h3 className="text-lg font-medium text-gray-900">View Analytics</h3>
-                  <p className="text-gray-600">See spending patterns</p>
+                <div>
+                  <h3 className="text-sm font-medium text-gray-900">Upload Data</h3>
+                  <p className="text-xs text-gray-600">Import transactions from CSV</p>
                 </div>
               </div>
             </div>
 
-            <div className="card therapeutic-hover therapeutic-transition">
-              <div className="flex items-center">
-                <div className="p-2 bg-yellow-100 rounded-lg">
-                  <TrendingUp className="w-6 h-6 text-yellow-600" />
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-brand-primary-lightest rounded-lg">
+                  <BarChart3 className="w-5 h-5 text-brand-primary" />
                 </div>
-                <div className="ml-4">
-                  <h3 className="text-lg font-medium text-gray-900">Forecast</h3>
-                  <p className="text-gray-600">Predict cash flow</p>
+                <div>
+                  <h3 className="text-sm font-medium text-gray-900">View Analytics</h3>
+                  <p className="text-xs text-gray-600">See spending patterns</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-brand-primary-lightest rounded-lg">
+                  <TrendingUp className="w-5 h-5 text-brand-primary" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-gray-900">Forecast</h3>
+                  <p className="text-xs text-gray-600">Predict cash flow</p>
                 </div>
               </div>
             </div>
@@ -699,31 +629,31 @@ export default function DashboardComponent({ showHeader = true }: DashboardCompo
            badgeColor={summary?.uncategorized_count && summary.uncategorized_count > 0 ? "warning" : "success"}
         >
           {/* View Toggle */}
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between mb-4">
             <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
               <button
                 onClick={() => setActiveView('transactions')}
-                className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
                   activeView === 'transactions'
                     ? 'bg-white text-gray-900 shadow-sm'
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
                 <div className="flex items-center">
-                  <BarChart3 className="w-4 h-4 mr-2" />
+                  <BarChart3 className="w-3 h-3 mr-1.5" />
                   Transactions
                 </div>
               </button>
               <button
                 onClick={() => setActiveView('files')}
-                className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
                   activeView === 'files'
                     ? 'bg-white text-gray-900 shadow-sm'
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
                 <div className="flex items-center">
-                  <FileText className="w-4 h-4 mr-2" />
+                  <FileText className="w-3 h-3 mr-1.5" />
                   Import Files
                 </div>
               </button>
@@ -733,13 +663,13 @@ export default function DashboardComponent({ showHeader = true }: DashboardCompo
           {/* Content based on active view */}
           {activeView === 'transactions' ? (
             /* Transactions Table */
-            <div className="card">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-semibold text-gray-900">Recent Transactions</h2>
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-base font-semibold text-gray-900">Recent Transactions</h2>
                 <div className="flex gap-2">
                   <button 
                     onClick={() => {/* Export functionality */}}
-                    className="bg-white/80 backdrop-blur-sm text-gray-700 border border-gray-300 hover:border-brand-primary-light hover:text-brand-primary px-4 py-2 rounded-lg font-medium transition-all duration-300 shadow-sm hover:shadow-md transform hover:scale-105"
+                    className="bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
                   >
                     Export
                   </button>
@@ -780,55 +710,55 @@ export default function DashboardComponent({ showHeader = true }: DashboardCompo
           badge="New"
           badgeColor="info"
         >
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="card">
-              <div className="flex items-center gap-3 mb-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+              <div className="flex items-center gap-2 mb-3">
                 <div className="p-2 bg-brand-primary-lightest rounded-lg">
-                  <Info className="w-5 h-5 text-brand-primary" />
+                  <Info className="w-4 h-4 text-brand-primary" />
                 </div>
-                <h3 className="text-lg font-medium text-gray-900">Spending Patterns</h3>
+                <h3 className="text-sm font-medium text-gray-900">Spending Patterns</h3>
               </div>
-              <p className="text-gray-600 mb-4">
+              <p className="text-xs text-gray-600 mb-3">
                 Based on your transaction history, we've identified some interesting patterns in your spending habits.
               </p>
               <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm">
-                  <div className="w-2 h-2 bg-success-500 rounded-full"></div>
+                <div className="flex items-center gap-2 text-xs">
+                  <div className="w-2 h-2 bg-brand-primary rounded-full"></div>
                   <span>Your largest expense category is typically groceries</span>
                 </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <div className="w-2 h-2 bg-warning-500 rounded-full"></div>
+                <div className="flex items-center gap-2 text-xs">
+                  <div className="w-2 h-2 bg-brand-primary rounded-full"></div>
                   <span>Consider reviewing subscription services monthly</span>
                 </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <div className="w-2 h-2 bg-info-500 rounded-full"></div>
+                <div className="flex items-center gap-2 text-xs">
+                  <div className="w-2 h-2 bg-brand-primary rounded-full"></div>
                   <span>You're on track for your savings goals</span>
                 </div>
               </div>
             </div>
 
-            <div className="card">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 bg-green-100 rounded-lg">
-                  <Target className="w-5 h-5 text-green-600" />
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="p-2 bg-emerald-100 rounded-lg">
+                  <Target className="w-4 h-4 text-emerald-600" />
                 </div>
-                <h3 className="text-lg font-medium text-gray-900">Recommendations</h3>
+                <h3 className="text-sm font-medium text-gray-900">Recommendations</h3>
               </div>
-              <p className="text-gray-600 mb-4">
+              <p className="text-xs text-gray-600 mb-3">
                 Here are some personalized recommendations to improve your financial health.
               </p>
-              <div className="space-y-3">
-                <div className="p-3 bg-green-50 rounded-lg border border-green-200">
-                  <h4 className="font-medium text-green-900 mb-1">Increase Savings</h4>
-                  <p className="text-sm text-green-700">Consider setting up automatic transfers to your savings account.</p>
+              <div className="space-y-2">
+                <div className="p-2 bg-emerald-50 rounded-lg border border-emerald-200">
+                  <h4 className="font-medium text-emerald-900 mb-1 text-xs">Increase Savings</h4>
+                  <p className="text-xs text-emerald-700">Consider setting up automatic transfers to your savings account.</p>
                 </div>
-                <div className="p-3 bg-brand-primary-lightest rounded-lg border border-brand-primary-lighter">
-                  <h4 className="font-medium text-brand-primary-dark mb-1">Review Subscriptions</h4>
-                  <p className="text-sm text-brand-primary-hover">You have several recurring payments that could be optimized.</p>
+                <div className="p-2 bg-brand-primary-lightest rounded-lg border border-brand-primary-light">
+                  <h4 className="font-medium text-brand-primary-dark mb-1 text-xs">Review Subscriptions</h4>
+                  <p className="text-xs text-brand-primary-dark">You have several recurring payments that could be optimized.</p>
                 </div>
-                <div className="p-3 bg-purple-50 rounded-lg border border-purple-200">
-                  <h4 className="font-medium text-purple-900 mb-1">Emergency Fund</h4>
-                  <p className="text-sm text-purple-700">Great job maintaining your emergency fund! Keep it up.</p>
+                <div className="p-2 bg-purple-50 rounded-lg border border-purple-200">
+                  <h4 className="font-medium text-purple-900 mb-1 text-xs">Emergency Fund</h4>
+                  <p className="text-xs text-purple-700">Great job maintaining your emergency fund! Keep it up.</p>
                 </div>
               </div>
             </div>
@@ -855,26 +785,7 @@ export default function DashboardComponent({ showHeader = true }: DashboardCompo
           </ErrorBoundary>
         </ProgressiveSection>
 
-        {/* AI Explanation Section */}
-        <ProgressiveSection
-          title="AI Explanation Interface"
-          description="Understand how AI categorizes your transactions"
-          isExpanded={expandedSections.aiExplanation}
-          onToggle={() => toggleSection('aiExplanation')}
-          icon={<Brain className="w-5 h-5" />}
-          helpText="See the reasoning behind AI categorization decisions, provide feedback to improve accuracy, and understand the learning process."
-          badge="Advanced"
-          badgeColor="warning"
-        >
-          <ErrorBoundary fallback={ErrorFallback}>
-            <AdvancedAIExplanation
-              reasoning={aiReasoning}
-              onFeedback={handleAIFeedback}
-              onConfidenceAdjust={handleAIConfidenceAdjust}
-              showLearning={true}
-            />
-          </ErrorBoundary>
-        </ProgressiveSection>
+
 
       {/* Upload Modal */}
       <TherapeuticUploadModal 

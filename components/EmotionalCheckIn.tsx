@@ -265,8 +265,8 @@ export default function EmotionalCheckIn({
                   </span>
                 </div>
                 {getStressIntervention(stressLevel) && (
-                  <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-                    <p className="text-sm text-blue-800">{getStressIntervention(stressLevel)}</p>
+                  <div className="p-3 bg-brand-primary-lightest rounded-lg border border-brand-primary-light">
+                    <p className="text-sm text-brand-primary-dark">{getStressIntervention(stressLevel)}</p>
                   </div>
                 )}
               </div>
@@ -315,26 +315,24 @@ export default function EmotionalCheckIn({
       {/* Nudges Section */}
       {showNudges && nudges.length > 0 && (
         <div className="space-y-3">
-          <h3 className="text-lg font-medium text-gray-900">Gentle Reminders</h3>
+          <h3 className="text-base font-medium text-gray-900">Gentle Reminders</h3>
           {nudges.map((nudge) => (
             <div
               key={nudge.id}
-              className={`card therapeutic-transition ${
-                nudge.priority === 'high' ? 'border-l-4 border-l-orange-500' :
-                nudge.priority === 'medium' ? 'border-l-4 border-l-blue-500' :
-                'border-l-4 border-l-green-500'
-              }`}
+              className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4"
             >
-              <div className="flex items-start space-x-3">
+              <div className="flex items-start gap-3">
                 <div className="flex-shrink-0 mt-1">
-                  {nudge.icon}
+                  <div className="text-brand-primary">
+                    {nudge.icon}
+                  </div>
                 </div>
                 <div className="flex-1">
-                  <p className="text-gray-900">{nudge.message}</p>
+                  <p className="text-sm text-gray-900">{nudge.message}</p>
                   {nudge.action && (
                     <button
                       onClick={() => handleNudgeAction(nudge)}
-                      className="mt-2 text-sm text-primary-600 hover:text-primary-800 therapeutic-transition"
+                      className="mt-2 text-xs text-brand-primary hover:text-brand-primary-dark transition-colors"
                     >
                       {nudge.action} →
                     </button>
@@ -348,25 +346,25 @@ export default function EmotionalCheckIn({
 
       {/* Achievements Section */}
       {showAchievements && achievements.length > 0 && (
-        <div className="card therapeutic-transition">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-medium text-gray-900">Recent Achievements</h3>
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-base font-medium text-gray-900">Recent Achievements</h3>
             <button
               onClick={() => setShowAchievements(false)}
-              className="text-gray-400 hover:text-gray-600 therapeutic-transition"
+              className="text-gray-400 hover:text-gray-600 transition-colors"
             >
               ×
             </button>
           </div>
-          <div className="space-y-3">
+          <div className="space-y-2">
             {achievements.slice(0, 5).map((achievement) => (
-              <div key={achievement.id} className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
-                <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
+              <div key={achievement.id} className="flex items-center gap-3 p-2 bg-emerald-50 rounded-lg">
+                <CheckCircle className="w-4 h-4 text-emerald-600 flex-shrink-0" />
                 <div>
-                  <h4 className="font-medium text-green-900">{achievement.title}</h4>
-                  <p className="text-sm text-green-700">{achievement.description}</p>
+                  <h4 className="font-medium text-emerald-900 text-xs">{achievement.title}</h4>
+                  <p className="text-xs text-emerald-700">{achievement.description}</p>
                   {achievement.value && (
-                    <p className="text-xs text-green-600 mt-1">
+                    <p className="text-xs text-emerald-600 mt-1">
                       Value: ${achievement.value.toLocaleString()}
                     </p>
                   )}
@@ -379,14 +377,14 @@ export default function EmotionalCheckIn({
 
       {/* Mood History */}
       {recentMoods.length > 0 && (
-        <div className="card therapeutic-transition">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Mood History</h3>
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+          <h3 className="text-base font-medium text-gray-900 mb-3">Mood History</h3>
           <div className="space-y-2">
             {recentMoods.slice(0, 5).map((mood, index) => (
               <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                <div className="flex items-center space-x-3">
+                <div className="flex items-center gap-3">
                   {MOOD_OPTIONS.find(m => m.value === mood.mood)?.icon}
-                  <span className="text-sm text-gray-900">
+                  <span className="text-xs text-gray-900">
                     {MOOD_OPTIONS.find(m => m.value === mood.mood)?.label}
                   </span>
                 </div>

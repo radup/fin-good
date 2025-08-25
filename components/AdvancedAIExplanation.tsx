@@ -107,7 +107,7 @@ export default function AdvancedAIExplanation({
 
   const getFactorIcon = (impact: 'positive' | 'negative' | 'neutral') => {
     switch (impact) {
-      case 'positive': return <TrendingUp className="w-4 h-4 text-green-600" />
+      case 'positive': return <TrendingUp className="w-4 h-4 text-emerald-600" />
       case 'negative': return <TrendingDown className="w-4 h-4 text-red-600" />
       case 'neutral': return <Target className="w-4 h-4 text-gray-600" />
     }
@@ -115,7 +115,7 @@ export default function AdvancedAIExplanation({
 
   const getFactorColor = (impact: 'positive' | 'negative' | 'neutral') => {
     switch (impact) {
-      case 'positive': return 'border-l-green-500 bg-green-50'
+      case 'positive': return 'border-l-emerald-500 bg-emerald-50'
       case 'negative': return 'border-l-red-500 bg-red-50'
       case 'neutral': return 'border-l-gray-500 bg-gray-50'
     }
@@ -124,38 +124,38 @@ export default function AdvancedAIExplanation({
   return (
     <div className={`space-y-6 ${className}`}>
       {/* Main AI Explanation Header */}
-      <div className="card therapeutic-transition">
-        <div className="flex items-center justify-between mb-4">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+        <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-3">
-                    <div className="p-2 bg-brand-primary-lightest rounded-lg">
-          <Brain className="w-6 h-6 text-brand-primary" />
-        </div>
+            <div className="p-2 bg-brand-primary-lightest rounded-lg">
+              <Brain className="w-5 h-5 text-brand-primary" />
+            </div>
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">AI Reasoning</h3>
-              <p className="text-sm text-gray-600">How I categorized this transaction</p>
+              <h3 className="text-base font-semibold text-gray-900">AI Reasoning</h3>
+              <p className="text-xs text-gray-600">How I categorized this transaction</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <span className={`px-3 py-1 rounded-full text-sm font-medium ${confidenceLevel.bg} ${confidenceLevel.color} ${confidenceLevel.border}`}>
+            <span className={`px-2 py-1 rounded-full text-xs font-medium ${confidenceLevel.bg} ${confidenceLevel.color} ${confidenceLevel.border}`}>
               {confidenceLevel.label} Confidence
             </span>
-            <span className="text-2xl font-bold text-gray-900">{reasoning.confidence}%</span>
+            <span className="text-xl font-bold text-gray-900">{reasoning.confidence}%</span>
           </div>
         </div>
 
         {/* Category Display */}
-        <div className="mb-4 p-4 bg-brand-primary-lightest rounded-lg border border-brand-primary-light">
+        <div className="mb-3 p-3 bg-brand-primary-lightest rounded-lg border border-brand-primary-light">
           <div className="flex items-center justify-between">
             <div>
-              <h4 className="font-medium text-brand-primary">Suggested Category</h4>
-              <p className="text-lg font-semibold text-brand-primary">{reasoning.category}</p>
+              <h4 className="font-medium text-brand-primary text-xs">Suggested Category</h4>
+              <p className="text-base font-semibold text-brand-primary">{reasoning.category}</p>
             </div>
             <div className="flex gap-2">
               <button
                 onClick={() => setShowFeedbackForm(true)}
-                className="btn-secondary therapeutic-transition"
+                className="px-3 py-1 text-xs bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
               >
-                <HelpCircle className="w-4 h-4 mr-2" />
+                <HelpCircle className="w-3 h-3 mr-1 inline" />
                 Provide Feedback
               </button>
             </div>
@@ -164,28 +164,28 @@ export default function AdvancedAIExplanation({
       </div>
 
       {/* Reasoning Breakdown */}
-      <div className="card therapeutic-transition">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
         <div
-          className="flex items-center justify-between cursor-pointer therapeutic-hover"
+          className="flex items-center justify-between cursor-pointer hover:bg-gray-50 transition-colors rounded-lg p-2 -m-2"
           onClick={() => toggleSection('reasoning')}
         >
           <div className="flex items-center gap-3">
-            <Lightbulb className="w-5 h-5 text-yellow-600" />
-            <h3 className="text-lg font-medium text-gray-900">Reasoning Breakdown</h3>
+            <Lightbulb className="w-4 h-4 text-brand-primary" />
+            <h3 className="text-base font-medium text-gray-900">Reasoning Breakdown</h3>
           </div>
-          <span className="text-sm text-gray-500">
+          <span className="text-xs text-gray-500">
             {expandedSections.reasoning ? 'Hide' : 'Show'} ({reasoning.reasoning.length} points)
           </span>
         </div>
 
         {expandedSections.reasoning && (
-          <div className="mt-4 space-y-3">
+          <div className="mt-3 space-y-2">
             {reasoning.reasoning.map((point, index) => (
               <div key={index} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                <div className="flex-shrink-0 w-6 h-6 bg-brand-primary-lightest rounded-full flex items-center justify-center">
+                <div className="flex-shrink-0 w-5 h-5 bg-brand-primary-lightest rounded-full flex items-center justify-center">
                   <span className="text-xs font-medium text-brand-primary">{index + 1}</span>
                 </div>
-                <p className="text-gray-700">{point}</p>
+                <p className="text-xs text-gray-700">{point}</p>
               </div>
             ))}
           </div>
@@ -193,34 +193,34 @@ export default function AdvancedAIExplanation({
       </div>
 
       {/* Decision Factors */}
-      <div className="card therapeutic-transition">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
         <div
-          className="flex items-center justify-between cursor-pointer therapeutic-hover"
+          className="flex items-center justify-between cursor-pointer hover:bg-gray-50 transition-colors rounded-lg p-2 -m-2"
           onClick={() => toggleSection('factors')}
         >
           <div className="flex items-center gap-3">
-            <BarChart3 className="w-5 h-5 text-brand-primary" />
-            <h3 className="text-lg font-medium text-gray-900">Decision Factors</h3>
+            <BarChart3 className="w-4 h-4 text-brand-primary" />
+            <h3 className="text-base font-medium text-gray-900">Decision Factors</h3>
           </div>
-          <span className="text-sm text-gray-500">
+          <span className="text-xs text-gray-500">
             {expandedSections.factors ? 'Hide' : 'Show'} ({reasoning.factors.length} factors)
           </span>
         </div>
 
         {expandedSections.factors && (
-          <div className="mt-4 space-y-3">
+          <div className="mt-3 space-y-2">
             {reasoning.factors.map((factor, index) => (
-              <div key={index} className={`p-4 rounded-lg border-l-4 ${getFactorColor(factor.impact)}`}>
+              <div key={index} className={`p-3 rounded-lg border-l-4 ${getFactorColor(factor.impact)}`}>
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     {getFactorIcon(factor.impact)}
-                    <h4 className="font-medium text-gray-900">{factor.name}</h4>
+                    <h4 className="font-medium text-gray-900 text-xs">{factor.name}</h4>
                   </div>
-                  <span className="text-sm font-medium text-gray-600">
+                  <span className="text-xs font-medium text-gray-600">
                     Weight: {factor.weight}%
                   </span>
                 </div>
-                <p className="text-sm text-gray-700">{factor.description}</p>
+                <p className="text-xs text-gray-700">{factor.description}</p>
               </div>
             ))}
           </div>
@@ -228,31 +228,31 @@ export default function AdvancedAIExplanation({
       </div>
 
       {/* Alternative Categories */}
-      <div className="card therapeutic-transition">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
         <div
-          className="flex items-center justify-between cursor-pointer therapeutic-hover"
+          className="flex items-center justify-between cursor-pointer hover:bg-gray-50 transition-colors rounded-lg p-2 -m-2"
           onClick={() => toggleSection('alternatives')}
         >
           <div className="flex items-center gap-3">
-            <RefreshCw className="w-5 h-5 text-green-600" />
-            <h3 className="text-lg font-medium text-gray-900">Alternative Categories</h3>
+            <RefreshCw className="w-4 h-4 text-emerald-600" />
+            <h3 className="text-base font-medium text-gray-900">Alternative Categories</h3>
           </div>
-          <span className="text-sm text-gray-500">
+          <span className="text-xs text-gray-500">
             {expandedSections.alternatives ? 'Hide' : 'Show'} ({reasoning.alternatives.length} alternatives)
           </span>
         </div>
 
         {expandedSections.alternatives && (
-          <div className="mt-4 space-y-3">
+          <div className="mt-3 space-y-2">
             {reasoning.alternatives.map((alt, index) => (
-              <div key={index} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <div key={index} className="p-3 bg-gray-50 rounded-lg border border-gray-200">
                 <div className="flex items-center justify-between mb-2">
-                  <h4 className="font-medium text-gray-900">{alt.category}</h4>
-                  <span className="text-sm font-medium text-gray-600">
+                  <h4 className="font-medium text-gray-900 text-xs">{alt.category}</h4>
+                  <span className="text-xs font-medium text-gray-600">
                     {alt.confidence}% confidence
                   </span>
                 </div>
-                <p className="text-sm text-gray-700">{alt.reasoning}</p>
+                <p className="text-xs text-gray-700">{alt.reasoning}</p>
               </div>
             ))}
           </div>

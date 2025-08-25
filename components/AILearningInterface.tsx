@@ -267,18 +267,18 @@ export default function AILearningInterface({
             </div>
 
             {currentTraining && (
-              <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <div className="p-4 bg-brand-primary-lightest rounded-lg border border-brand-primary-light">
                 <div className="flex items-center justify-between mb-2">
-                  <h4 className="font-medium text-blue-900">Current Training Session</h4>
-                  <span className="text-sm text-blue-600">Progress: {currentTraining.progress}%</span>
+                  <h4 className="font-medium text-brand-primary-dark">Current Training Session</h4>
+                  <span className="text-sm text-brand-primary">Progress: {currentTraining.progress}%</span>
                 </div>
-                <div className="w-full bg-blue-200 rounded-full h-2 mb-2">
+                <div className="w-full bg-brand-primary-light rounded-full h-2 mb-2">
                   <div 
-                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                    className="bg-brand-primary h-2 rounded-full transition-all duration-300"
                     style={{ width: `${currentTraining.progress}%` }}
                   />
                 </div>
-                <div className="flex items-center justify-between text-sm text-blue-700">
+                <div className="flex items-center justify-between text-sm text-brand-primary-dark">
                   <span>Examples processed: {currentTraining.examplesProcessed.toLocaleString()}</span>
                   <span>Accuracy gain: +{currentTraining.accuracyGain.toFixed(2)}%</span>
                 </div>
@@ -294,8 +294,8 @@ export default function AILearningInterface({
                 <div key={session.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div className="flex items-center gap-3">
                     <div className={`w-3 h-3 rounded-full ${
-                      session.status === 'completed' ? 'bg-green-500' :
-                      session.status === 'running' ? 'bg-blue-500' : 'bg-red-500'
+                      session.status === 'completed' ? 'bg-emerald-500' :
+                      session.status === 'running' ? 'bg-brand-primary' : 'bg-red-500'
                     }`} />
                     <div>
                       <p className="text-sm font-medium text-gray-900">
@@ -328,7 +328,7 @@ export default function AILearningInterface({
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="card therapeutic-transition">
               <div className="flex items-center gap-2 mb-2">
-                <Users className="w-5 h-5 text-blue-600" />
+                <Users className="w-5 h-5 text-brand-primary" />
                 <h4 className="font-medium text-gray-900">Total Feedback</h4>
               </div>
               <p className="text-2xl font-bold text-gray-900">{userFeedback.totalFeedback}</p>
@@ -337,10 +337,10 @@ export default function AILearningInterface({
 
             <div className="card therapeutic-transition">
               <div className="flex items-center gap-2 mb-2">
-                <CheckCircle className="w-5 h-5 text-green-600" />
+                <CheckCircle className="w-5 h-5 text-emerald-600" />
                 <h4 className="font-medium text-gray-900">Positive</h4>
               </div>
-              <p className="text-2xl font-bold text-green-600">{userFeedback.positiveFeedback}</p>
+              <p className="text-2xl font-bold text-emerald-600">{userFeedback.positiveFeedback}</p>
               <p className="text-sm text-gray-600">Correct predictions</p>
             </div>
 
