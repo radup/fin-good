@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import EnhancedDrSigmundChat from '@/components/EnhancedDrSigmundChat'
 import DrSigmundSpendAvatar from '@/components/DrSigmundSpendAvatar'
-import DashboardLayout from '@/components/DashboardLayout'
+import CabinetPageLayout from '../../../components/CabinetPageLayout'
 import { Brain, Heart, Zap } from 'lucide-react'
 
 export default function DrSigmundAIPage() {
@@ -18,8 +18,8 @@ export default function DrSigmundAIPage() {
   }, [])
 
   return (
-    <DashboardLayout>
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-indigo-50 to-blue-50">
+    <CabinetPageLayout title="Dr Sigmund AI" description="AI financial therapist">
+      <div className="min-h-screen bg-white">
         <div className="container mx-auto px-4 py-8">
           
           {/* Dr. Sigmund Welcome Message */}
@@ -224,6 +224,6 @@ export default function DrSigmundAIPage() {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </CabinetPageLayout>
   )
 }

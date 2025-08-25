@@ -547,7 +547,7 @@ What feels most important to address right now?`,
     switch (type) {
       case 'scenario_analysis':
         return (
-          <div className="bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-xl p-4 mt-3">
+          <div className="bg-white border border-indigo-200 rounded-xl p-4 mt-3 shadow-sm">
             <div className="flex items-center gap-2 mb-3">
               <Brain className="h-4 w-4 text-indigo-600" />
               <span className="font-medium text-indigo-800">Scenario Analysis Results</span>
@@ -567,7 +567,7 @@ What feels most important to address right now?`,
       
       case 'cash_flow_forecast':
         return (
-          <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-xl p-4 mt-3">
+          <div className="bg-white border border-green-200 rounded-xl p-4 mt-3 shadow-sm">
             <div className="flex items-center gap-2 mb-3">
               <TrendingUp className="h-4 w-4 text-green-600" />
               <span className="font-medium text-green-800">Cash Flow Forecast</span>
@@ -611,7 +611,7 @@ What feels most important to address right now?`,
         <div className={`rounded-2xl p-4 max-w-lg ${
           isUser 
             ? 'bg-gray-100 rounded-tr-md' 
-                          : 'bg-gradient-to-r from-brand-primary-lightest to-brand-primary-lighter rounded-tl-md border border-brand-primary-light'
+                          : 'bg-gray-100 rounded-tl-md border border-gray-200'
         }`}>
           {/* Enhanced Message Type Indicator */}
           {!isUser && message.type !== 'text' && (
@@ -763,12 +763,12 @@ What feels most important to address right now?`,
   }
 
   return (
-    <div className="flex flex-col h-full bg-gradient-to-br from-brand-primary-lightest via-brand-primary-lighter to-brand-primary-light p-4">
+    <div className="flex flex-col h-full bg-gray-50 p-4">
       {/* Main Chat Card */}
       <div className="max-w-3xl mx-auto w-full h-full">
         <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden h-full flex flex-col">
           {/* Enhanced Chat Header */}
-          <div className="bg-gradient-to-r from-brand-primary to-brand-primary-light p-4 flex-shrink-0">
+          <div className="bg-gray-800 p-4 flex-shrink-0">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <DrSigmundSpendAvatar size="sm" showMessage={false} animated={true} />
@@ -795,7 +795,7 @@ What feels most important to address right now?`,
             {isTyping && (
               <div className="flex items-start gap-3">
                 <DrSigmundSpendAvatar size="sm" showMessage={false} isTyping={true} animated={true} />
-                <div className="rounded-2xl p-4 max-w-sm rounded-tl-md bg-gradient-to-r from-brand-primary-lightest to-brand-primary-lighter border border-brand-primary-light">
+                <div className="rounded-2xl p-4 max-w-sm rounded-tl-md bg-gray-100 border border-gray-200">
                   <div className="flex items-center gap-2">
                     <div className="flex space-x-1">
                       <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce"></div>
@@ -812,7 +812,7 @@ What feels most important to address right now?`,
           </div>
 
           {/* Enhanced Chat Input */}
-          <div className="p-4 border-t border-gray-100 bg-gradient-to-r from-brand-primary-lightest to-brand-primary-lighter">
+          <div className="p-4 border-t border-gray-200 bg-white">
             <div className="flex items-center gap-2 bg-white rounded-full px-4 py-3 border border-gray-200 shadow-sm">
               <input 
                 type="text" 
@@ -859,7 +859,7 @@ What feels most important to address right now?`,
           {/* Available Tools */}
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-4">
             {financialTools.map((tool, index) => (
-              <div key={index} className="bg-gradient-to-r from-brand-primary-lightest to-brand-primary-lighter border border-brand-primary-light rounded-xl p-3">
+              <div key={index} className="bg-gray-100 border border-gray-200 rounded-xl p-3">
                 <div className="flex items-center gap-2 mb-1">
                   {tool.icon}
                   <span className="text-xs font-medium text-brand-primary">{tool.name}</span>
@@ -940,7 +940,7 @@ What feels most important to address right now?`,
         </div>
 
         {/* Sample Conversations */}
-        <div className="mt-6 bg-gradient-to-r from-brand-primary-lightest to-brand-primary-lighter border border-brand-primary-light rounded-2xl p-4">
+        <div className="mt-6 bg-gray-100 border border-gray-200 rounded-2xl p-4">
           <h4 className="font-medium text-brand-primary mb-3">💬 Try These Conversation Starters</h4>
           <div className="grid md:grid-cols-2 gap-3 text-sm">
             <div className="space-y-2">
@@ -986,7 +986,7 @@ What feels most important to address right now?`,
             />
             <div className="flex-1">
               <h4 className="font-medium text-gray-900 mb-2">Dr. Sigmund's Enhanced Philosophy</h4>
-              <div className="bg-gradient-to-r from-brand-primary-lightest to-brand-primary-lighter border border-brand-primary-light rounded-xl p-3">
+              <div className="bg-gray-100 border border-gray-200 rounded-xl p-3">
                 <p className="text-xs text-brand-primary leading-relaxed mb-2">
                   "Technology should enhance human connection, not replace it. My AI capabilities are tools to provide you with 
                   better insights and reduce financial uncertainty, but the heart of our work together remains deeply human."

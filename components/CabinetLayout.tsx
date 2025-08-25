@@ -59,7 +59,7 @@ export default function CabinetLayout() {
   }
 
   return (
-    <div className="h-screen bg-gradient-to-br from-teal-50 via-cyan-50 to-emerald-50 flex flex-col">
+    <div className="h-screen bg-white flex flex-col">
       {/* Full-width Header Bar */}
       <header className="flex items-center h-16 bg-gradient-to-r from-gray-900 to-slate-800 border-b border-gray-700 shadow-lg">
         {/* Logo */}

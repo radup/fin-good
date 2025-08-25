@@ -151,6 +151,12 @@ const navigation: NavItem[] = [
       }
     ]
   },
+  {
+    id: 'reports',
+    name: 'Reports',
+    icon: <FileText className="w-5 h-5" />,
+    description: 'Financial reports and analytics'
+  },
 
 ]
 

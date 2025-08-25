@@ -40,13 +40,13 @@ interface NavItem {
 const navigation: NavItem[] = [
   {
     name: 'Dashboard',
-    href: '/dashboard',
+    href: '/cabinet/dashboard',
     icon: <Home className="w-5 h-5" />,
     description: 'Overview and summary'
   },
   {
     name: 'Dr. Sigmund AI',
-    href: '/dr-sigmund-ai',
+    href: '/cabinet/dr-sigmund-ai',
     icon: <Zap className="w-5 h-5" />,
     description: 'AI financial therapist'
   },
@@ -117,8 +117,8 @@ export default function Navigation({ className = '' }: NavigationProps) {
   const pathname = usePathname()
 
   const isActive = (href: string) => {
-    if (href === '/dashboard') {
-      return pathname === '/dashboard' || pathname === '/'
+    if (href === '/cabinet/dashboard') {
+      return pathname === '/cabinet/dashboard' || pathname === '/cabinet' || pathname === '/'
     }
     return pathname.startsWith(href)
   }

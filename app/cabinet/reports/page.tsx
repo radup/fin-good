@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import DashboardLayout from '@/components/DashboardLayout'
+import CabinetPageLayout from '../../../components/CabinetPageLayout'
 import SpendingTrends from '@/components/charts/SpendingTrends'
 import CategoryDistribution from '@/components/charts/CategoryDistribution'
 import CategorizationAccuracy from '@/components/charts/CategorizationAccuracy'
@@ -10,7 +10,7 @@ import { Download } from 'lucide-react'
 
 export default function ReportsPage() {
   return (
-    <DashboardLayout>
+    <CabinetPageLayout title="Reports" description="Financial reports and analytics">
       <div className="space-y-8">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Reports</h1>
@@ -53,6 +53,6 @@ export default function ReportsPage() {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </CabinetPageLayout>
   )
 }
