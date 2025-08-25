@@ -659,8 +659,8 @@ export function ForecastingDashboard({ className = '' }: ForecastingDashboardPro
               buttonClasses(isMultiModelMode ? 'primary' : 'secondary', 'sm')
             )}
           >
-              {isMultiModelMode ? <Brain className="w-4 h-4" /> : <Zap className="w-4 h-4" />}
-              {isMultiModelMode ? 'Multi-Model' : 'Single Model'}
+            {isMultiModelMode ? <Brain className="w-4 h-4" /> : <Zap className="w-4 h-4" />}
+            {isMultiModelMode ? 'Multi-Model' : 'Single Model'}
           </button>
           <button
             onClick={handleRefresh}
@@ -679,9 +679,9 @@ export function ForecastingDashboard({ className = '' }: ForecastingDashboardPro
               buttonClasses('secondary', 'sm')
             )}
           >
-              {showConfidenceIntervals ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              {showConfidenceIntervals ? 'Hide' : 'Show'} Confidence
-            </button>
+            {showConfidenceIntervals ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            {showConfidenceIntervals ? 'Hide' : 'Show'} Confidence
+          </button>
           </div>
         </div>
       </div>
