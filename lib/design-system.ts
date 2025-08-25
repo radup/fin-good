@@ -5,36 +5,36 @@ export const DESIGN_TOKENS = {
   // Color Classes
   COLORS: {
     SUCCESS: {
-      BG: 'bg-success-50',
-      BORDER: 'border-success-200',
-      TEXT: 'text-success-800',
-      ICON: 'text-success-600',
-      LIGHT_BG: 'bg-success-100',
-      LIGHT_TEXT: 'text-success-600'
+      BG: 'bg-emerald-50',
+      BORDER: 'border-emerald-200',
+      TEXT: 'text-emerald-800',
+      ICON: 'text-emerald-600',
+      LIGHT_BG: 'bg-emerald-100',
+      LIGHT_TEXT: 'text-emerald-600'
     },
     WARNING: {
-      BG: 'bg-warning-50',
-      BORDER: 'border-warning-200',
-      TEXT: 'text-warning-800',
-      ICON: 'text-warning-600',
-      LIGHT_BG: 'bg-warning-100',
-      LIGHT_TEXT: 'text-warning-600'
+      BG: 'bg-amber-50',
+      BORDER: 'border-amber-200',
+      TEXT: 'text-amber-800',
+      ICON: 'text-amber-600',
+      LIGHT_BG: 'bg-amber-100',
+      LIGHT_TEXT: 'text-amber-600'
     },
     DANGER: {
-      BG: 'bg-danger-50',
-      BORDER: 'border-danger-200',
-      TEXT: 'text-danger-800',
-      ICON: 'text-danger-600',
-      LIGHT_BG: 'bg-danger-100',
-      LIGHT_TEXT: 'text-danger-600'
+      BG: 'bg-red-50',
+      BORDER: 'border-red-200',
+      TEXT: 'text-red-800',
+      ICON: 'text-red-600',
+      LIGHT_BG: 'bg-red-100',
+      LIGHT_TEXT: 'text-red-600'
     },
     INFO: {
-      BG: 'bg-primary-50',
-      BORDER: 'border-primary-200',
-      TEXT: 'text-primary-800',
-      ICON: 'text-primary-600',
-      LIGHT_BG: 'bg-primary-100',
-      LIGHT_TEXT: 'text-primary-600'
+      BG: 'bg-brand-primary-lightest',
+      BORDER: 'border-brand-primary-light',
+      TEXT: 'text-brand-primary-dark',
+      ICON: 'text-brand-primary',
+      LIGHT_BG: 'bg-brand-primary-lightest',
+      LIGHT_TEXT: 'text-brand-primary'
     }
   },
 
@@ -77,10 +77,10 @@ export const getWellnessColorClasses = (status: 'success' | 'warning' | 'danger'
 // Helper function to get badge color classes
 export const getBadgeColorClasses = (status: 'success' | 'warning' | 'danger' | 'info') => {
   const colorMap = {
-    success: 'bg-success-100 text-success-800',
-    warning: 'bg-warning-100 text-warning-800',
-    danger: 'bg-danger-100 text-danger-800',
-    info: 'bg-primary-100 text-primary-800'
+    success: 'bg-emerald-100 text-emerald-800',
+    warning: 'bg-amber-100 text-amber-800',
+    danger: 'bg-red-100 text-red-800',
+    info: 'bg-purple-100 text-purple-800'
   }
   
   return colorMap[status]

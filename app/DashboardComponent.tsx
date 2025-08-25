@@ -525,7 +525,7 @@ export default function DashboardComponent({ showHeader = true }: DashboardCompo
           icon={<Target className="w-5 h-5" />}
           helpText="These wellness indicators help you understand your financial habits and suggest areas for improvement."
           badge={wellnessMetrics?.categorizationRate === 100 ? "Excellent" : "Good"}
-          badgeColor={wellnessMetrics?.categorizationRate === 100 ? "success" : "warning"}
+          badgeColor="success"
         >
           {wellnessMetrics && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

@@ -210,82 +210,7 @@ export default function EmotionalCheckIn({
 
   return (
     <div className={`space-y-6 ${className}`}>
-      {/* Mood Check-in Section */}
-      {showMoodCheck && (
-        <div className="card therapeutic-transition">
-          <div className="text-center mb-6">
-            <DrSigmundSpendAvatar 
-              mood={currentMood?.mood === 'stressed' || currentMood?.mood === 'overwhelmed' ? 'supportive' : 'encouraging'}
-              message="How are you feeling about your finances today?"
-              showMessage={true}
-            />
-          </div>
 
-          <div className="space-y-6">
-            {/* Mood Selection */}
-            <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">How are you feeling?</h3>
-              <div className="grid grid-cols-5 gap-3">
-                {MOOD_OPTIONS.map((option) => (
-                  <button
-                    key={option.value}
-                    onClick={() => handleMoodSubmit(option.value as MoodData['mood'])}
-                    className={`p-4 rounded-lg border-2 border-gray-200 hover:border-primary-300 therapeutic-transition therapeutic-hover ${option.color}`}
-                  >
-                    <div className="flex flex-col items-center space-y-2">
-                      {option.icon}
-                      <span className="text-sm font-medium">{option.label}</span>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Stress Level */}
-            <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Stress Level (1-10)</h3>
-              <div className="space-y-3">
-                <div className="flex justify-between text-sm text-gray-600">
-                  <span>Very Low</span>
-                  <span>Very High</span>
-                </div>
-                <input
-                  type="range"
-                  min="1"
-                  max="10"
-                  value={stressLevel}
-                  onChange={(e) => setStressLevel(Number(e.target.value))}
-                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
-                />
-                <div className="text-center">
-                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                    STRESS_LEVELS.find(s => s.value === stressLevel)?.color || 'bg-gray-100 text-gray-800'
-                  }`}>
-                    {STRESS_LEVELS.find(s => s.value === stressLevel)?.label} ({stressLevel}/10)
-                  </span>
-                </div>
-                {getStressIntervention(stressLevel) && (
-                  <div className="p-3 bg-brand-primary-lightest rounded-lg border border-brand-primary-light">
-                    <p className="text-sm text-brand-primary-dark">{getStressIntervention(stressLevel)}</p>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Financial Context */}
-            <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">What's on your mind? (Optional)</h3>
-              <textarea
-                value={financialContext}
-                onChange={(e) => setFinancialContext(e.target.value)}
-                placeholder="Share what's affecting your financial mood today..."
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                rows={3}
-              />
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Current Mood Display */}
       {currentMood && !showMoodCheck && (
@@ -339,6 +264,94 @@ export default function EmotionalCheckIn({
                   )}
                 </div>
               </div>
+              
+              {/* Inline Mood Check-in Form */}
+              {nudge.id === 'mood-check' && showMoodCheck && (
+                <div className="mt-4 pt-4 border-t border-gray-100">
+                  <div className="text-center mb-4">
+                    <DrSigmundSpendAvatar 
+                      mood={currentMood?.mood === 'stressed' || currentMood?.mood === 'overwhelmed' ? 'supportive' : 'encouraging'}
+                      message="How are you feeling about your finances today?"
+                      showMessage={true}
+                    />
+                  </div>
+
+                  <div className="space-y-4">
+                    {/* Mood Selection */}
+                    <div>
+                      <h3 className="text-base font-medium text-gray-900 mb-3">How are you feeling?</h3>
+                      <div className="grid grid-cols-5 gap-2">
+                        {MOOD_OPTIONS.map((option) => (
+                          <button
+                            key={option.value}
+                            onClick={() => handleMoodSubmit(option.value as MoodData['mood'])}
+                            className={`p-3 rounded-lg border-2 border-gray-200 hover:border-brand-primary transition-colors ${option.color}`}
+                          >
+                            <div className="flex flex-col items-center space-y-1">
+                              {option.icon}
+                              <span className="text-xs font-medium">{option.label}</span>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Stress Level */}
+                    <div>
+                      <h3 className="text-base font-medium text-gray-900 mb-3">Stress Level (1-10)</h3>
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-xs text-gray-600">
+                          <span>Very Low</span>
+                          <span>Very High</span>
+                        </div>
+                        <input
+                          type="range"
+                          min="1"
+                          max="10"
+                          value={stressLevel}
+                          onChange={(e) => setStressLevel(Number(e.target.value))}
+                          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                        />
+                        <div className="text-center">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            STRESS_LEVELS.find(s => s.value === stressLevel)?.color || 'bg-gray-100 text-gray-800'
+                          }`}>
+                            {STRESS_LEVELS.find(s => s.value === stressLevel)?.label} ({stressLevel}/10)
+                          </span>
+                        </div>
+                        {getStressIntervention(stressLevel) && (
+                          <div className="bg-gradient-to-br from-violet-50 to-violet-100 rounded-xl shadow-sm border border-violet-200 p-3">
+                            <div className="flex items-center gap-2 mb-2">
+                              <DrSigmundSpendAvatar
+                                size="sm"
+                                showMessage={false}
+                                animated={false}
+                                className="flex-shrink-0"
+                              />
+                              <div>
+                                <h4 className="text-sm font-semibold text-violet-800">Dr. Sigmund's Advice</h4>
+                              </div>
+                            </div>
+                            <p className="text-xs text-violet-700 leading-relaxed">{getStressIntervention(stressLevel)}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Financial Context */}
+                    <div>
+                      <h3 className="text-base font-medium text-gray-900 mb-2">What's on your mind? (Optional)</h3>
+                      <textarea
+                        value={financialContext}
+                        onChange={(e) => setFinancialContext(e.target.value)}
+                        placeholder="Share what's affecting your financial mood today..."
+                        className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent text-xs"
+                        rows={2}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -397,18 +410,7 @@ export default function EmotionalCheckIn({
         </div>
       )}
 
-      {/* Quick Mood Check Button */}
-      {!showMoodCheck && !currentMood && (
-        <div className="text-center">
-          <button
-            onClick={() => setShowMoodCheck(true)}
-            className="btn-primary therapeutic-transition"
-          >
-            <Heart className="w-4 h-4 mr-2" />
-            How are you feeling today?
-          </button>
-        </div>
-      )}
+
     </div>
   )
 }

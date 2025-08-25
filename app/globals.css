@@ -316,7 +316,7 @@
     width: 20px;
     height: 20px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+    background: #00A8CC;
     cursor: pointer;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     transition: all 0.2s ease;
@@ -325,13 +325,14 @@
   .slider::-webkit-slider-thumb:hover {
     transform: scale(1.1);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    background: #006B7D;
   }
 
   .slider::-moz-range-thumb {
     width: 20px;
     height: 20px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+    background: #00A8CC;
     cursor: pointer;
     border: none;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
@@ -341,11 +342,12 @@
   .slider::-moz-range-thumb:hover {
     transform: scale(1.1);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    background: #006B7D;
   }
 
   /* Active range highlighting */
   .slider:focus {
-    background: linear-gradient(to right, #8b5cf6, #e5e7eb);
+    background: linear-gradient(to right, #00A8CC, #e5e7eb);
   }
 
   /* Monte Carlo Chart Animations */
