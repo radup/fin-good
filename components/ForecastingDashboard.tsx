@@ -682,7 +682,6 @@ export function ForecastingDashboard({ className = '' }: ForecastingDashboardPro
             {showConfidenceIntervals ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             {showConfidenceIntervals ? 'Hide' : 'Show'} Confidence
           </button>
-          </div>
         </div>
       </div>
 
