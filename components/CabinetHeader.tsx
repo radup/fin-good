@@ -83,10 +83,10 @@ export default function CabinetHeader({
             />
             <div className="text-left">
               <p className="text-sm font-medium text-white group-hover:text-brand-secondary-light transition-colors">
-                {user?.full_name || user?.email?.split('@')[0] || 'User'}
+                {user?.full_name || user?.email?.split('@')[0] || 'Guest User'}
               </p>
               <p className="text-xs text-gray-300 group-hover:text-brand-secondary-light/80 transition-colors">
-                {user?.email || 'demo@fingood.com'}
+                {user?.email || 'Not authenticated'}
               </p>
             </div>
           </button>

@@ -62,9 +62,9 @@ export default function CabinetPageLayout({
         </div>
 
         {/* Breadcrumb - positioned to align with main content */}
-        <div className="flex-1 px-4">
-          <nav className="flex" aria-label="Breadcrumb">
-            <ol className="flex items-center space-x-2 text-sm">
+        <div className="flex-1">
+          <nav className="flex px-6 max-w-6xl mx-auto" aria-label="Breadcrumb">
+            <ol className="flex items-center space-x-2 text-sm ml-8">
               <li>
                 <a href="/" className="text-gray-300 hover:text-white transition-colors">
                   <Home className="w-4 h-4" />
@@ -125,7 +125,7 @@ export default function CabinetPageLayout({
         </div>
 
         {/* Main Content Area */}
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto -mt-4 pt-8">
           {children}
         </main>
       </div>

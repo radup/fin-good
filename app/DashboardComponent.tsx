@@ -43,21 +43,21 @@ function ProgressiveSection({
   const getBadgeColorClass = (color: 'success' | 'warning' | 'danger' | 'info') => getBadgeColorClasses(color)
 
   return (
-    <div className="card therapeutic-transition">
+    <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6">
       <div 
-        className="flex items-center justify-between cursor-pointer therapeutic-hover"
+        className="flex items-center justify-between cursor-pointer"
         onClick={onToggle}
       >
         <div className="flex items-center gap-3">
-          {icon && <div className="text-gray-500">{icon}</div>}
+          {icon && <div className="text-brand-primary">{icon}</div>}
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
-                             {badge && (
-                 <span className={`px-2 py-1 text-xs font-medium rounded-full ${getBadgeColorClass(badgeColor)}`}>
-                   {badge}
-                 </span>
-               )}
+              <h3 className="text-lg font-medium text-gray-900">{title}</h3>
+              {badge && (
+                <span className={`px-2 py-1 text-xs font-medium rounded-full ${getBadgeColorClass(badgeColor)}`}>
+                  {badge}
+                </span>
+              )}
             </div>
             {description && (
               <p className="text-sm text-gray-600 mt-1">{description}</p>
@@ -72,23 +72,23 @@ function ProgressiveSection({
                   e.stopPropagation()
                   setShowHelp(!showHelp)
                 }}
-                className="p-1 text-gray-400 hover:text-gray-600 therapeutic-transition"
+                className="p-1 text-gray-400 hover:text-brand-primary transition-colors"
                 aria-label="Help"
               >
                 <HelpCircle className="w-4 h-4" />
               </button>
               {showHelp && (
-                <div className="absolute right-0 top-8 w-64 p-3 bg-blue-50 border border-blue-200 rounded-lg shadow-lg z-10">
-                  <p className="text-sm text-blue-800">{helpText}</p>
-                  <div className="absolute -top-1 right-3 w-2 h-2 bg-blue-50 border-l border-t border-blue-200 transform rotate-45"></div>
+                <div className="absolute right-0 top-8 w-64 p-3 bg-brand-primary-lightest border border-brand-primary-light rounded-lg shadow-lg z-10">
+                  <p className="text-sm text-brand-primary-dark">{helpText}</p>
+                  <div className="absolute -top-1 right-3 w-2 h-2 bg-brand-primary-lightest border-l border-t border-brand-primary-light transform rotate-45"></div>
                 </div>
               )}
             </div>
           )}
           {isExpanded ? (
-            <ChevronDown className="w-5 h-5 text-gray-500" />
+            <ChevronDown className="w-5 h-5 text-brand-primary" />
           ) : (
-            <ChevronRight className="w-5 h-5 text-gray-500" />
+            <ChevronRight className="w-5 h-5 text-brand-primary" />
           )}
         </div>
       </div>
@@ -115,37 +115,41 @@ interface WellnessCardProps {
 
 function WellnessCard({ title, value, description, icon, color, trend, trendValue }: WellnessCardProps) {
   const colorClasses = {
-    success: 'bg-success-50 border-success-200 text-success-800',
-    warning: 'bg-warning-50 border-warning-200 text-warning-800',
-    danger: 'bg-danger-50 border-danger-200 text-danger-800',
-    info: 'bg-primary-50 border-primary-200 text-primary-800'
+    success: 'bg-emerald-50 border-emerald-200 text-emerald-800',
+    warning: 'bg-amber-50 border-amber-200 text-amber-800',
+    danger: 'bg-red-50 border-red-200 text-red-800',
+    info: 'bg-brand-primary-lightest border-brand-primary-light text-brand-primary-dark'
   }
 
   const iconColors = {
-    success: 'text-success-600',
-    warning: 'text-warning-600',
-    danger: 'text-danger-600',
-    info: 'text-primary-600'
+    success: 'text-emerald-600',
+    warning: 'text-amber-600',
+    danger: 'text-red-600',
+    info: 'text-brand-primary'
   }
 
   return (
-    <div className={`p-4 rounded-lg border ${colorClasses[color]} therapeutic-transition therapeutic-hover`}>
+    <div className={`p-4 rounded-2xl bg-white shadow-xl border border-gray-100 transition-all hover:shadow-md`}>
       <div className="flex items-start justify-between">
-        <div className="flex items-center gap-3">
-          <div className={`p-2 rounded-lg bg-white/50 ${iconColors[color]}`}>
-            {icon}
-          </div>
+                  <div className="flex items-center gap-3">
+            <div className={`p-2 rounded-lg ${iconColors[color].replace('text-', 'bg-').replace('-600', '-100')} ${iconColors[color]}`}>
+              {icon}
+            </div>
           <div>
             <h4 className="font-medium text-gray-900">{title}</h4>
             <p className="text-sm text-gray-600">{description}</p>
           </div>
         </div>
         <div className="text-right">
-          <div className="text-2xl font-bold text-gray-900">{value}</div>
+          <div className={`text-2xl font-bold ${
+            color === 'success' ? 'text-emerald-600' : 
+            color === 'danger' ? 'text-red-600' : 
+            color === 'warning' ? 'text-amber-600' : 'text-gray-900'
+          }`}>{value}</div>
           {trend && trendValue && (
-            <div className={`text-sm flex items-center gap-1 ${
-              trend === 'up' ? 'text-success-600' : 
-              trend === 'down' ? 'text-danger-600' : 'text-gray-600'
+            <div className={`text-sm flex items-center gap-1 justify-end ${
+              trend === 'up' ? 'text-emerald-600' : 
+              trend === 'down' ? 'text-red-600' : 'text-amber-600'
             }`}>
               {trend === 'up' && <TrendingUp className="w-3 h-3" />}
               {trend === 'down' && <TrendingDown className="w-3 h-3" />}
@@ -167,7 +171,7 @@ export default function DashboardComponent({ showHeader = true }: DashboardCompo
   const [isCategorizing, setIsCategorizing] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [mounted, setMounted] = useState(false)
-  const [transactions, setTransactions] = useState([])
+  const [transactions, setTransactions] = useState<any[]>([])
   const [summary, setSummary] = useState<{
     total_transactions: number
     total_income: number
@@ -185,7 +189,7 @@ export default function DashboardComponent({ showHeader = true }: DashboardCompo
     overview: true,
     wellness: false,
     actions: false,
-    transactions: true,
+    transactions: false,
     insights: false,
     emotional: false,
     aiExplanation: false
@@ -287,9 +291,55 @@ export default function DashboardComponent({ showHeader = true }: DashboardCompo
   const fetchTransactions = async () => {
     setIsLoadingTransactions(true)
     try {
-      const response = await transactionAPI.getTransactions()
-      // Transactions fetched successfully
-      setTransactions(response.data)
+      // Mock data for UI development
+      const mockTransactions = [
+        {
+          id: 1,
+          date: '2024-01-15',
+          description: 'Salary - TechCorp Inc',
+          amount: 8750,
+          category: 'Income',
+          type: 'credit',
+          confidence: 95
+        },
+        {
+          id: 2,
+          date: '2024-01-14',
+          description: 'Grocery Store',
+          amount: 125.50,
+          category: 'Food & Dining',
+          type: 'debit',
+          confidence: 88
+        },
+        {
+          id: 3,
+          date: '2024-01-13',
+          description: 'Gas Station',
+          amount: 45.00,
+          category: 'Transportation',
+          type: 'debit',
+          confidence: 92
+        },
+        {
+          id: 4,
+          date: '2024-01-12',
+          description: 'Netflix Subscription',
+          amount: 15.99,
+          category: 'Entertainment',
+          type: 'debit',
+          confidence: 85
+        },
+        {
+          id: 5,
+          date: '2024-01-11',
+          description: 'Freelance Project',
+          amount: 1200,
+          category: 'Income',
+          type: 'credit',
+          confidence: 90
+        }
+      ]
+      setTransactions(mockTransactions)
     } catch (error: any) {
       console.error('Error fetching transactions:', error)
       if (error.response?.status === 401) {
@@ -304,9 +354,15 @@ export default function DashboardComponent({ showHeader = true }: DashboardCompo
   const fetchSummary = async () => {
     setIsLoadingSummary(true)
     try {
-      const response = await analyticsAPI.summary()
-      // Summary fetched successfully
-      setSummary(response.data)
+      // Mock data for UI development
+      const mockSummary = {
+        total_transactions: 156,
+        total_income: 8750,
+        total_expenses: 6230,
+        categorized_count: 142,
+        uncategorized_count: 14
+      }
+      setSummary(mockSummary)
     } catch (error: any) {
       console.error('Error fetching summary:', error)
       if (error.response?.status === 401) {
@@ -515,41 +571,7 @@ export default function DashboardComponent({ showHeader = true }: DashboardCompo
 
   // Show dashboard if authenticated
   return (
-    <div className="min-h-screen bg-white">
-      {/* Header */}
-      {showHeader && (
-        <header className="bg-brand-primary-dark shadow-sm border-b border-brand-primary">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div className="flex items-center gap-4">
-              <DrSigmundSpendAvatar 
-                size="md" 
-                mood="analytical"
-                showMessage={false}
-              />
-              <div>
-                <h1 className="text-3xl font-bold text-white">Spend's Analysis</h1>
-                <p className="text-brand-primary-light">AI-Powered Financial Intelligence</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => {
-                  // Upload modal opened
-                  setIsUploadModalOpen(true)
-                }}
-                className="bg-brand-gradient text-white px-4 py-2 rounded-lg font-medium transition-all duration-300 shadow-sm hover:shadow-lg transform hover:scale-105 flex items-center gap-2"
-              >
-                <Upload className="w-4 h-4" />
-                Upload CSV
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
-      )}
-
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+    <div className="max-w-6xl mx-auto space-y-6 pt-0">
         {/* Overview Section */}
         <ProgressiveSection
           title="Financial Overview"
@@ -853,7 +875,6 @@ export default function DashboardComponent({ showHeader = true }: DashboardCompo
             />
           </ErrorBoundary>
         </ProgressiveSection>
-      </main>
 
       {/* Upload Modal */}
       <TherapeuticUploadModal 

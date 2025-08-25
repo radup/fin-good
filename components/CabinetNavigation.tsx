@@ -229,7 +229,7 @@ export default function CabinetNavigation({ activeSection, onSectionChange }: Ca
 
       {/* Navigation */}
       <div className="flex-1 flex flex-col overflow-y-auto">
-        <nav className="flex-1 px-2 py-4 space-y-1">
+        <nav className="flex-1 px-2 py-4 pt-8 space-y-1">
           {navigation.map((item) => renderNavItem(item))}
         </nav>
       </div>
