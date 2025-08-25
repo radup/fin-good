@@ -61,7 +61,7 @@ export default function CabinetLayout() {
   return (
     <div className="h-screen bg-white flex flex-col">
       {/* Full-width Header Bar */}
-      <header className="flex items-center h-16 bg-gradient-to-r from-gray-900 to-slate-800 border-b border-gray-700 shadow-lg">
+      <header className="flex items-center h-16 bg-brand-primary-dark border-b border-brand-primary shadow-lg">
         {/* Logo */}
         <div className="flex items-center px-4">
           <div className="w-8 h-8 bg-gradient-to-br from-teal-600 to-cyan-600 rounded-lg flex items-center justify-center shadow-lg">

@@ -219,9 +219,9 @@ export default function Sidebar({ isOpen, onToggle, activeSection, onSectionChan
       </div>
 
       {/* Footer */}
-      <div className="border-t border-gray-200 p-4">
+      <div className="border-t border-brand-primary-light p-4 bg-brand-primary-dark">
         <button
-          className="w-full flex items-center space-x-3 p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
+          className="w-full flex items-center space-x-3 p-2 text-white hover:text-brand-primary-light hover:bg-brand-primary-dark/80 rounded-lg transition-colors"
         >
           <Settings className="h-5 w-5" />
           <span className="text-sm">Settings</span>

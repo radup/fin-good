@@ -158,7 +158,11 @@ function WellnessCard({ title, value, description, icon, color, trend, trendValu
   )
 }
 
-export default function DashboardComponent() {
+interface DashboardComponentProps {
+  showHeader?: boolean
+}
+
+export default function DashboardComponent({ showHeader = true }: DashboardComponentProps) {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
   const [isCategorizing, setIsCategorizing] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -466,9 +470,9 @@ export default function DashboardComponent() {
   // Show loading state until component is mounted
   if (!mounted) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-primary mx-auto mb-4"></div>
           <p className="text-gray-600">Loading...</p>
         </div>
       </div>
@@ -513,7 +517,8 @@ export default function DashboardComponent() {
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm shadow-sm border-b border-gray-200">
+      {showHeader && (
+        <header className="bg-brand-primary-dark shadow-sm border-b border-brand-primary">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center gap-4">
@@ -523,8 +528,8 @@ export default function DashboardComponent() {
                 showMessage={false}
               />
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">Spend's Analysis</h1>
-                <p className="text-gray-600">AI-Powered Financial Intelligence</p>
+                <h1 className="text-3xl font-bold text-white">Spend's Analysis</h1>
+                <p className="text-brand-primary-light">AI-Powered Financial Intelligence</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -542,6 +547,7 @@ export default function DashboardComponent() {
           </div>
         </div>
       </header>
+      )}
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         {/* Overview Section */}
@@ -623,8 +629,8 @@ export default function DashboardComponent() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="card therapeutic-hover therapeutic-transition cursor-pointer" onClick={() => setIsUploadModalOpen(true)}>
               <div className="flex items-center">
-                <div className="p-2 bg-primary-100 rounded-lg">
-                  <Upload className="w-6 h-6 text-primary-600" />
+                <div className="p-2 bg-brand-primary-lightest rounded-lg">
+                  <Upload className="w-6 h-6 text-brand-primary" />
                 </div>
                 <div className="ml-4">
                   <h3 className="text-lg font-medium text-gray-900">Upload Data</h3>
@@ -635,8 +641,8 @@ export default function DashboardComponent() {
 
             <div className="card therapeutic-hover therapeutic-transition">
               <div className="flex items-center">
-                <div className="p-2 bg-success-100 rounded-lg">
-                  <BarChart3 className="w-6 h-6 text-success-600" />
+                <div className="p-2 bg-green-100 rounded-lg">
+                  <BarChart3 className="w-6 h-6 text-green-600" />
                 </div>
                 <div className="ml-4">
                   <h3 className="text-lg font-medium text-gray-900">View Analytics</h3>
@@ -647,8 +653,8 @@ export default function DashboardComponent() {
 
             <div className="card therapeutic-hover therapeutic-transition">
               <div className="flex items-center">
-                <div className="p-2 bg-warning-100 rounded-lg">
-                  <TrendingUp className="w-6 h-6 text-warning-600" />
+                <div className="p-2 bg-yellow-100 rounded-lg">
+                  <TrendingUp className="w-6 h-6 text-yellow-600" />
                 </div>
                 <div className="ml-4">
                   <h3 className="text-lg font-medium text-gray-900">Forecast</h3>
@@ -755,8 +761,8 @@ export default function DashboardComponent() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="card">
               <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <Info className="w-5 h-5 text-blue-600" />
+                <div className="p-2 bg-brand-primary-lightest rounded-lg">
+                  <Info className="w-5 h-5 text-brand-primary" />
                 </div>
                 <h3 className="text-lg font-medium text-gray-900">Spending Patterns</h3>
               </div>
@@ -794,9 +800,9 @@ export default function DashboardComponent() {
                   <h4 className="font-medium text-green-900 mb-1">Increase Savings</h4>
                   <p className="text-sm text-green-700">Consider setting up automatic transfers to your savings account.</p>
                 </div>
-                <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-                  <h4 className="font-medium text-blue-900 mb-1">Review Subscriptions</h4>
-                  <p className="text-sm text-blue-700">You have several recurring payments that could be optimized.</p>
+                <div className="p-3 bg-brand-primary-lightest rounded-lg border border-brand-primary-lighter">
+                  <h4 className="font-medium text-brand-primary-dark mb-1">Review Subscriptions</h4>
+                  <p className="text-sm text-brand-primary-hover">You have several recurring payments that could be optimized.</p>
                 </div>
                 <div className="p-3 bg-purple-50 rounded-lg border border-purple-200">
                   <h4 className="font-medium text-purple-900 mb-1">Emergency Fund</h4>

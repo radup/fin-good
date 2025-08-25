@@ -2,49 +2,46 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Therapeutic Color Palette - FinGood UX Enhancement */
+/* Spend's Analysis Brand Color Palette */
 :root {
-  /* Primary therapeutic colors */
-  --color-trust-blue: #2563EB;
-  --color-calm-green: #059669;
-  --color-warm-gold: #F59E0B;
-  --color-soft-background: #F8FAFC;
+  /* Core Brand Colors */
+  --brand-primary: #00A8CC;           /* Primary Blue from logo */
+  --brand-primary-hover: #006B7D;    /* Deep Teal */
+  --brand-primary-dark: #031d24;     /* Dark Navy */
+  --brand-accent: #00E5FF;           /* Bright Cyan */
   
-  /* Confidence levels */
-  --color-high-confidence: #059669;
-  --color-medium-confidence: #F59E0B;
-  --color-low-confidence: #EF4444;
+  /* Extended Palette - Trust & Stability */
+  --brand-primary-lightest: #E6F7FF; /* Light blue backgrounds */
+  --brand-primary-lighter: #B3E5FC;  /* Soft blue secondary backgrounds */
+  --brand-primary-light: #4FC3F7;    /* Medium blue interactive elements */
+  --brand-primary-strong: #0288D1;   /* Strong blue primary actions */
   
-  /* Emotional states */
-  --color-anxiety-reduce: #E0F2FE;
-  --color-trust-build: #DBEAFE;
-  --color-empowerment: #D1FAE5;
+  /* Professional Neutrals */
+  --color-bg-main: #F8FAFB;          /* Clean white main backgrounds */
+  --color-border: #E2E8F0;           /* Light gray borders/dividers */
+  --color-text-secondary: #64748B;   /* Medium gray secondary text */
+  --color-text-primary: #334155;     /* Dark gray primary text */
   
-  /* Interactive elements */
-  --color-safe-action: #10B981;
-  --color-attention-needed: #F59E0B;
-  --color-urgent-action: #EF4444;
+  /* Financial Therapy Accents */
+  --color-success: #10B981;          /* Success green */
+  --color-warning: #F59E0B;          /* Warning amber */
+  --color-error: #EF4444;            /* Alert red */
+  --color-insight: #8B5CF6;          /* Insight purple */
   
-  /* Therapeutic gradients */
-  --gradient-trust: linear-gradient(135deg, #DBEAFE 0%, #E0F2FE 100%);
-  --gradient-empowerment: linear-gradient(135deg, #D1FAE5 0%, #E0F2FE 100%);
-  --gradient-celebration: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+  /* Strategic Gradients */
+  --gradient-primary: linear-gradient(135deg, #00A8CC 0%, #00E5FF 100%);
+  --gradient-button: linear-gradient(135deg, #00A8CC 0%, #0288D1 100%);
+  --gradient-card: linear-gradient(145deg, #F8FAFB 0%, #E6F7FF 100%);
+  --gradient-hero: linear-gradient(135deg, #1A2332 0%, #006B7D 100%);
   
-  /* Custom brand colors - Updated to match home page */
-  --brand-secondary: #1389a9;
-  --brand-secondary-hover: #0f7a96;
-  --brand-secondary-light: #4aa3c2;
-  --brand-secondary-lighter: #bde3f0;
-  --brand-secondary-lightest: #e6f6fb;
-  --brand-gradient: linear-gradient(135deg, #1389a9 0%, #62d3f2 100%);
-  --brand-gradient-hover: linear-gradient(135deg, #0f7a96 0%, #4fc3e8 100%);
-  
-  /* Primary brand colors for consistency */
-  --brand-primary: #1389a9;
-  --brand-primary-hover: #0f7a96;
-  --brand-primary-light: #4aa3c2;
-  --brand-primary-lighter: #bde3f0;
-  --brand-primary-lightest: #e6f6fb;
+  /* Legacy support for existing components */
+  --brand-secondary: #00A8CC;
+  --brand-secondary-hover: #006B7D;
+  --brand-secondary-light: #4FC3F7;
+  --brand-secondary-lighter: #B3E5FC;
+  --brand-secondary-lightest: #E6F7FF;
+  --brand-gradient: var(--gradient-primary);
+  --brand-gradient-hover: linear-gradient(135deg, #006B7D 0%, #4FC3F7 100%);
 }
 
 /* Therapeutic utility classes */
@@ -246,7 +243,8 @@
   }
   
   body {
-    @apply bg-gray-50 text-gray-900;
+    background-color: var(--color-bg-main);
+    color: var(--color-text-primary);
   }
 }
 

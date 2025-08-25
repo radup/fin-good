@@ -7,7 +7,7 @@ export default function DashboardPage() {
   return (
     <CabinetPageLayout title="Dashboard" description="Overview and summary">
       <div className="p-6">
-        <DashboardComponent />
+        <DashboardComponent showHeader={false} />
       </div>
     </CabinetPageLayout>
   )

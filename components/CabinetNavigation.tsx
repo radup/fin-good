@@ -224,7 +224,7 @@ export default function CabinetNavigation({ activeSection, onSectionChange }: Ca
   }
 
   return (
-    <div className="flex flex-col h-full bg-white/95 backdrop-blur-sm border-r border-gray-200/50">
+    <div className="flex flex-col h-full bg-white/95 backdrop-blur-sm border-r border-brand-primary-lighter/30">
       {/* Navigation starts directly */}
 
       {/* Navigation */}

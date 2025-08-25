@@ -74,12 +74,12 @@ export default function LandingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-green-50" style={{height: '100vh', overflowY: 'scroll', scrollSnapType: 'y mandatory'}}>
+    <div className="min-h-screen bg-white" style={{height: '100vh', overflowY: 'scroll', scrollSnapType: 'y mandatory'}}>
       
       {/* Screen 1: Header + Hero Section */}
-      <div style={{minHeight: '100vh', scrollSnapAlign: 'start'}} className="bg-gradient-to-br from-blue-50 via-purple-50 to-green-50">
+      <div style={{minHeight: '100vh', scrollSnapAlign: 'start'}} className="bg-white">
         {/* Header */}
-        <header className="relative z-10 bg-gradient-to-r from-gray-900 to-slate-800 border-b border-gray-700">
+        <header className="relative z-10 bg-brand-primary-dark border-b border-brand-primary">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center py-3">
               <div className="flex items-center">
@@ -107,7 +107,7 @@ export default function LandingPage() {
                   className={`px-3 py-1.5 text-sm font-bold rounded-lg transition-all duration-300 ${
                     !isSignUp 
                       ? 'bg-brand-gradient text-white shadow-lg hover:shadow-xl transform hover:scale-105' 
-                      : 'bg-gray-700 text-brand-secondary-light border-brand-secondary-light hover:bg-gray-600'
+                      : 'bg-gray-700 text-brand-primary-light border-brand-primary-light hover:bg-gray-600'
                   }`}
                 >
                   Check In
@@ -117,7 +117,7 @@ export default function LandingPage() {
                   className={`px-3 py-1.5 text-sm font-bold rounded-lg transition-all duration-300 ${
                     isSignUp 
                       ? 'bg-brand-gradient text-white shadow-lg hover:shadow-xl transform hover:scale-105' 
-                      : 'bg-gray-700 text-brand-secondary-light border-brand-secondary-light hover:bg-gray-600'
+                      : 'bg-gray-700 text-brand-primary-light border-brand-primary-light hover:bg-gray-600'
                   }`}
                 >
                   New Patient
@@ -134,14 +134,14 @@ export default function LandingPage() {
           {/* Left Column - Marketing Content */}
           <div className="space-y-8">
             <div className="space-y-6">
-              <div className="flex items-center space-x-2 text-brand-secondary">
+              <div className="flex items-center space-x-2 text-brand-primary">
                 <Brain className="h-5 w-5" />
                 <span className="text-sm font-semibold">AI-Powered Financial Therapy</span>
               </div>
               
               <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 leading-tight">
                 Heal Your Relationship with{' '}
-                <span className="text-brand-secondary font-bold">
+                <span className="text-brand-primary font-bold">
                   Money
                 </span>
               </h1>
@@ -379,7 +379,7 @@ export default function LandingPage() {
       </div>
 
       {/* Screen 2: Features Preview */}
-        <section className="min-h-screen flex items-center justify-center py-20 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100" style={{scrollSnapAlign: 'start'}}>
+        <section className="min-h-screen flex items-center justify-center py-20 bg-white" style={{scrollSnapAlign: 'start'}}>
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             {/* Section Header */}
             <div className="text-center mb-20">
@@ -389,7 +389,7 @@ export default function LandingPage() {
               </div>
               <h2 className="text-5xl font-bold text-gray-900 mb-6 leading-tight">
                 Your Complete{' '}
-                <span className="text-brand-secondary font-bold">
+                <span className="text-brand-primary font-bold">
                   Financial Therapy
                 </span>{' '}
                 Toolkit
@@ -405,7 +405,7 @@ export default function LandingPage() {
               {/* AI Chat Therapy */}
               <div className="group bg-white/90 backdrop-blur-sm rounded-3xl p-8 border border-gray-200/50 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 flex flex-col h-full">
                 <div className="relative mb-6">
-                  <div className="w-16 h-16 bg-brand-secondary rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                  <div className="w-16 h-16 bg-brand-primary rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
                     <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                     </svg>
@@ -420,7 +420,7 @@ export default function LandingPage() {
                   understands context, remembers your journey, and provides personalized insights 
                   that evolve with your financial growth.
                 </p>
-                <div className="flex items-center text-sm text-brand-secondary font-bold mt-auto">
+                <div className="flex items-center text-sm text-brand-primary font-bold mt-auto">
                   <span>Start Conversation</span>
                   <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                 </div>
@@ -482,7 +482,7 @@ export default function LandingPage() {
         </section>
 
       {/* Screen 3: Additional Features + Footer */}
-      <div style={{minHeight: '100vh', scrollSnapAlign: 'start'}} className="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+      <div style={{minHeight: '100vh', scrollSnapAlign: 'start'}} className="bg-white">
         {/* Additional Features */}
         <section className="py-20">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -535,7 +535,7 @@ export default function LandingPage() {
         </section>
 
         {/* Footer */}
-        <footer className="bg-gradient-to-r from-gray-900 to-slate-800 text-white py-20">
+        <footer className="bg-brand-primary-dark text-white py-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-4 gap-8">
             {/* Brand Section */}

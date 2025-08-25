@@ -3,7 +3,7 @@
 ### **Core Palette:**
 - **Primary Blue:** `#00A8CC` (your logo's main blue)
 - **Deep Teal:** `#006B7D` (darker accent from your logo)
-- **Dark Navy:** `#1A2332` (your background tone)
+- **Dark Navy:** `#031d24` (your background tone)
 - **Bright Cyan:** `#00E5FF` (highlight/accent color)
 
 ### **Extended Palette:**

@@ -51,7 +51,7 @@ export default function CabinetPageLayout({
   return (
     <div className="h-screen bg-white flex flex-col">
       {/* Full-width Header Bar */}
-      <header className="flex items-center h-16 bg-gradient-to-r from-gray-900 to-slate-800 border-b border-gray-700 shadow-lg">
+      <header className="flex items-center h-16 bg-brand-primary-dark border-b border-brand-primary shadow-lg">
         {/* Logo */}
         <div className="w-64 flex items-center px-4">
           <img 
@@ -83,7 +83,7 @@ export default function CabinetPageLayout({
           <div className="flex items-center">
             <button
               onClick={handleUserProfileClick}
-              className="flex items-center hover:bg-gray-800 rounded-lg p-2 transition-colors"
+              className="flex items-center hover:bg-brand-primary rounded-lg p-2 transition-colors"
               title="View Profile"
             >
               {user?.email === 'demo@fingood.com' || user?.email === 'sigmund@spendsanalysis.com' ? (
@@ -99,13 +99,13 @@ export default function CabinetPageLayout({
                 </div>
               )}
               <div className="ml-3">
-                <p className="text-sm font-medium text-white">{user?.name || 'Demo User'}</p>
+                <p className="text-sm font-medium text-white">{user?.full_name || 'Demo User'}</p>
                 <p className="text-xs text-gray-300">{user?.email || 'demo@fingood.com'}</p>
               </div>
             </button>
             <button
               onClick={handleLogout}
-              className="ml-4 p-2 rounded-md text-gray-300 hover:text-white hover:bg-gray-800 transition-colors"
+              className="ml-4 p-2 rounded-md text-gray-300 hover:text-white hover:bg-brand-primary transition-colors"
               title="Logout"
             >
               <LogOut className="w-4 h-4" />

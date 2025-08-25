@@ -81,6 +81,7 @@ module.exports = {
           'primary-light': '#4aa3c2',
           'primary-lighter': '#bde3f0',
           'primary-lightest': '#e6f6fb',
+          'primary-dark': '#031d24',
           'secondary': '#1389a9',
           'secondary-hover': '#0f7a96',
           'secondary-light': '#4aa3c2',

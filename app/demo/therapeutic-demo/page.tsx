@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
-import DrSigmundSpendAvatar from '../../components/DrSigmundSpendAvatar';
-import TherapeuticUploadProgress from '../../components/TherapeuticUploadProgress';
-import AIConfidenceDisplay from '../../components/AIConfidenceDisplay';
-import { TherapeuticUploadModal } from '../../components/TherapeuticUploadModal';
+import DrSigmundSpendAvatar from '../../../components/DrSigmundSpendAvatar';
+import TherapeuticUploadProgress from '../../../components/TherapeuticUploadProgress';
+import AIConfidenceDisplay from '../../../components/AIConfidenceDisplay';
+import { TherapeuticUploadModal } from '../../../components/TherapeuticUploadModal';
 import { 
   CpuChipIcon,
   HeartIcon,
