@@ -17,29 +17,25 @@ export default function DataImportPage() {
 
   return (
     <CabinetPageLayout title="Data Import" description="Upload and manage data">
-      <div className="p-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Upload New Data</h2>
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <button
-                  onClick={() => setIsUploadModalOpen(true)}
-                  className="w-full bg-brand-gradient text-white px-6 py-4 rounded-lg font-medium hover:shadow-lg transform hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2"
-                >
-                  <Upload className="w-5 h-5" />
-                  Upload CSV Files
-                </button>
-                <p className="text-sm text-gray-600 mt-3">
-                  Upload your transaction data in CSV format for processing and categorization.
-                </p>
-              </div>
-            </div>
-            
-            <div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Import History</h2>
-              <ImportBatchManager />
-            </div>
+      <div className="space-y-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+            <h2 className="text-base font-semibold text-gray-900 mb-3">Upload New Data</h2>
+            <button
+              onClick={() => setIsUploadModalOpen(true)}
+              className="w-full bg-brand-gradient text-white px-4 py-3 rounded-lg font-medium hover:shadow-lg transform hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2"
+            >
+              <Upload className="w-4 h-4" />
+              Upload CSV Files
+            </button>
+            <p className="text-xs text-gray-600 mt-2">
+              Upload your transaction data in CSV format for processing and categorization.
+            </p>
+          </div>
+          
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+            <h2 className="text-base font-semibold text-gray-900 mb-3">Import History</h2>
+            <ImportBatchManager />
           </div>
         </div>
       </div>

@@ -28,8 +28,8 @@ export default function TransactionsPage() {
 
   return (
     <CabinetPageLayout title="Transactions" description="Manage financial transactions">
-      <div className="p-6">
-        <div className="max-w-7xl mx-auto">
+      <div className="space-y-4">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
           <TransactionTable 
             transactions={transactions}
             isLoading={isLoading}

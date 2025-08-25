@@ -6,11 +6,11 @@ import CategorizationPerformance from '../../../components/CategorizationPerform
 export default function CategorizationPage() {
   return (
     <CabinetPageLayout title="Categorisation" description="AI categorization tools">
-      <div className="p-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="mb-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">AI Categorization Performance</h2>
-            <p className="text-gray-600">
+      <div className="space-y-4">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+          <div className="mb-3">
+            <h2 className="text-base font-semibold text-gray-900 mb-1">AI Categorization Performance</h2>
+            <p className="text-xs text-gray-600">
               Monitor and analyze the performance of our AI-powered transaction categorization system.
             </p>
           </div>

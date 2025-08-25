@@ -16,138 +16,140 @@ export default function SettingsPage() {
 
   return (
     <CabinetPageLayout title="Settings" description="Manage your account preferences and settings">
-      <div className="p-6 space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Manage your account preferences and settings
-          </p>
+      <div className="space-y-4">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+          <div className="mb-3">
+            <h2 className="text-base font-semibold text-gray-900 mb-1">Settings</h2>
+            <p className="text-xs text-gray-600">
+              Manage your account preferences and settings
+            </p>
+          </div>
         </div>
         
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Profile Settings */}
-          <div className="bg-white rounded-lg shadow-sm border p-6">
-            <div className="flex items-center mb-6">
-              <User className="w-5 h-5 text-blue-600 mr-3" />
-              <h2 className="text-lg font-semibold text-gray-900">Profile</h2>
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+            <div className="flex items-center mb-3">
+              <User className="w-4 h-4 text-brand-primary mr-2" />
+              <h3 className="text-sm font-medium text-gray-900">Profile</h3>
             </div>
             
-            <div className="space-y-4">
+            <div className="space-y-3">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-medium text-gray-700 mb-1">
                   Email Address
                 </label>
                 <input
                   type="email"
                   defaultValue="demo@spendsanalysis.com"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-2 py-1 text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent"
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-medium text-gray-700 mb-1">
                   Display Name
                 </label>
                 <input
                   type="text"
                   defaultValue="Demo User"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-2 py-1 text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent"
                 />
               </div>
               
-              <button className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+              <button className="w-full px-3 py-2 text-xs bg-brand-gradient text-white rounded-lg hover:shadow-lg transition-all">
                 Update Profile
               </button>
             </div>
           </div>
           
           {/* Notification Settings */}
-          <div className="bg-white rounded-lg shadow-sm border p-6">
-            <div className="flex items-center mb-6">
-              <Bell className="w-5 h-5 text-green-600 mr-3" />
-              <h2 className="text-lg font-semibold text-gray-900">Notifications</h2>
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+            <div className="flex items-center mb-3">
+              <Bell className="w-4 h-4 text-emerald-600 mr-2" />
+              <h3 className="text-sm font-medium text-gray-900">Notifications</h3>
             </div>
             
-            <div className="space-y-4">
+            <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-900">Email Notifications</p>
+                  <p className="text-xs font-medium text-gray-900">Email Notifications</p>
                   <p className="text-xs text-gray-500">Receive updates via email</p>
                 </div>
                 <input
                   type="checkbox"
                   checked={notifications.email}
                   onChange={(e) => setNotifications(prev => ({ ...prev, email: e.target.checked }))}
-                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  className="rounded border-gray-300 text-brand-primary focus:ring-brand-primary"
                 />
               </div>
               
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-900">Push Notifications</p>
+                  <p className="text-xs font-medium text-gray-900">Push Notifications</p>
                   <p className="text-xs text-gray-500">Browser push notifications</p>
                 </div>
                 <input
                   type="checkbox"
                   checked={notifications.push}
                   onChange={(e) => setNotifications(prev => ({ ...prev, push: e.target.checked }))}
-                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  className="rounded border-gray-300 text-brand-primary focus:ring-brand-primary"
                 />
               </div>
               
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-900">Weekly Reports</p>
+                  <p className="text-xs font-medium text-gray-900">Weekly Reports</p>
                   <p className="text-xs text-gray-500">Weekly financial summaries</p>
                 </div>
                 <input
                   type="checkbox"
                   checked={notifications.weekly}
                   onChange={(e) => setNotifications(prev => ({ ...prev, weekly: e.target.checked }))}
-                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  className="rounded border-gray-300 text-brand-primary focus:ring-brand-primary"
                 />
               </div>
             </div>
           </div>
           
           {/* Security Settings */}
-          <div className="bg-white rounded-lg shadow-sm border p-6">
-            <div className="flex items-center mb-6">
-              <Shield className="w-5 h-5 text-red-600 mr-3" />
-              <h2 className="text-lg font-semibold text-gray-900">Security</h2>
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+            <div className="flex items-center mb-3">
+              <Shield className="w-4 h-4 text-red-600 mr-2" />
+              <h3 className="text-sm font-medium text-gray-900">Security</h3>
             </div>
             
-            <div className="space-y-4">
-              <button className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors">
+            <div className="space-y-3">
+              <button className="w-full px-3 py-2 text-xs border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
                 Change Password
               </button>
               
-              <button className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors">
+              <button className="w-full px-3 py-2 text-xs border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
                 Two-Factor Authentication
               </button>
               
-              <button className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors">
+              <button className="w-full px-3 py-2 text-xs border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
                 Session Management
               </button>
             </div>
           </div>
           
           {/* Appearance Settings */}
-          <div className="bg-white rounded-lg shadow-sm border p-6">
-            <div className="flex items-center mb-6">
-              <Palette className="w-5 h-5 text-purple-600 mr-3" />
-              <h2 className="text-lg font-semibold text-gray-900">Appearance</h2>
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+            <div className="flex items-center mb-3">
+              <Palette className="w-4 h-4 text-purple-600 mr-2" />
+              <h3 className="text-sm font-medium text-gray-900">Appearance</h3>
             </div>
             
-            <div className="space-y-4">
+            <div className="space-y-3">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1">
                   Theme
                 </label>
                 <select
                   value={theme}
                   onChange={(e) => setTheme(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-2 py-1 text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent"
                 >
                   <option value="light">Light</option>
                   <option value="dark">Dark</option>
@@ -156,10 +158,10 @@ export default function SettingsPage() {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1">
                   Currency
                 </label>
-                <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <select className="w-full px-2 py-1 text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent">
                   <option value="USD">USD ($)</option>
                   <option value="EUR">EUR (€)</option>
                   <option value="GBP">GBP (£)</option>
@@ -169,44 +171,44 @@ export default function SettingsPage() {
           </div>
           
           {/* Data Management */}
-          <div className="bg-white rounded-lg shadow-sm border p-6">
-            <div className="flex items-center mb-6">
-              <Database className="w-5 h-5 text-indigo-600 mr-3" />
-              <h2 className="text-lg font-semibold text-gray-900">Data Management</h2>
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+            <div className="flex items-center mb-3">
+              <Database className="w-4 h-4 text-brand-primary mr-2" />
+              <h3 className="text-sm font-medium text-gray-900">Data Management</h3>
             </div>
             
-            <div className="space-y-4">
-              <button className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors">
+            <div className="space-y-3">
+              <button className="w-full px-3 py-2 text-xs border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
                 Export Data
               </button>
               
-              <button className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors">
+              <button className="w-full px-3 py-2 text-xs border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
                 Import Data
               </button>
               
-              <button className="w-full px-4 py-2 border border-red-300 text-red-700 rounded-md hover:bg-red-50 transition-colors">
+              <button className="w-full px-3 py-2 text-xs border border-red-300 text-red-700 rounded-lg hover:bg-red-50 transition-colors">
                 Delete Account
               </button>
             </div>
           </div>
           
           {/* API Settings */}
-          <div className="bg-white rounded-lg shadow-sm border p-6">
-            <div className="flex items-center mb-6">
-              <Globe className="w-5 h-5 text-teal-600 mr-3" />
-              <h2 className="text-lg font-semibold text-gray-900">API & Integrations</h2>
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+            <div className="flex items-center mb-3">
+              <Globe className="w-4 h-4 text-brand-primary mr-2" />
+              <h3 className="text-sm font-medium text-gray-900">API & Integrations</h3>
             </div>
             
-            <div className="space-y-4">
-              <button className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors">
+            <div className="space-y-3">
+              <button className="w-full px-3 py-2 text-xs border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
                 API Keys
               </button>
               
-              <button className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors">
+              <button className="w-full px-3 py-2 text-xs border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
                 Webhooks
               </button>
               
-              <button className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors">
+              <button className="w-full px-3 py-2 text-xs border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
                 Third-party Integrations
               </button>
             </div>
