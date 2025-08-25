@@ -373,6 +373,57 @@ export const drSigmundExpandableBorderClasses = (
 }
 
 /**
+ * Page header utility builder
+ * Creates clean, consistent headers like the analytics page
+ */
+export const headerClasses = (
+  variant: 'default' | 'clean' | 'minimal' = 'clean',
+  className?: string
+) => {
+  const baseClasses = 'flex items-center justify-between mb-8'
+  
+  const variants = {
+    default: baseClasses,
+    clean: baseClasses, // Analytics-style clean header
+    minimal: 'flex items-center justify-between mb-6'
+  }
+  
+  return cn(variants[variant], className)
+}
+
+/**
+ * Page header title utility
+ */
+export const headerTitleClasses = (
+  size: 'lg' | 'xl' | '2xl' | '3xl' = '2xl',
+  className?: string
+) => {
+  const titleClasses = {
+    lg: 'text-lg font-semibold text-gray-900',
+    xl: 'text-xl font-bold text-gray-900', 
+    '2xl': 'text-2xl font-bold text-gray-900',
+    '3xl': 'text-3xl font-bold text-gray-900'
+  }
+  
+  return cn(titleClasses[size], className)
+}
+
+/**
+ * Page header description utility
+ */
+export const headerDescClasses = (
+  variant: 'default' | 'muted' = 'default',
+  className?: string
+) => {
+  const variants = {
+    default: 'text-gray-600 mt-1',
+    muted: 'text-gray-500 mt-1 text-sm'
+  }
+  
+  return cn(variants[variant], className)
+}
+
+/**
  * Semantic color tokens export
  */
 export { semantic }

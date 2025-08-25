@@ -31,7 +31,10 @@ import {
   gradientClasses, 
   focusRing,
   textClasses,
-  shadowClasses
+  shadowClasses,
+  headerClasses,
+  headerTitleClasses,
+  headerDescClasses
 } from '../lib/design-utils'
 import { semantic, components } from '../lib/design-system'
 
@@ -226,38 +229,29 @@ export default function ClientPaymentPredictionDashboard() {
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       {/* Header */}
-      <div className={cn(
-        gradientClasses('hero'),
-        cardClasses('elevated'),
-        'p-6 text-white'
-      )}>
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className={cn(
-              textClasses.size('2xl'),
-              textClasses.weight('semibold'),
-              'mb-2 text-white'
-            )}>
-              Client Payment Prediction Center
-            </h1>
-            <p className="text-brand-accent/80">
-              AI-powered late payment prediction and client risk assessment
-            </p>
+      <div className={headerClasses('clean')}>
+        <div>
+          <h1 className={headerTitleClasses('2xl')}>
+            Client Payment Prediction Center
+          </h1>
+          <p className={headerDescClasses('default')}>
+            AI-powered late payment prediction and client risk assessment
+          </p>
+        </div>
+        <div className="text-right">
+          <div className={cn(
+            textClasses.size('sm'),
+            semantic.text.muted,
+            'mb-1'
+          )}>
+            Total Outstanding
           </div>
-          <div className="text-right">
-            <div className={cn(
-              textClasses.size('sm'),
-              'text-brand-accent/80 mb-1'
-            )}>
-              Total Outstanding
-            </div>
-            <div className={cn(
-              textClasses.size('3xl'),
-              textClasses.weight('bold'),
-              'text-white'
-            )}>
-              €{totalOutstanding.toLocaleString()}
-            </div>
+          <div className={cn(
+            textClasses.size('3xl'),
+            textClasses.weight('bold'),
+            semantic.text.primary
+          )}>
+            €{totalOutstanding.toLocaleString()}
           </div>
         </div>
       </div>

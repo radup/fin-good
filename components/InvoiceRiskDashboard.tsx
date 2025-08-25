@@ -7,7 +7,10 @@ import {
   cardClasses, 
   badgeClasses, 
   textClasses, 
-  gradientClasses 
+  gradientClasses,
+  headerClasses,
+  headerTitleClasses,
+  headerDescClasses
 } from '../lib/design-utils'
 import DrSigmundAdviceCard from './DrSigmundAdviceCard'
 import { 
@@ -1160,34 +1163,28 @@ export default function InvoiceRiskDashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Gradient Hero Header */}
-      <div className={cn(
-        gradientClasses('hero'),
-        cardClasses('elevated'),
-        'p-6 text-white'
-      )}>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
-              <AlertTriangle className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h2 className={cn(textClasses.size('2xl'), textClasses.weight('bold'), 'text-white')}>
-                Invoice & Client Risk Management
-              </h2>
-              <p className="text-white/80 mt-1">Monitor client payment patterns, predict risks, and optimize cash flow</p>
-            </div>
+      {/* Clean Header */}
+      <div className={headerClasses('clean')}>
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-brand-primary/10 border border-brand-primary/20 rounded-2xl flex items-center justify-center">
+            <AlertTriangle className="w-6 h-6 text-brand-primary" />
           </div>
-          <div className="flex space-x-3">
-            <button className={cn(buttonClasses('ghost', 'sm'), 'flex items-center space-x-2 border border-white/20 bg-white/10 text-white hover:bg-white/20')}>
-              <Send className="w-4 h-4" />
-              <span>Send Reminders</span>
-            </button>
-            <button className={cn(buttonClasses('ghost', 'sm'), 'flex items-center space-x-2 border border-white/20 bg-white/10 text-white hover:bg-white/20')}>
-              <Download className="w-4 h-4" />
-              <span>Export Report</span>
-            </button>
+          <div>
+            <h2 className={headerTitleClasses('2xl')}>
+              Invoice & Client Risk Management
+            </h2>
+            <p className={headerDescClasses('default')}>Monitor client payment patterns, predict risks, and optimize cash flow</p>
           </div>
+        </div>
+        <div className="flex space-x-3">
+          <button className={cn(buttonClasses('secondary', 'sm'), 'flex items-center space-x-2')}>
+            <Send className="w-4 h-4" />
+            <span>Send Reminders</span>
+          </button>
+          <button className={cn(buttonClasses('secondary', 'sm'), 'flex items-center space-x-2')}>
+            <Download className="w-4 h-4" />
+            <span>Export Report</span>
+          </button>
         </div>
       </div>
 

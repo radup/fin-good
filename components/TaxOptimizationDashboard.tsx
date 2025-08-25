@@ -26,7 +26,10 @@ import {
   cn, 
   gradientClasses, 
   textClasses,
-  semantic
+  semantic,
+  headerClasses,
+  headerTitleClasses,
+  headerDescClasses
 } from '../lib/design-utils'
 import DrSigmundAdviceCard from './DrSigmundAdviceCard'
 
@@ -150,38 +153,29 @@ export default function TaxOptimizationDashboard() {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Header */}
-      <div className={cn(
-        gradientClasses('hero'),
-        cardClasses('elevated'),
-        'p-6 text-white'
-      )}>
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className={cn(
-              textClasses.size('2xl'),
-              textClasses.weight('bold'),
-              'mb-2 text-white'
-            )}>
-              Multi-Jurisdiction Tax Optimization
-            </h1>
-            <p className="text-brand-accent/80">
-              Benelux-focused tax planning with EU expansion strategies
-            </p>
+      <div className={headerClasses('clean')}>
+        <div>
+          <h1 className={headerTitleClasses('2xl')}>
+            Multi-Jurisdiction Tax Optimization
+          </h1>
+          <p className={headerDescClasses('default')}>
+            Benelux-focused tax planning with EU expansion strategies
+          </p>
+        </div>
+        <div className="text-right">
+          <div className={cn(
+            textClasses.size('sm'),
+            semantic.text.muted,
+            'mb-1'
+          )}>
+            Potential Annual Savings
           </div>
-          <div className="text-right">
-            <div className={cn(
-              textClasses.size('sm'),
-              'text-brand-accent/80 mb-1'
-            )}>
-              Potential Annual Savings
-            </div>
-            <div className={cn(
-              textClasses.size('3xl'),
-              textClasses.weight('bold'),
-              'text-white'
-            )}>
-              €{totalPotentialSavings.toLocaleString()}
-            </div>
+          <div className={cn(
+            textClasses.size('3xl'),
+            textClasses.weight('bold'),
+            semantic.text.primary
+          )}>
+            €{totalPotentialSavings.toLocaleString()}
           </div>
         </div>
       </div>

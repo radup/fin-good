@@ -26,7 +26,8 @@ import {
 import { budgetAnalysisAPI } from '@/lib/api'
 import { 
   cardClasses, buttonClasses, badgeClasses, 
-  cn, gradientClasses, textClasses 
+  cn, gradientClasses, textClasses,
+  headerClasses, headerTitleClasses, headerDescClasses 
 } from '@/lib/design-utils'
 import type { 
   Budget, 
@@ -169,31 +170,25 @@ export function BudgetAnalysis({ className = '' }: BudgetAnalysisProps) {
   return (
     <div className={cn('space-y-6', className)}>
       {/* Header */}
-      <div className={cn(
-        gradientClasses('hero'),
-        cardClasses('elevated'),
-        'p-6 text-white'
-      )}>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
-              <PieChart className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h2 className={cn(textClasses.size('2xl'), textClasses.weight('bold'), 'text-white')}>
-                Budget Analysis & Management
-              </h2>
-              <p className="text-white/80">
-                Comprehensive budget planning with AI-powered variance analysis
-              </p>
-            </div>
+      <div className={headerClasses('clean')}>
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-brand-primary/10 border border-brand-primary/20 rounded-2xl flex items-center justify-center">
+            <PieChart className="w-6 h-6 text-brand-primary" />
           </div>
-          <div className="flex items-center gap-2">
-            <button
+          <div>
+            <h2 className={headerTitleClasses('2xl')}>
+              Budget Analysis & Management
+            </h2>
+            <p className={headerDescClasses('default')}>
+              Comprehensive budget planning with AI-powered variance analysis
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
               onClick={handleRefresh}
               className={cn(
-                buttonClasses('ghost', 'sm'),
-                'text-white hover:bg-white/20'
+                buttonClasses('secondary', 'sm')
               )}
               title="Refresh data"
             >
@@ -203,8 +198,7 @@ export function BudgetAnalysis({ className = '' }: BudgetAnalysisProps) {
             <button
               onClick={() => setIsCreatingBudget(true)}
               className={cn(
-                buttonClasses('primary', 'sm'),
-                'bg-white/20 text-white border-white/30 hover:bg-white/30'
+                buttonClasses('primary', 'sm')
               )}
             >
               <Plus className="w-4 h-4 mr-2" />

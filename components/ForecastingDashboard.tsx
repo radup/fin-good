@@ -37,7 +37,7 @@ import { forecastingAPI } from '@/lib/api'
 import { 
   cardClasses, buttonClasses, badgeClasses, 
   cn, gradientClasses, textClasses, semantic,
-  inputClasses
+  inputClasses, headerClasses, headerTitleClasses, headerDescClasses
 } from '../lib/design-utils'
 import type { 
   ForecastRequest, 
@@ -638,55 +638,47 @@ export function ForecastingDashboard({ className = '' }: ForecastingDashboardPro
   return (
     <div className={cn('space-y-6', className)}>
       {/* Header */}
-      <div className={cn(
-        gradientClasses('hero'),
-        cardClasses('elevated'),
-        'p-6 text-white'
-      )}>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
-              <TrendingUp className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h2 className={cn(textClasses.size('2xl'), textClasses.weight('bold'), 'text-white')}>
-                Cash Flow Forecasting
-              </h2>
-              <p className="text-white/80">
-                AI-powered predictions with multi-model ensemble intelligence
-              </p>
-            </div>
+      <div className={headerClasses('clean')}>
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-brand-primary/10 border border-brand-primary/20 rounded-2xl flex items-center justify-center">
+            <TrendingUp className="w-6 h-6 text-brand-primary" />
           </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setIsMultiModelMode(!isMultiModelMode)}
-              className={cn(
-                buttonClasses(isMultiModelMode ? 'primary' : 'ghost', 'sm'),
-                'text-white border-white/30 hover:bg-white/20'
-              )}
-            >
+          <div>
+            <h2 className={headerTitleClasses('2xl')}>
+              Cash Flow Forecasting
+            </h2>
+            <p className={headerDescClasses('default')}>
+              AI-powered predictions with multi-model ensemble intelligence
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setIsMultiModelMode(!isMultiModelMode)}
+            className={cn(
+              buttonClasses(isMultiModelMode ? 'primary' : 'secondary', 'sm')
+            )}
+          >
               {isMultiModelMode ? <Brain className="w-4 h-4" /> : <Zap className="w-4 h-4" />}
               {isMultiModelMode ? 'Multi-Model' : 'Single Model'}
-            </button>
-            <button
-              onClick={handleRefresh}
-              className={cn(
-                buttonClasses('ghost', 'sm'),
-                'text-white hover:bg-white/20',
-                isGenerating ? 'opacity-50' : ''
-              )}
-              disabled={isGenerating}
-            >
-              <RefreshCw className="w-4 h-4" />
-              Refresh
-            </button>
-            <button
-              onClick={() => setShowConfidenceIntervals(!showConfidenceIntervals)}
-              className={cn(
-                buttonClasses('ghost', 'sm'),
-                'text-white hover:bg-white/20'
-              )}
-            >
+          </button>
+          <button
+            onClick={handleRefresh}
+            className={cn(
+              buttonClasses('secondary', 'sm'),
+              isGenerating ? 'opacity-50' : ''
+            )}
+            disabled={isGenerating}
+          >
+            <RefreshCw className="w-4 h-4" />
+            Refresh
+          </button>
+          <button
+            onClick={() => setShowConfidenceIntervals(!showConfidenceIntervals)}
+            className={cn(
+              buttonClasses('secondary', 'sm')
+            )}
+          >
               {showConfidenceIntervals ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               {showConfidenceIntervals ? 'Hide' : 'Show'} Confidence
             </button>
