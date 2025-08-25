@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Budget Analysis - Spend's Analysis</title>
+    
+    <!-- External Dependencies -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Custom Theme -->
+    <link rel="stylesheet" href="./budget_analysis_theme.css">
+    
+    <style>
+        /* Tailwind CSS Configuration */
+        @config {
+            theme: {
+                extend: {
+                    colors: {
+                        'brand-primary': '#00A8CC',
+                        'brand-primary-hover': '#006B7D',
+                        'brand-primary-dark': '#031d24',
+                        'brand-accent': '#00E5FF',
+                    }
+                }
+            }
+        }
+
+        /* Animation Definitions */
+        @keyframes slideInRight {
+            0% { transform: translateX(100%); opacity: 0; }
+            100% { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes slideInLeft {
+            0% { transform: translateX(-100%); opacity: 0; }
+            100% { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes slideInUp {
+            0% { transform: translateY(20px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes fadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+
+        @keyframes scaleIn {
+            0% { transform: scale(0.9); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes progressFill {
+            0% { width: 0%; }
+            100% { width: var(--progress-width); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        @keyframes celebrate {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* Animation Classes */
+        .animate-slide-in-right { animation: slideInRight 0.6s cubic-bezier(0, 0, 0.2, 1); }
+        .animate-slide-in-left { animation: slideInLeft 0.6s cubic-bezier(0, 0, 0.2, 1); }
+        .animate-slide-in-up { animation: slideInUp 0.4s cubic-bezier(0, 0, 0.2, 1); }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out; }
+        .animate-scale-in { animation: scaleIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
+        .animate-progress-fill { animation: progressFill 1.2s ease-out forwards; }
+        .animate-pulse-slow { animation: pulse 2s ease-in-out infinite; }
+        .animate-shake { animation: shake 0.5s ease-in-out; }
+        .animate-celebrate { animation: celebrate 0.6s ease-in-out; }
+
+        /* Enhanced Hover Effects */
+        .hover-lift:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 10px 25px -5px rgba(0, 168, 204, 0.1), 0 8px 10px -6px rgba(0, 168, 204, 0.05);
+        }
+        
+        .hover-scale:hover { 
+            transform: scale(1.02); 
+        }
+        
+        .active-press:active { 
+            transform: scale(0.98); 
+        }
+
+        /* Custom Scrollbar */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 3px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #00A8CC;
+            border-radius: 3px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #006B7D;
+        }
+
+        /* Focus states for accessibility */
+        .focus-ring:focus-visible {
+            outline: 2px solid #00A8CC;
+            outline-offset: 2px;
+        }
+    </style>
+</head>
+<body class="budget-analysis-container">
+    <!-- Header Section -->
+    <header class="page-header animate-fade-in">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="page-title">Budget Analysis</h1>
+                <p class="page-subtitle">Comprehensive budget management and financial insights</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <!-- Refresh Button -->
+                <button class="p-2 text-gray-500 hover:text-brand-primary hover:bg-blue-50 rounded-lg transition-all duration-200 focus-ring hover-scale active-press" 
+                        title="Refresh data">
+                    <i data-lucide="refresh-cw" class="w-5 h-5"></i>
+                </button>
+                
+                <!-- Export Button -->
+                <button class="btn-budget-secondary hover-scale active-press focus-ring">
+                    <i data-lucide="download" class="w-4 h-4 mr-2"></i>
+                    Export
+                </button>
+                
+                <!-- Settings Button -->
+                <button class="p-2 text-gray-500 hover:text-brand-primary hover:bg-blue-50 rounded-lg transition-all duration-200 focus-ring hover-scale active-press" 
+                        title="Settings">
+                    <i data-lucide="settings" class="w-5 h-5"></i>
+                </button>
+                
+                <!-- New Budget Button -->
+                <button id="newBudgetBtn" class="btn-budget-primary hover-scale active-press focus-ring">
+                    <i data-lucide="plus" class="w-4 h-4 mr-2"></i>
+                    New Budget
+                </button>
+            </div>
+        </div>
+
+        <!-- Summary Metrics Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
+            <!-- Active Budgets Card -->
+            <div class="metric-card metric-card--success hover-lift animate-slide-in-up" style="animation-delay: 0.1s">
+                <div class="flex items-center">
+                    <div class="p-3 bg-green-100 rounded-xl">
+                        <i data-lucide="dollar-sign" class="w-6 h-6 text-green-600"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Active Budgets</p>
+                        <p class="text-2xl font-bold text-gray-900">12</p>
+                        <p class="text-xs text-green-600">+2 this month</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Critical Alerts Card -->
+            <div class="metric-card metric-card--warning hover-lift animate-slide-in-up" style="animation-delay: 0.2s">
+                <div class="flex items-center">
+                    <div class="p-3 bg-orange-100 rounded-xl">
+                        <i data-lucide="alert-triangle" class="w-6 h-6 text-orange-600"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Critical Alerts</p>
+                        <p class="text-2xl font-bold text-gray-900">3</p>
+                        <p class="text-xs text-orange-600">Requires attention</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Average Variance Card -->
+            <div class="metric-card hover-lift animate-slide-in-up" style="animation-delay: 0.3s">
+                <div class="flex items-center">
+                    <div class="p-3 bg-blue-100 rounded-xl">
+                        <i data-lucide="trending-up" class="w-6 h-6 text-blue-600"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Average Variance</p>
+                        <p class="text-2xl font-bold financial-amount financial-amount--positive">+2.4%</p>
+                        <p class="text-xs text-green-600">Above target</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Performance Score Card -->
+            <div class="metric-card metric-card--success hover-lift animate-slide-in-up" style="animation-delay: 0.4s">
+                <div class="flex items-center">
+                    <div class="p-3 bg-purple-100 rounded-xl">
+                        <i data-lucide="target" class="w-6 h-6 text-purple-600"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Performance Score</p>
+                        <p class="text-2xl font-bold text-gray-900">87%</p>
+                        <p class="text-xs text-green-600">Excellent</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="p-8">
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <!-- Budget List Sidebar -->
+            <div class="lg:col-span-1">
+                <div class="budget-card animate-slide-in-left">
+                    <!-- Sidebar Header -->
+                    <div class="p-4 border-b border-gray-100">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-gray-900">Budgets</h3>
+                            <button class="p-1 text-gray-400 hover:text-brand-primary rounded focus-ring">
+                                <i data-lucide="filter" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                        <!-- Search Box -->
+                        <div class="relative">
+                            <i data-lucide="search" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+                            <input 
+                                type="text" 
+                                placeholder="Search budgets..." 
+                                class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent transition-all"
+                            >
+                        </div>
+                    </div>
+
+                    <!-- Budget List -->
+                    <div class="p-4 custom-scrollbar max-h-96 overflow-y-auto">
+                        <div class="space-y-3">
+                            <!-- Q1 Budget -->
+                            <div class="budget-card budget-card--interactive budget-card--selected hover-lift focus-ring" tabindex="0" role="button" onclick="selectBudget('q1')">
+                                <div class="p-4">
+                                    <div class="flex items-start justify-between mb-2">
+                                        <div>
+                                            <h4 class="font-medium text-gray-900">Q1 Budget</h4>
+                                            <p class="text-sm text-gray-600">Monthly</p>
+                                        </div>
+                                        <span class="badge-budget badge-budget--active">Active</span>
+                                    </div>
+                                    <div class="mt-3">
+                                        <div class="progress-bar">
+                                            <div class="progress-fill progress-fill--success animate-progress-fill" style="--progress-width: 67%;"></div>
+                                        </div>
+                                        <p class="text-xs text-gray-500 mt-1">67% complete</p>
+                                    </div>
+                                    <div class="mt-2 text-sm text-gray-600">
+                                        <span class="financial-amount financial-amount--positive">$12,500</span> / 
+                                        <span class="financial-amount financial-amount--negative">$8,200</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Q2 Budget -->
+                            <div class="budget-card budget-card--interactive hover-lift focus-ring" tabindex="0" role="button" onclick="selectBudget('q2')">
+                                <div class="p-4">
+                                    <div class="flex items-start justify-between mb-2">
+                                        <div>
+                                            <h4 class="font-medium text-gray-900">Q2 Budget</h4>
+                                            <p class="text-sm text-gray-600">Quarterly</p>
+                                        </div>
+                                        <span class="badge-budget badge-budget--warning">Warning</span>
+                                    </div>
+                                    <div class="mt-3">
+                                        <div class="progress-bar">
+                                            <div class="progress-fill progress-fill--warning" style="width: 43%;"></div>
+                                        </div>
+                                        <p class="text-xs text-gray-500 mt-1">43% complete</p>
+                                    </div>
+                                    <div class="mt-2 text-sm text-gray-600">
+                                        <span class="financial-amount financial-amount--positive">$35,000</span> / 
+                                        <span class="financial-amount financial-amount--negative">$28,400</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Annual Plan -->
+                            <div class="budget-card budget-card--interactive hover-lift focus-ring" tabindex="0" role="button" onclick="selectBudget('annual')">
+                                <div class="p-4">
+                                    <div class="flex items-start justify-between mb-2">
+                                        <div>
+                                            <h4 class="font-medium text-gray-900">Annual Plan</h4>
+                                            <p class="text-sm text-gray-600">Annual</p>
+                                        </div>
+                                        <span class="badge-budget badge-budget--draft">Draft</span>
+                                    </div>
+                                    <div class="mt-3">
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" style="width: 15%;"></div>
+                                        </div>
+                                        <p class="text-xs text-gray-500 mt-1">15% complete</p>
+                                    </div>
+                                    <div class="mt-2 text-sm text-gray-600">
+                                        <span class="financial-amount financial-amount--positive">$150,000</span> / 
+                                        <span class="financial-amount financial-amount--negative">$120,000</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- New Budget CTA -->
+                        <div class="mt-6 text-center">
+                            <button id="newBudgetSidebarBtn" class="w-full p-4 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-brand-primary hover:text-brand-primary hover:bg-blue-50 transition-all duration-300 focus-ring">
+                                <i data-lucide="plus" class="w-5 h-5 mx-auto mb-2"></i>
+                                <p class="font-medium">Create New Budget</p>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analysis Dashboard -->
+            <div class="lg:col-span-3">
+                <div class="budget-card animate-slide-in-right">
+                    <!-- Tab Navigation -->
+                    <div class="tab-nav">
+                        <button class="tab-button tab-button--active focus-ring" onclick="switchTab('overview')">
+                            <i data-lucide="eye" class="w-4 h-4 mr-2"></i>
+                            Overview
+                        </button>
+                        <button class="tab-button focus-ring" onclick="switchTab('variance')">
+                            <i data-lucide="trending-up" class="w-4 h-4 mr-2"></i>
+                            Variance Analysis
+                        </button>
+                        <button class="tab-button focus-ring" onclick="switchTab('forecast')">
+                            <i data-lucide="bar-chart-3" class="w-4 h-4 mr-2"></i>
+                            Forecasting
+                        </button>
+                        <button class="tab-button focus-ring" onclick="switchTab('performance')">
+                            <i data-lucide="pie-chart" class="w-4 h-4 mr-2"></i>
+                            Performance
+                        </button>
+                    </div>
+
+                    <!-- Tab Content -->
+                    <div class="p-6">
+                        <!-- Overview Tab -->
+                        <div id="overview-tab" class="tab-content animate-fade-in">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-6">Budget Overview - Q1 Budget</h3>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <!-- Budget Details -->
+                                <div class="space-y-6">
+                                    <div class="budget-card p-6">
+                                        <h4 class="font-semibold text-gray-900 mb-4">Budget Details</h4>
+                                        <dl class="space-y-3">
+                                            <div class="flex justify-between items-center">
+                                                <dt class="text-gray-600">Name:</dt>
+                                                <dd class="font-medium text-gray-900">Q1 Budget</dd>
+                                            </div>
+                                            <div class="flex justify-between items-center">
+                                                <dt class="text-gray-600">Type:</dt>
+                                                <dd class="font-medium text-gray-900">Monthly</dd>
+                                            </div>
+                                            <div class="flex justify-between items-center">
+                                                <dt class="text-gray-600">Status:</dt>
+                                                <dd><span class="badge-budget badge-budget--active">Active</span></dd>
+                                            </div>
+                                            <div class="flex justify-between items-center">
+                                                <dt class="text-gray-600">Period:</dt>
+                                                <dd class="font-medium text-gray-900">Jan 1 - Mar 31, 2024</dd>
+                                            </div>
+                                        </dl>
+                                    </div>
+
+                                    <!-- Quick Actions -->
+                                    <div class="budget-card p-6">
+                                        <h4 class="font-semibold text-gray-900 mb-4">Quick Actions</h4>
+                                        <div class="space-y-3">
+                                            <button class="w-full btn-budget-secondary text-left hover-scale active-press focus-ring">
+                                                <i data-lucide="edit" class="w-4 h-4 mr-2 inline"></i>
+                                                Edit Budget
+                                            </button>
+                                            <button class="w-full btn-budget-secondary text-left hover-scale active-press focus-ring">
+                                                <i data-lucide="copy" class="w-4 h-4 mr-2 inline"></i>
+                                                Duplicate Budget
+                                            </button>
+                                            <button class="w-full btn-budget-secondary text-left hover-scale active-press focus-ring">
+                                                <i data-lucide="download" class="w-4 h-4 mr-2 inline"></i>
+                                                Export Report
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Financial Summary -->
+                                <div class="space-y-6">
+                                    <div class="budget-card p-6">
+                                        <h4 class="font-semibold text-gray-900 mb-4">Financial Summary</h4>
+                                        <dl class="space-y-4">
+                                            <div class="flex justify-between items-center">
+                                                <dt class="text-gray-600">Budgeted Income:</dt>
+                                                <dd class="financial-amount financial-amount--positive text-lg font-semibold">
+                                                    $12,500
+                                                </dd>
+                                            </div>
+                                            <div class="flex justify-between items-center">
+                                                <dt class="text-gray-600">Budgeted Expenses:</dt>
+                                                <dd class="financial-amount financial-amount--negative text-lg font-semibold">
+                                                    $8,200
+                                                </dd>
+                                            </div>
+                                            <div class="border-t pt-3">
+                                                <div class="flex justify-between items-center">
+                                                    <dt class="text-gray-600 font-medium">Net Budget:</dt>
+                                                    <dd class="financial-amount financial-amount--positive text-xl font-bold">
+                                                        +$4,300
+                                                    </dd>
+                                                </div>
+                                            </div>
+                                        </dl>
+                                    </div>
+
+                                    <!-- Progress Visualization -->
+                                    <div class="budget-card p-6">
+                                        <h4 class="font-semibold text-gray-900 mb-4">Budget Progress</h4>
+                                        <div class="space-y-4">
+                                            <div>
+                                                <div class="flex justify-between items-center mb-2">
+                                                    <span class="text-sm text-gray-600">Overall Completion</span>
+                                                    <span class="text-sm font-semibold text-gray-900">67%</span>
+                                                </div>
+                                                <div class="progress-bar h-3">
+                                                    <div class="progress-fill progress-fill--success animate-progress-fill" style="--progress-width: 67%;"></div>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <div class="flex justify-between items-center mb-2">
+                                                    <span class="text-sm text-gray-600">Income Target</span>
+                                                    <span class="text-sm font-semibold text-gray-900">82%</span>
+                                                </div>
+                                                <div class="progress-bar h-2">
+                                                    <div class="progress-fill progress-fill--success" style="width: 82%;"></div>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <div class="flex justify-between items-center mb-2">
+                                                    <span class="text-sm text-gray-600">Expense Control</span>
+                                                    <span class="text-sm font-semibold text-gray-900">93%</span>
+                                                </div>
+                                                <div class="progress-bar h-2">
+                                                    <div class="progress-fill progress-fill--warning" style="width: 93%;"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Other tabs (hidden by default) -->
+                        <div id="variance-tab" class="tab-content hidden">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-6">Variance Analysis</h3>
+                            <div class="text-center py-12">
+                                <i data-lucide="trending-up" class="w-12 h-12 text-gray-400 mx-auto mb-4"></i>
+                                <p class="text-gray-500">Variance analysis tools coming soon</p>
+                            </div>
+                        </div>
+
+                        <div id="forecast-tab" class="tab-content hidden">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-6">Budget Forecasting</h3>
+                            <div class="text-center py-12">
+                                <i data-lucide="bar-chart-3" class="w-12 h-12 text-gray-400 mx-auto mb-4"></i>
+                                <p class="text-gray-500">Forecasting features coming soon</p>
+                            </div>
+                        </div>
+
+                        <div id="performance-tab" class="tab-content hidden">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-6">Performance Metrics</h3>
+                            <div class="text-center py-12">
+                                <i data-lucide="pie-chart" class="w-12 h-12 text-gray-400 mx-auto mb-4"></i>
+                                <p class="text-gray-500">Performance metrics coming soon</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Create Budget Modal -->
+    <div id="createBudgetModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center">
+        <div class="budget-card p-6 w-full max-w-md mx-4 animate-scale-in">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-semibold text-gray-900">Create New Budget</h3>
+                <button id="closeBudgetModal" class="p-1 text-gray-400 hover:text-gray-600 rounded focus-ring">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <form id="budgetForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Budget Name</label>
+                    <input 
+                        type="text" 
+                        name="name" 
+                        required 
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent transition-all"
+                        placeholder="e.g., Monthly Budget 2024"
+                    >
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                    <textarea 
+                        name="description" 
+                        rows="3" 
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent transition-all"
+                        placeholder="Optional description"
+                    ></textarea>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Budget Type</label>
+                    <select 
+                        name="budget_type" 
+                        required 
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent transition-all"
+                    >
+                        <option value="MONTHLY">Monthly</option>
+                        <option value="QUARTERLY">Quarterly</option>
+                        <option value="ANNUAL">Annual</option>
+                        <option value="PROJECT">Project-based</option>
+                        <option value="GOAL_BASED">Goal-based</option>
+                    </select>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
+                        <input 
+                            type="date" 
+                            name="start_date" 
+                            required 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent transition-all"
+                        >
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">End Date</label>
+                        <input 
+                            type="date" 
+                            name="end_date" 
+                            required 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent transition-all"
+                        >
+                    </div>
+                </div>
+                
+                <div class="flex justify-end gap-3 mt-6 pt-6 border-t">
+                    <button 
+                        type="button" 
+                        id="cancelBudget" 
+                        class="btn-budget-secondary hover-scale active-press focus-ring"
+                    >
+                        Cancel
+                    </button>
+                    <button 
+                        type="submit" 
+                        class="btn-budget-primary hover-scale active-press focus-ring"
+                    >
+                        Create Budget
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Tab switching functionality
+        function switchTab(tabId) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+            
+            // Remove active state from all tab buttons
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('tab-button--active');
+            });
+            
+            // Show selected tab content
+            const tabContent = document.getElementById(tabId + '-tab');
+            tabContent.classList.remove('hidden');
+            tabContent.classList.add('animate-fade-in');
+            
+            // Add active state to clicked button
+            event.target.classList.add('tab-button--active');
+        }
+
+        // Budget selection functionality
+        function selectBudget(budgetId) {
+            // Remove selected state from all budgets
+            document.querySelectorAll('.budget-card--selected').forEach(card => {
+                card.classList.remove('budget-card--selected');
+            });
+            
+            // Add selected state to clicked budget
+            event.currentTarget.classList.add('budget-card--selected');
+            
+            // Add celebration animation
+            event.currentTarget.classList.add('animate-celebrate');
+            setTimeout(() => {
+                event.currentTarget.classList.remove('animate-celebrate');
+            }, 600);
+        }
+
+        // Modal functionality
+        const modal = document.getElementById('createBudgetModal');
+        const newBudgetBtns = document.querySelectorAll('#newBudgetBtn, #newBudgetSidebarBtn');
+        const closeModalBtn = document.getElementById('closeBudgetModal');
+        const cancelBtn = document.getElementById('cancelBudget');
+
+        newBudgetBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            });
+        });
+
+        [closeModalBtn, cancelBtn].forEach(btn => {
+            btn.addEventListener('click', () => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            });
+        });
+
+        // Close modal when clicking outside
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        });
+
+        // Form submission
+        document.getElementById('budgetForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            // Add loading state
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Creating...';
+            submitBtn.disabled = true;
+            
+            // Simulate API call
+            setTimeout(() => {
+                // Reset form
+                e.target.reset();
+                
+                // Close modal
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                
+                // Reset button
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+                
+                // Show success message (you could add a toast notification here)
+                alert('Budget created successfully!');
+            }, 2000);
+        });
+
+        // Keyboard navigation support
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        });
+
+        // Add intersection observer for animations on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.animationDelay = '0ms';
+                    entry.target.classList.add('animate-fade-in');
+                }
+            });
+        }, observerOptions);
+
+        // Observe elements that should animate on scroll
+        document.querySelectorAll('.budget-card, .metric-card').forEach(el => {
+            observer.observe(el);
+        });
+
+        // Performance optimization: Debounce search input
+        const searchInput = document.querySelector('input[placeholder="Search budgets..."]');
+        let searchTimeout;
+        
+        searchInput.addEventListener('input', (e) => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                // Implement search functionality here
+                console.log('Searching for:', e.target.value);
+            }, 300);
+        });
+
+        // Accessibility improvements
+        document.querySelectorAll('.budget-card--interactive').forEach(card => {
+            card.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    card.click();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

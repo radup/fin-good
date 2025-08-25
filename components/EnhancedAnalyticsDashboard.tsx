@@ -30,6 +30,7 @@ import {
   Lightbulb
 } from 'lucide-react'
 import DrSigmundSpendAvatar from './DrSigmundSpendAvatar'
+import DrSigmundAdviceCard from './DrSigmundAdviceCard'
 
 // Mock data for enhanced analytics
 const mockCategorizedTransactions = [
@@ -232,34 +233,29 @@ export default function EnhancedAnalyticsDashboard() {
       </div>
 
       {/* Dr. Sigmund AI Insights */}
-      <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 border border-blue-200">
-        <div className="flex items-start space-x-4">
-          <DrSigmundSpendAvatar size="sm" mood="analytical" />
-          <div className="flex-1">
-            <div className="flex items-center space-x-2 mb-2">
-              <h3 className="text-lg font-semibold text-blue-900">FinBERT Categorization Insights</h3>
-              <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">ML Analysis</span>
-            </div>
-            <div className="space-y-3 text-sm text-blue-800">
-              <p>
-                Your expense categorization is performing exceptionally well at <strong>94.2% accuracy</strong>. 
-                The FinBERT model is particularly strong with technology and utility expenses.
-              </p>
-              <p>
-                <strong>Areas for improvement:</strong> Professional services and consulting payments show lower confidence. 
-                Consider adding more context in transaction descriptions for better classification.
-              </p>
-              <div className="bg-white/60 rounded-lg p-3 mt-3">
-                <p className="font-medium text-blue-900 mb-2">Recommendation:</p>
-                <p className="text-xs text-blue-700">
-                  Review the {modelPerformanceData.overall.humanOverrides} flagged transactions to help the model learn your specific categorization preferences. 
-                  This will improve future accuracy and reduce manual review time.
-                </p>
-              </div>
-            </div>
+      <DrSigmundAdviceCard
+        variant="ml"
+        title="FinBERT Categorization Insights"
+        badgeText="ML Analysis"
+      >
+        <div className="space-y-3">
+          <p>
+            Your expense categorization is performing exceptionally well at <strong>94.2% accuracy</strong>. 
+            The FinBERT model is particularly strong with technology and utility expenses.
+          </p>
+          <p>
+            <strong>Areas for improvement:</strong> Professional services and consulting payments show lower confidence. 
+            Consider adding more context in transaction descriptions for better classification.
+          </p>
+          <div className="bg-white/60 rounded-lg p-3 mt-3">
+            <p className="font-medium mb-2">Recommendation:</p>
+            <p className="text-xs">
+              Review the {modelPerformanceData.overall.humanOverrides} flagged transactions to help the model learn your specific categorization preferences. 
+              This will improve future accuracy and reduce manual review time.
+            </p>
           </div>
         </div>
-      </div>
+      </DrSigmundAdviceCard>
 
       {/* Search and Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
@@ -526,34 +522,29 @@ export default function EnhancedAnalyticsDashboard() {
         </div>
 
         {/* Dr. Sigmund ML Performance Insights */}
-        <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-6 border border-purple-200">
-          <div className="flex items-start space-x-4">
-            <DrSigmundSpendAvatar size="sm" mood="analytical" />
-            <div className="flex-1">
-              <div className="flex items-center space-x-2 mb-2">
-                <h3 className="text-lg font-semibold text-purple-900">ML Performance Psychology</h3>
-                <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full">Model Insights</span>
-              </div>
-              <div className="space-y-3 text-sm text-purple-800">
-                <p>
-                  Your FinBERT model is performing exceptionally well with <strong>94.2% accuracy</strong>. 
-                  The convergence in just 5 epochs suggests optimal hyperparameter tuning.
-                </p>
-                <p>
-                  <strong>Key Strength:</strong> The model excels at technology and office supply categorization (96% and 94% accuracy respectively), 
-                  reflecting your business's clear transaction patterns in these areas.
-                </p>
-                <div className="bg-white/60 rounded-lg p-3 mt-3">
-                  <p className="font-medium text-purple-900 mb-1">Improvement Opportunity:</p>
-                  <p className="text-xs text-purple-700">
-                    Professional services show some confusion with contractor payments (89% accuracy vs 96% for tech). 
-                    Consider adding more contextual features like payment frequency patterns.
-                  </p>
-                </div>
-              </div>
+        <DrSigmundAdviceCard
+          variant="ml"
+          title="ML Performance Psychology"
+          badgeText="Model Insights"
+        >
+          <div className="space-y-3">
+            <p>
+              Your FinBERT model is performing exceptionally well with <strong>94.2% accuracy</strong>. 
+              The convergence in just 5 epochs suggests optimal hyperparameter tuning.
+            </p>
+            <p>
+              <strong>Key Strength:</strong> The model excels at technology and office supply categorization (96% and 94% accuracy respectively), 
+              reflecting your business's clear transaction patterns in these areas.
+            </p>
+            <div className="bg-white/60 rounded-lg p-3 mt-3">
+              <p className="font-medium mb-1">Improvement Opportunity:</p>
+              <p className="text-xs">
+                Professional services show some confusion with contractor payments (89% accuracy vs 96% for tech). 
+                Consider adding more contextual features like payment frequency patterns.
+              </p>
             </div>
           </div>
-        </div>
+        </DrSigmundAdviceCard>
 
         {/* Training History */}
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
@@ -833,34 +824,30 @@ export default function EnhancedAnalyticsDashboard() {
         </div>
 
         {/* Dr. Sigmund Business Intelligence Insights */}
-        <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-xl p-6 border border-green-200">
-          <div className="flex items-start space-x-4">
-            <DrSigmundSpendAvatar size="sm" mood="analytical" />
-            <div className="flex-1">
-              <div className="flex items-center space-x-2 mb-2">
-                <h3 className="text-lg font-semibold text-green-900">Business Intelligence Insights</h3>
-                <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">Cash Flow Analysis</span>
-              </div>
-              <div className="space-y-3 text-sm text-green-800">
-                <p>
-                  Your <strong>45-day cash conversion cycle</strong> is improving! The 3-day reduction shows better working capital management. 
-                  Focus on optimizing vendor payment terms further.
-                </p>
-                <p>
-                  <strong>Spending Pattern:</strong> Technology investments (30.7% of spend) are driving growth. 
-                  Consider negotiating annual contracts with AWS for better rates.
-                </p>
-                <div className="bg-white/60 rounded-lg p-3 mt-3">
-                  <p className="font-medium text-green-900 mb-1">Optimization Opportunity:</p>
-                  <p className="text-xs text-green-700">
-                    EuroLogistics has Net 60 terms while most others are Net 30. This asymmetry affects your cash flow. 
-                    Consider standardizing payment terms across suppliers.
-                  </p>
-                </div>
-              </div>
+        <DrSigmundAdviceCard
+          variant="business"
+          title="Business Intelligence Insights"
+          badgeText="Cash Flow Analysis"
+          mood="analytical"
+          expandableContent={
+            <div className="bg-white/60 rounded-lg p-3">
+              <p className="font-medium text-emerald-900 mb-1">Optimization Opportunity:</p>
+              <p className="text-xs text-emerald-700">
+                EuroLogistics has Net 60 terms while most others are Net 30. This asymmetry affects your cash flow. 
+                Consider standardizing payment terms across suppliers.
+              </p>
             </div>
-          </div>
-        </div>
+          }
+        >
+          <p>
+            Your <strong>45-day cash conversion cycle</strong> is improving! The 3-day reduction shows better working capital management. 
+            Focus on optimizing vendor payment terms further.
+          </p>
+          <p>
+            <strong>Spending Pattern:</strong> Technology investments (30.7% of spend) are driving growth. 
+            Consider negotiating annual contracts with AWS for better rates.
+          </p>
+        </DrSigmundAdviceCard>
 
         {/* Cash Conversion Cycle Breakdown */}
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">

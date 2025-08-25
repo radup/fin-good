@@ -22,6 +22,18 @@ import {
   AlertCircle,
   Shield
 } from 'lucide-react'
+import { 
+  cardClasses, 
+  buttonClasses, 
+  inputClasses, 
+  badgeClasses, 
+  cn, 
+  gradientClasses, 
+  focusRing,
+  textClasses,
+  shadowClasses
+} from '../lib/design-utils'
+import { semantic, components } from '../lib/design-system'
 
 interface Invoice {
   id: string
@@ -189,10 +201,10 @@ export default function ClientPaymentPredictionDashboard() {
 
   const getRiskColor = (level: string) => {
     switch (level) {
-      case 'low_risk': return 'text-green-600 bg-green-100'
-      case 'medium_risk': return 'text-yellow-600 bg-yellow-100'
-      case 'high_risk': return 'text-red-600 bg-red-100'
-      default: return 'text-gray-600 bg-gray-100'
+      case 'low_risk': return badgeClasses('success')
+      case 'medium_risk': return badgeClasses('warning') 
+      case 'high_risk': return badgeClasses('error')
+      default: return badgeClasses('neutral')
     }
   }
 
@@ -214,61 +226,141 @@ export default function ClientPaymentPredictionDashboard() {
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl shadow-xl p-6 text-white">
+      <div className={cn(
+        gradientClasses('hero'),
+        cardClasses('elevated'),
+        'p-6 text-white'
+      )}>
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-medium mb-2">Client Payment Prediction Center</h1>
-            <p className="text-blue-100">AI-powered late payment prediction and client risk assessment</p>
+            <h1 className={cn(
+              textClasses.size('2xl'),
+              textClasses.weight('semibold'),
+              'mb-2 text-white'
+            )}>
+              Client Payment Prediction Center
+            </h1>
+            <p className="text-brand-accent/80">
+              AI-powered late payment prediction and client risk assessment
+            </p>
           </div>
           <div className="text-right">
-            <div className="text-sm text-blue-100">Total Outstanding</div>
-            <div className="text-3xl font-medium">€{totalOutstanding.toLocaleString()}</div>
+            <div className={cn(
+              textClasses.size('sm'),
+              'text-brand-accent/80 mb-1'
+            )}>
+              Total Outstanding
+            </div>
+            <div className={cn(
+              textClasses.size('3xl'),
+              textClasses.weight('bold'),
+              'text-white'
+            )}>
+              €{totalOutstanding.toLocaleString()}
+            </div>
           </div>
         </div>
       </div>
 
       {/* Key Metrics */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <Euro className="h-4 w-4 text-blue-600" />
-            <span className="text-sm font-medium text-gray-700">Outstanding</span>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+        <div className={cardClasses('default', 'p-6')}>
+          <div className="flex items-center gap-3 mb-3">
+            <Euro className="h-5 w-5 text-brand-primary" />
+            <span className={cn(
+              textClasses.size('sm'),
+              textClasses.weight('medium'),
+              semantic.text.secondary
+            )}>
+              Outstanding
+            </span>
           </div>
-          <div className="text-2xl font-medium text-gray-900">€{totalOutstanding.toLocaleString()}</div>
-          <div className="text-sm text-gray-600">{invoices.length} invoices</div>
+          <div className={cn(
+            textClasses.size('2xl'),
+            textClasses.weight('bold'),
+            semantic.text.primary,
+            'mb-1'
+          )}>
+            €{totalOutstanding.toLocaleString()}
+          </div>
+          <div className={cn(textClasses.size('sm'), semantic.text.muted)}>
+            {invoices.length} invoices
+          </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <AlertTriangle className="h-4 w-4 text-red-600" />
-            <span className="text-sm font-medium text-gray-700">Overdue</span>
+        <div className={cardClasses('default', 'p-6')}>
+          <div className="flex items-center gap-3 mb-3">
+            <AlertTriangle className="h-5 w-5 text-red-600" />
+            <span className={cn(
+              textClasses.size('sm'),
+              textClasses.weight('medium'),
+              semantic.text.secondary
+            )}>
+              Overdue
+            </span>
           </div>
-          <div className="text-2xl font-medium text-red-600">€{overdueAmount.toLocaleString()}</div>
-          <div className="text-sm text-gray-600">{invoices.filter(inv => inv.status === 'overdue').length} invoices</div>
+          <div className={cn(
+            textClasses.size('2xl'),
+            textClasses.weight('bold'),
+            'text-red-600 mb-1'
+          )}>
+            €{overdueAmount.toLocaleString()}
+          </div>
+          <div className={cn(textClasses.size('sm'), semantic.text.muted)}>
+            {invoices.filter(inv => inv.status === 'overdue').length} invoices
+          </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <AlertCircle className="h-4 w-4 text-orange-600" />
-            <span className="text-sm font-medium text-gray-700">High Risk</span>
+        <div className={cardClasses('default', 'p-6')}>
+          <div className="flex items-center gap-3 mb-3">
+            <AlertCircle className="h-5 w-5 text-yellow-600" />
+            <span className={cn(
+              textClasses.size('sm'),
+              textClasses.weight('medium'),
+              semantic.text.secondary
+            )}>
+              High Risk
+            </span>
           </div>
-          <div className="text-2xl font-medium text-orange-600">€{highRiskAmount.toLocaleString()}</div>
-          <div className="text-sm text-gray-600">{invoices.filter(inv => inv.latePaymentProbability > 70).length} invoices</div>
+          <div className={cn(
+            textClasses.size('2xl'),
+            textClasses.weight('bold'),
+            'text-yellow-600 mb-1'
+          )}>
+            €{highRiskAmount.toLocaleString()}
+          </div>
+          <div className={cn(textClasses.size('sm'), semantic.text.muted)}>
+            {invoices.filter(inv => inv.latePaymentProbability > 70).length} invoices
+          </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <Clock className="h-4 w-4 text-purple-600" />
-            <span className="text-sm font-medium text-gray-700">Avg Payment</span>
+        <div className={cardClasses('default', 'p-6')}>
+          <div className="flex items-center gap-3 mb-3">
+            <Clock className="h-5 w-5 text-brand-primary" />
+            <span className={cn(
+              textClasses.size('sm'),
+              textClasses.weight('medium'),
+              semantic.text.secondary
+            )}>
+              Avg Payment
+            </span>
           </div>
-          <div className="text-2xl font-medium text-purple-600">{avgPaymentTime.toFixed(0)}</div>
-          <div className="text-sm text-gray-600">days average</div>
+          <div className={cn(
+            textClasses.size('2xl'),
+            textClasses.weight('bold'),
+            'text-brand-primary mb-1'
+          )}>
+            {avgPaymentTime.toFixed(0)}
+          </div>
+          <div className={cn(textClasses.size('sm'), semantic.text.muted)}>
+            days average
+          </div>
         </div>
       </div>
 
       {/* Filters and Search */}
-      <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6">
-        <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+      <div className={cardClasses('elevated', 'p-6')}>
+        <div className="flex flex-col md:flex-row gap-6 items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="relative">
               <Search className="h-4 w-4 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
@@ -277,14 +369,20 @@ export default function ClientPaymentPredictionDashboard() {
                 placeholder="Search invoices or clients..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className={cn(
+                  inputClasses('default'),
+                  'pl-10 pr-4 w-64'
+                )}
               />
             </div>
             
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value as any)}
-              className="px-4 py-2 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className={cn(
+                inputClasses('default'),
+                'px-4 py-2 w-48'
+              )}
             >
               <option value="all">All Risk Levels</option>
               <option value="high_risk">High Risk</option>
@@ -293,18 +391,28 @@ export default function ClientPaymentPredictionDashboard() {
             </select>
           </div>
           
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600">Timeframe:</span>
-            <div className="flex bg-gray-100 rounded-xl p-1">
+          <div className="flex items-center gap-3">
+            <span className={cn(
+              textClasses.size('sm'),
+              semantic.text.secondary
+            )}>
+              Timeframe:
+            </span>
+            <div className={cn(
+              semantic.background.secondary,
+              'flex rounded-xl p-1'
+            )}>
               {(['7d', '30d', '90d', '180d'] as const).map((period) => (
                 <button
                   key={period}
                   onClick={() => setSelectedTimeframe(period)}
-                  className={`px-3 py-1 rounded-lg text-sm font-medium transition-all ${
-                    selectedTimeframe === period
-                      ? 'bg-white text-blue-600 shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
+                  className={cn(
+                    buttonClasses(
+                      selectedTimeframe === period ? 'primary' : 'ghost',
+                      'sm'
+                    ),
+                    'min-w-12'
+                  )}
                 >
                   {period}
                 </button>
@@ -315,9 +423,14 @@ export default function ClientPaymentPredictionDashboard() {
       </div>
 
       {/* Payment Predictions Table */}
-      <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6">
-        <h2 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
-          <Target className="h-5 w-5 text-blue-600" />
+      <div className={cardClasses('elevated', 'p-6')}>
+        <h2 className={cn(
+          textClasses.size('lg'),
+          textClasses.weight('semibold'),
+          semantic.text.primary,
+          'mb-6 flex items-center gap-3'
+        )}>
+          <Target className="h-5 w-5 text-brand-primary" />
           Payment Predictions & Risk Assessment
         </h2>
         
@@ -384,27 +497,33 @@ export default function ClientPaymentPredictionDashboard() {
                     </td>
                     
                     <td className="p-3 text-center">
-                      <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                        invoice.latePaymentProbability <= 20 ? 'bg-green-100 text-green-800' :
-                        invoice.latePaymentProbability <= 50 ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-red-100 text-red-800'
-                      }`}>
+                      <div className={
+                        invoice.latePaymentProbability <= 20 ? badgeClasses('success') :
+                        invoice.latePaymentProbability <= 50 ? badgeClasses('warning') :
+                        badgeClasses('error')
+                      }>
                         {invoice.latePaymentProbability}%
                       </div>
                     </td>
                     
                     <td className="p-3 text-center">
-                      <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getRiskColor(riskLevel)}`}>
+                      <div className={getRiskColor(riskLevel)}>
                         {riskLevel.replace('_', ' ').toUpperCase()}
                       </div>
                     </td>
                     
                     <td className="p-3 text-center">
                       <div className="flex items-center justify-center gap-1">
-                        <button className="p-1 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors">
+                        <button className={cn(
+                          'p-2 text-brand-primary hover:bg-brand-primary/10 rounded-lg',
+                          'transition-colors duration-150'
+                        )}>
                           <FileText className="h-4 w-4" />
                         </button>
-                        <button className="p-1 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                        <button className={cn(
+                          'p-2 text-gray-600 hover:bg-gray-100 rounded-lg',
+                          'transition-colors duration-150'
+                        )}>
                           <ArrowRight className="h-4 w-4" />
                         </button>
                       </div>
@@ -418,46 +537,95 @@ export default function ClientPaymentPredictionDashboard() {
       </div>
 
       {/* Client Risk Overview */}
-      <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6">
-        <h2 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
-          <Shield className="h-5 w-5 text-blue-600" />
+      <div className={cardClasses('elevated', 'p-6')}>
+        <h2 className={cn(
+          textClasses.size('lg'),
+          textClasses.weight('semibold'),
+          semantic.text.primary,
+          'mb-6 flex items-center gap-3'
+        )}>
+          <Shield className="h-5 w-5 text-brand-primary" />
           Client Risk Overview
         </h2>
         
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {clients.map((client) => {
             const riskLevel = getRiskLevel(client.riskScore)
             
             return (
-              <div key={client.id} className="border border-gray-200 rounded-2xl p-4 hover:shadow-sm transition-all">
-                <div className="flex items-start justify-between mb-3">
+              <div key={client.id} className={cardClasses('interactive', 'p-5')}>
+                <div className="flex items-start justify-between mb-4">
                   <div>
-                    <h3 className="font-medium text-gray-900">{client.name}</h3>
-                    <p className="text-sm text-gray-600">{client.industry}</p>
+                    <h3 className={cn(
+                      textClasses.weight('semibold'),
+                      semantic.text.primary
+                    )}>
+                      {client.name}
+                    </h3>
+                    <p className={cn(
+                      textClasses.size('sm'),
+                      semantic.text.muted
+                    )}>
+                      {client.industry}
+                    </p>
                   </div>
-                  <div className={`px-2 py-1 rounded-full text-xs font-medium ${getRiskColor(riskLevel)}`}>
+                  <div className={cn(
+                    getRiskColor(riskLevel),
+                    'text-xs font-bold'
+                  )}>
                     {client.riskScore}
                   </div>
                 </div>
                 
-                <div className="space-y-2 text-sm">
+                <div className="space-y-3">
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Outstanding:</span>
-                    <span className="font-medium text-gray-900">€{client.currentOutstanding.toLocaleString()}</span>
+                    <span className={cn(textClasses.size('sm'), semantic.text.secondary)}>
+                      Outstanding:
+                    </span>
+                    <span className={cn(
+                      textClasses.size('sm'),
+                      textClasses.weight('semibold'),
+                      semantic.text.primary
+                    )}>
+                      €{client.currentOutstanding.toLocaleString()}
+                    </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Avg Payment:</span>
-                    <span className="font-medium text-gray-900">{client.paymentHistory.averageDays} days</span>
+                    <span className={cn(textClasses.size('sm'), semantic.text.secondary)}>
+                      Avg Payment:
+                    </span>
+                    <span className={cn(
+                      textClasses.size('sm'),
+                      textClasses.weight('semibold'),
+                      semantic.text.primary
+                    )}>
+                      {client.paymentHistory.averageDays} days
+                    </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">On-time Rate:</span>
-                    <span className={`font-medium ${client.paymentHistory.onTimeRate >= 70 ? 'text-green-600' : client.paymentHistory.onTimeRate >= 40 ? 'text-yellow-600' : 'text-red-600'}`}>
+                    <span className={cn(textClasses.size('sm'), semantic.text.secondary)}>
+                      On-time Rate:
+                    </span>
+                    <span className={cn(
+                      textClasses.size('sm'),
+                      textClasses.weight('semibold'),
+                      client.paymentHistory.onTimeRate >= 70 ? 'text-green-600' : 
+                      client.paymentHistory.onTimeRate >= 40 ? 'text-yellow-600' : 'text-red-600'
+                    )}>
                       {client.paymentHistory.onTimeRate}%
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Total Invoices:</span>
-                    <span className="font-medium text-gray-900">{client.paymentHistory.totalInvoices}</span>
+                    <span className={cn(textClasses.size('sm'), semantic.text.secondary)}>
+                      Total Invoices:
+                    </span>
+                    <span className={cn(
+                      textClasses.size('sm'),
+                      textClasses.weight('semibold'),
+                      semantic.text.primary
+                    )}>
+                      {client.paymentHistory.totalInvoices}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -467,45 +635,92 @@ export default function ClientPaymentPredictionDashboard() {
       </div>
 
       {/* Action Recommendations */}
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-6">
-        <h2 className="text-lg font-medium text-blue-900 mb-4 flex items-center gap-2">
-          <Target className="h-5 w-5 text-blue-600" />
+      <div className={cn(
+        'bg-gradient-to-r from-brand-primary/5 to-brand-accent/5',
+        'border border-brand-primary/20 rounded-2xl p-6'
+      )}>
+        <h2 className={cn(
+          textClasses.size('lg'),
+          textClasses.weight('semibold'),
+          'text-brand-primary-dark mb-6 flex items-center gap-3'
+        )}>
+          <Target className="h-5 w-5 text-brand-primary" />
           AI-Powered Action Recommendations
         </h2>
         
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid md:grid-cols-2 gap-8">
           <div>
-            <h3 className="font-medium text-blue-800 mb-3">Immediate Actions</h3>
-            <div className="space-y-2 text-sm text-blue-700">
-              <div className="flex items-start gap-2">
-                <CheckCircle className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                <span>Follow up on 1 overdue invoice (€{overdueAmount.toLocaleString()} total)</span>
+            <h3 className={cn(
+              textClasses.weight('semibold'),
+              'text-brand-primary-dark mb-4'
+            )}>
+              Immediate Actions
+            </h3>
+            <div className="space-y-4">
+              <div className="flex items-start gap-3">
+                <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                <span className={cn(
+                  textClasses.size('sm'),
+                  'text-brand-primary-dark'
+                )}>
+                  Follow up on 1 overdue invoice (€{overdueAmount.toLocaleString()} total)
+                </span>
               </div>
-              <div className="flex items-start gap-2">
-                <AlertTriangle className="h-4 w-4 text-orange-600 mt-0.5 flex-shrink-0" />
-                <span>Monitor 2 high-risk invoices closely for early intervention</span>
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="h-5 w-5 text-yellow-600 mt-0.5 flex-shrink-0" />
+                <span className={cn(
+                  textClasses.size('sm'),
+                  'text-brand-primary-dark'
+                )}>
+                  Monitor 2 high-risk invoices closely for early intervention
+                </span>
               </div>
-              <div className="flex items-start gap-2">
-                <Clock className="h-4 w-4 text-purple-600 mt-0.5 flex-shrink-0" />
-                <span>Consider payment terms adjustment for high-risk clients</span>
+              <div className="flex items-start gap-3">
+                <Clock className="h-5 w-5 text-brand-primary mt-0.5 flex-shrink-0" />
+                <span className={cn(
+                  textClasses.size('sm'),
+                  'text-brand-primary-dark'
+                )}>
+                  Consider payment terms adjustment for high-risk clients
+                </span>
               </div>
             </div>
           </div>
           
           <div>
-            <h3 className="font-medium text-blue-800 mb-3">Strategic Actions</h3>
-            <div className="space-y-2 text-sm text-blue-700">
-              <div className="flex items-start gap-2">
-                <DollarSign className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
-                <span>Implement early payment discounts for slower-paying clients</span>
+            <h3 className={cn(
+              textClasses.weight('semibold'),
+              'text-brand-primary-dark mb-4'
+            )}>
+              Strategic Actions
+            </h3>
+            <div className="space-y-4">
+              <div className="flex items-start gap-3">
+                <DollarSign className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                <span className={cn(
+                  textClasses.size('sm'),
+                  'text-brand-primary-dark'
+                )}>
+                  Implement early payment discounts for slower-paying clients
+                </span>
               </div>
-              <div className="flex items-start gap-2">
-                <CreditCard className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                <span>Diversify client base to reduce concentration risk</span>
+              <div className="flex items-start gap-3">
+                <CreditCard className="h-5 w-5 text-brand-primary mt-0.5 flex-shrink-0" />
+                <span className={cn(
+                  textClasses.size('sm'),
+                  'text-brand-primary-dark'
+                )}>
+                  Diversify client base to reduce concentration risk
+                </span>
               </div>
-              <div className="flex items-start gap-2">
-                <FileText className="h-4 w-4 text-purple-600 mt-0.5 flex-shrink-0" />
-                <span>Review and strengthen contracts with high-risk clients</span>
+              <div className="flex items-start gap-3">
+                <FileText className="h-5 w-5 text-brand-primary mt-0.5 flex-shrink-0" />
+                <span className={cn(
+                  textClasses.size('sm'),
+                  'text-brand-primary-dark'
+                )}>
+                  Review and strengthen contracts with high-risk clients
+                </span>
               </div>
             </div>
           </div>
@@ -513,32 +728,83 @@ export default function ClientPaymentPredictionDashboard() {
       </div>
 
       {/* Dr. Sigmund Cash Flow Therapy Section */}
-      <div className="mt-12 bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
-        <div className="flex items-start gap-6">
-          <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center flex-shrink-0">
-            <Target className="h-8 w-8 text-white" />
+      <div className={cn(
+        cardClasses('elevated', 'p-8'),
+        'mt-12'
+      )}>
+        <div className="flex items-start gap-8">
+          <div className={cn(
+            'w-20 h-20 rounded-full flex items-center justify-center flex-shrink-0',
+            gradientClasses('primary-subtle')
+          )}>
+            <Target className="h-10 w-10 text-white" />
           </div>
           <div className="flex-1">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Dr. Sigmund's Cash Flow Therapy</h2>
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-6">
-              <h3 className="font-medium text-blue-900 mb-3">Payment Anxiety Relief Strategy</h3>
-              <div className="grid md:grid-cols-2 gap-4 text-sm text-blue-800">
+            <h2 className={cn(
+              textClasses.size('xl'),
+              textClasses.weight('bold'),
+              semantic.text.primary,
+              'mb-6'
+            )}>
+              Dr. Sigmund's Cash Flow Therapy
+            </h2>
+            <div className={cn(
+              'bg-gradient-to-r from-brand-primary/5 to-brand-accent/10',
+              'border border-brand-primary/20 rounded-2xl p-6'
+            )}>
+              <h3 className={cn(
+                textClasses.weight('semibold'),
+                'text-brand-primary-dark mb-4'
+              )}>
+                Payment Anxiety Relief Strategy
+              </h3>
+              <div className="grid md:grid-cols-2 gap-6">
                 <div>
-                  <h4 className="font-medium mb-2">🎯 Predictive Peace of Mind</h4>
-                  <ul className="space-y-1 text-blue-700">
-                    <li>• Know which payments might be late before they happen</li>
-                    <li>• Plan cash flow around realistic payment timelines</li>
-                    <li>• Take early action instead of reactive panic</li>
-                    <li>• Focus energy on high-impact interventions</li>
+                  <h4 className={cn(
+                    textClasses.weight('semibold'),
+                    'text-brand-primary mb-3'
+                  )}>
+                    🎯 Predictive Peace of Mind
+                  </h4>
+                  <ul className="space-y-2">
+                    {[
+                      'Know which payments might be late before they happen',
+                      'Plan cash flow around realistic payment timelines',
+                      'Take early action instead of reactive panic',
+                      'Focus energy on high-impact interventions'
+                    ].map((item, index) => (
+                      <li key={index} className={cn(
+                        textClasses.size('sm'),
+                        'text-brand-primary-dark flex items-start gap-2'
+                      )}>
+                        <span className="text-brand-primary mt-1">•</span>
+                        {item}
+                      </li>
+                    ))}
                   </ul>
                 </div>
                 <div>
-                  <h4 className="font-medium mb-2">🔍 Smart Client Management</h4>
-                  <ul className="space-y-1 text-blue-700">
-                    <li>• Identify clients who need closer follow-up</li>
-                    <li>• Adjust payment terms based on reliability data</li>
-                    <li>• Build stronger relationships through understanding</li>
-                    <li>• Make informed decisions about new clients</li>
+                  <h4 className={cn(
+                    textClasses.weight('semibold'),
+                    'text-brand-primary mb-3'
+                  )}>
+                    🔍 Smart Client Management
+                  </h4>
+                  <ul className="space-y-2">
+                    {[
+                      'Identify clients who need closer follow-up',
+                      'Adjust payment terms based on reliability data',
+                      'Build stronger relationships through understanding',
+                      'Make informed decisions about new clients'
+                    ].map((item, index) => (
+                      <li key={index} className={cn(
+                        textClasses.size('sm'),
+                        'text-brand-primary-dark flex items-start gap-2'
+                      )}>
+                        <span className="text-brand-primary mt-1">•</span>
+                        {item}
+                      </li>
+                    ))}
                   </ul>
                 </div>
               </div>
@@ -548,83 +814,147 @@ export default function ClientPaymentPredictionDashboard() {
       </div>
 
       {/* ML Model Information */}
-      <div className="mt-8 bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-2xl p-6">
-        <h3 className="font-medium text-indigo-900 mb-4">🤖 How Our Payment Prediction Works</h3>
-        <div className="grid md:grid-cols-3 gap-6 text-sm">
-          <div className="bg-white rounded-xl p-4 border border-indigo-200">
-            <div className="font-medium text-indigo-800 mb-2">1. Historical Analysis</div>
-            <p className="text-indigo-700">Our AI analyzes each client's payment history, identifying patterns in timing, seasonality, and payment behavior changes</p>
+      <div className={cn(
+        'mt-8 bg-gradient-to-r from-brand-primary/5 to-brand-accent/10',
+        'border border-brand-primary/20 rounded-2xl p-6'
+      )}>
+        <h3 className={cn(
+          textClasses.weight('semibold'),
+          'text-brand-primary-dark mb-6'
+        )}>
+          🤖 How Our Payment Prediction Works
+        </h3>
+        <div className="grid md:grid-cols-3 gap-6">
+          <div className={cardClasses('default', 'p-5 border-brand-primary/20')}>
+            <div className={cn(
+              textClasses.weight('semibold'),
+              'text-brand-primary mb-3'
+            )}>
+              1. Historical Analysis
+            </div>
+            <p className={cn(
+              textClasses.size('sm'),
+              'text-brand-primary-dark'
+            )}>
+              Our AI analyzes each client's payment history, identifying patterns in timing, seasonality, and payment behavior changes
+            </p>
           </div>
-          <div className="bg-white rounded-xl p-4 border border-indigo-200">
-            <div className="font-medium text-indigo-800 mb-2">2. Risk Scoring</div>
-            <p className="text-indigo-700">Machine learning models consider invoice amount, payment terms, client industry, and economic factors to calculate risk</p>
+          <div className={cardClasses('default', 'p-5 border-brand-primary/20')}>
+            <div className={cn(
+              textClasses.weight('semibold'),
+              'text-brand-primary mb-3'
+            )}>
+              2. Risk Scoring
+            </div>
+            <p className={cn(
+              textClasses.size('sm'),
+              'text-brand-primary-dark'
+            )}>
+              Machine learning models consider invoice amount, payment terms, client industry, and economic factors to calculate risk
+            </p>
           </div>
-          <div className="bg-white rounded-xl p-4 border border-indigo-200">
-            <div className="font-medium text-indigo-800 mb-2">3. Actionable Insights</div>
-            <p className="text-indigo-700">Predictions come with confidence scores and specific recommendations for managing each client relationship</p>
+          <div className={cardClasses('default', 'p-5 border-brand-primary/20')}>
+            <div className={cn(
+              textClasses.weight('semibold'),
+              'text-brand-primary mb-3'
+            )}>
+              3. Actionable Insights
+            </div>
+            <p className={cn(
+              textClasses.size('sm'),
+              'text-brand-primary-dark'
+            )}>
+              Predictions come with confidence scores and specific recommendations for managing each client relationship
+            </p>
           </div>
         </div>
       </div>
 
       {/* Best Practices */}
-      <div className="mt-8 bg-white rounded-2xl shadow-xl border border-gray-100 p-6">
-        <h3 className="font-medium text-gray-900 mb-4 flex items-center gap-2">
-          <Shield className="h-5 w-5 text-blue-600" />
+      <div className={cn(cardClasses('elevated', 'p-6'), 'mt-8')}>
+        <h3 className={cn(
+          textClasses.weight('semibold'),
+          semantic.text.primary,
+          'mb-6 flex items-center gap-3'
+        )}>
+          <Shield className="h-5 w-5 text-brand-primary" />
           Payment Management Best Practices
         </h3>
-        <div className="grid md:grid-cols-2 gap-6 text-sm">
+        <div className="grid md:grid-cols-2 gap-8">
           <div>
-            <h4 className="font-medium text-gray-800 mb-3">Proactive Strategies</h4>
-            <ul className="space-y-2 text-gray-700">
-              <li className="flex items-start gap-2">
-                <span className="text-green-600 mt-1">•</span>
-                <span>Send payment reminders 5-7 days before due date for high-risk clients</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-green-600 mt-1">•</span>
-                <span>Offer early payment discounts to incentivize faster payment</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-green-600 mt-1">•</span>
-                <span>Build stronger relationships with slow-paying but reliable clients</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-green-600 mt-1">•</span>
-                <span>Consider shorter payment terms for new or high-risk clients</span>
-              </li>
+            <h4 className={cn(
+              textClasses.weight('semibold'),
+              semantic.text.secondary,
+              'mb-4'
+            )}>
+              Proactive Strategies
+            </h4>
+            <ul className="space-y-3">
+              {[
+                'Send payment reminders 5-7 days before due date for high-risk clients',
+                'Offer early payment discounts to incentivize faster payment',
+                'Build stronger relationships with slow-paying but reliable clients',
+                'Consider shorter payment terms for new or high-risk clients'
+              ].map((item, index) => (
+                <li key={index} className="flex items-start gap-3">
+                  <span className="text-green-600 mt-1 text-sm">•</span>
+                  <span className={cn(
+                    textClasses.size('sm'),
+                    semantic.text.primary
+                  )}>
+                    {item}
+                  </span>
+                </li>
+              ))}
             </ul>
           </div>
           <div>
-            <h4 className="font-medium text-gray-800 mb-3">Risk Mitigation</h4>
-            <ul className="space-y-2 text-gray-700">
-              <li className="flex items-start gap-2">
-                <span className="text-blue-600 mt-1">•</span>
-                <span>Diversify client base to reduce concentration risk</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-blue-600 mt-1">•</span>
-                <span>Maintain emergency fund based on payment prediction data</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-blue-600 mt-1">•</span>
-                <span>Regular contract reviews with problematic clients</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-blue-600 mt-1">•</span>
-                <span>Consider payment protection or factoring for high-value clients</span>
-              </li>
+            <h4 className={cn(
+              textClasses.weight('semibold'),
+              semantic.text.secondary,
+              'mb-4'
+            )}>
+              Risk Mitigation
+            </h4>
+            <ul className="space-y-3">
+              {[
+                'Diversify client base to reduce concentration risk',
+                'Maintain emergency fund based on payment prediction data',
+                'Regular contract reviews with problematic clients',
+                'Consider payment protection or factoring for high-value clients'
+              ].map((item, index) => (
+                <li key={index} className="flex items-start gap-3">
+                  <span className="text-brand-primary mt-1 text-sm">•</span>
+                  <span className={cn(
+                    textClasses.size('sm'),
+                    semantic.text.primary
+                  )}>
+                    {item}
+                  </span>
+                </li>
+              ))}
             </ul>
           </div>
         </div>
       </div>
 
       {/* Disclaimer */}
-      <div className="mt-8 bg-yellow-50 border border-yellow-200 rounded-2xl p-6">
-        <div className="flex items-start gap-3">
+      <div className={cn(
+        'mt-8 bg-yellow-50 border border-yellow-200 rounded-2xl p-6'
+      )}>
+        <div className="flex items-start gap-4">
           <Target className="h-6 w-6 text-yellow-600 flex-shrink-0 mt-1" />
           <div>
-            <h3 className="font-medium text-yellow-900 mb-2">Prediction Accuracy Disclaimer</h3>
-            <p className="text-sm text-yellow-800 leading-relaxed">
+            <h3 className={cn(
+              textClasses.weight('semibold'),
+              'text-yellow-900 mb-3'
+            )}>
+              Prediction Accuracy Disclaimer
+            </h3>
+            <p className={cn(
+              textClasses.size('sm'),
+              'text-yellow-800 leading-relaxed'
+            )}>
               Payment predictions are based on historical data and machine learning models. While our algorithms are highly accurate, 
               actual payment behavior may vary due to client circumstances, economic conditions, or other unforeseen factors. 
               Use predictions as guidance for planning and early intervention, not as guarantees of payment timing.

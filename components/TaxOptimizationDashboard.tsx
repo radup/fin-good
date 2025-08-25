@@ -19,6 +19,16 @@ import {
   Globe,
   Briefcase
 } from 'lucide-react'
+import { 
+  cardClasses, 
+  buttonClasses, 
+  badgeClasses, 
+  cn, 
+  gradientClasses, 
+  textClasses,
+  semantic
+} from '../lib/design-utils'
+import DrSigmundAdviceCard from './DrSigmundAdviceCard'
 
 interface TaxStrategy {
   id: string
@@ -140,35 +150,64 @@ export default function TaxOptimizationDashboard() {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Header */}
-      <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl shadow-xl p-6 text-white">
+      <div className={cn(
+        gradientClasses('hero'),
+        cardClasses('elevated'),
+        'p-6 text-white'
+      )}>
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-medium mb-2">Multi-Jurisdiction Tax Optimization</h1>
-            <p className="text-purple-100">Benelux-focused tax planning with EU expansion strategies</p>
+            <h1 className={cn(
+              textClasses.size('2xl'),
+              textClasses.weight('bold'),
+              'mb-2 text-white'
+            )}>
+              Multi-Jurisdiction Tax Optimization
+            </h1>
+            <p className="text-brand-accent/80">
+              Benelux-focused tax planning with EU expansion strategies
+            </p>
           </div>
           <div className="text-right">
-            <div className="text-sm text-purple-100">Potential Annual Savings</div>
-            <div className="text-3xl font-medium">€{totalPotentialSavings.toLocaleString()}</div>
+            <div className={cn(
+              textClasses.size('sm'),
+              'text-brand-accent/80 mb-1'
+            )}>
+              Potential Annual Savings
+            </div>
+            <div className={cn(
+              textClasses.size('3xl'),
+              textClasses.weight('bold'),
+              'text-white'
+            )}>
+              €{totalPotentialSavings.toLocaleString()}
+            </div>
           </div>
         </div>
       </div>
 
       {/* Jurisdiction Selector */}
-      <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6">
-        <h2 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
-          <MapPin className="h-5 w-5 text-purple-600" />
+      <div className={cardClasses('elevated', 'p-6')}>
+        <h2 className={cn(
+          textClasses.size('lg'),
+          textClasses.weight('semibold'),
+          semantic.text.primary,
+          'mb-6 flex items-center gap-3'
+        )}>
+          <MapPin className="h-5 w-5 text-brand-primary" />
           Tax Jurisdiction Focus
         </h2>
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-3 gap-6">
           {(['BE', 'LU', 'EU'] as const).map((jurisdiction) => (
             <button
               key={jurisdiction}
               onClick={() => setSelectedJurisdiction(jurisdiction)}
-              className={`p-4 rounded-2xl border-2 transition-all ${
+              className={cn(
+                'p-5 rounded-2xl border-2 transition-all duration-200',
                 selectedJurisdiction === jurisdiction
-                  ? 'border-purple-500 bg-gradient-to-r from-purple-50 to-blue-50 text-purple-700'
-                  : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:shadow-sm'
-              }`}
+                  ? 'border-brand-primary bg-gradient-to-r from-brand-primary/5 to-brand-accent/10 text-brand-primary-dark shadow-brand'
+                  : 'border-gray-200 bg-white text-gray-700 hover:border-brand-primary/30 hover:shadow-md'
+              )}
             >
               <div className="flex items-center justify-center gap-2 mb-2">
                 {jurisdiction === 'BE' && (
@@ -194,11 +233,17 @@ export default function TaxOptimizationDashboard() {
                     <div className="text-yellow-400 text-xs font-medium">★</div>
                   </div>
                 )}
-                <span className="font-medium">
+                <span className={cn(
+                  textClasses.weight('semibold'),
+                  selectedJurisdiction === jurisdiction ? 'text-brand-primary' : semantic.text.primary
+                )}>
                   {jurisdiction === 'BE' ? 'Belgium' : jurisdiction === 'LU' ? 'Luxembourg' : 'EU-Wide'}
                 </span>
               </div>
-              <div className="text-sm text-gray-600">
+              <div className={cn(
+                textClasses.size('sm'),
+                selectedJurisdiction === jurisdiction ? 'text-brand-primary-dark' : semantic.text.muted
+              )}>
                 {jurisdiction === 'BE' && 'BVBA/SRL, VAT optimization'}
                 {jurisdiction === 'LU' && 'Holding structures, cross-border'}
                 {jurisdiction === 'EU' && 'Digital nomad, mobility planning'}
@@ -209,29 +254,51 @@ export default function TaxOptimizationDashboard() {
       </div>
 
       {/* Business Type Selector */}
-      <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6">
-        <h2 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
-          <Briefcase className="h-5 w-5 text-purple-600" />
+      <div className={cardClasses('elevated', 'p-6')}>
+        <h2 className={cn(
+          textClasses.size('lg'),
+          textClasses.weight('semibold'),
+          semantic.text.primary,
+          'mb-6 flex items-center gap-3'
+        )}>
+          <Briefcase className="h-5 w-5 text-brand-primary" />
           Business Structure
         </h2>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-6">
           {(['individual', 'company'] as const).map((type) => (
             <button
               key={type}
               onClick={() => setBusinessType(type)}
-              className={`p-4 rounded-2xl border-2 transition-all ${
+              className={cn(
+                'p-5 rounded-2xl border-2 transition-all duration-200',
                 businessType === type
-                  ? 'border-purple-500 bg-gradient-to-r from-purple-50 to-blue-50 text-purple-700'
-                  : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:shadow-sm'
-              }`}
+                  ? 'border-brand-primary bg-gradient-to-r from-brand-primary/5 to-brand-accent/10 text-brand-primary-dark shadow-brand'
+                  : 'border-gray-200 bg-white text-gray-700 hover:border-brand-primary/30 hover:shadow-md'
+              )}
             >
-              <div className="flex items-center justify-center gap-2 mb-2">
-                {type === 'individual' ? <Users className="h-5 w-5" /> : <Building2 className="h-5 w-5" />}
-                <span className="font-medium">
+              <div className="flex items-center justify-center gap-3 mb-3">
+                {type === 'individual' ? (
+                  <Users className={cn(
+                    'h-5 w-5',
+                    businessType === type ? 'text-brand-primary' : 'text-gray-500'
+                  )} />
+                ) : (
+                  <Building2 className={cn(
+                    'h-5 w-5',
+                    businessType === type ? 'text-brand-primary' : 'text-gray-500'
+                  )} />
+                )}
+                <span className={cn(
+                  textClasses.weight('semibold'),
+                  businessType === type ? 'text-brand-primary' : semantic.text.primary
+                )}>
                   {type === 'individual' ? 'Independent Professional' : 'Company (BVBA/SRL)'}
                 </span>
               </div>
-              <div className="text-sm text-gray-600">
+              <div className={cn(
+                textClasses.size('sm'),
+                businessType === type ? 'text-brand-primary-dark' : semantic.text.muted
+              )}>
                 {type === 'individual' 
                   ? 'Freelancer, consultant, sole proprietor'
                   : 'BVBA, SRL, SARL corporate structure'
@@ -244,37 +311,84 @@ export default function TaxOptimizationDashboard() {
 
       {/* VAT Calculator */}
       {(selectedJurisdiction === 'BE' || selectedJurisdiction === 'LU') && (
-        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6">
-          <h2 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
-            <Calculator className="h-5 w-5 text-purple-600" />
+        <div className={cardClasses('elevated', 'p-6')}>
+          <h2 className={cn(
+            textClasses.size('lg'),
+            textClasses.weight('semibold'),
+            semantic.text.primary,
+            'mb-6 flex items-center gap-3'
+          )}>
+            <Calculator className="h-5 w-5 text-brand-primary" />
             VAT Rate Calculator - {selectedJurisdiction === 'BE' ? 'Belgium' : 'Luxembourg'}
           </h2>
-          <div className="grid grid-cols-2 gap-6">
+          <div className="grid grid-cols-2 gap-8">
             <div>
-              <h3 className="font-medium text-gray-900 mb-3">Available VAT Rates</h3>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl border border-gray-200">
-                  <span className="font-medium">Standard Rate</span>
-                  <span className="text-lg font-medium text-red-600">
+              <h3 className={cn(
+                textClasses.weight('semibold'),
+                semantic.text.secondary,
+                'mb-4'
+              )}>
+                Available VAT Rates
+              </h3>
+              <div className="space-y-4">
+                <div className={cn(
+                  'flex items-center justify-between p-4 rounded-xl',
+                  'bg-gradient-to-r from-red-50 to-red-100 border border-red-200'
+                )}>
+                  <span className={cn(textClasses.weight('medium'), 'text-red-800')}>
+                    Standard Rate
+                  </span>
+                  <span className={cn(
+                    textClasses.size('lg'),
+                    textClasses.weight('bold'),
+                    'text-red-600'
+                  )}>
                     {vatRates[selectedJurisdiction].standard}%
                   </span>
                 </div>
-                <div className="flex items-center justify-between p-3 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl border border-gray-200">
-                  <span className="font-medium">Reduced Rate 1</span>
-                  <span className="text-lg font-medium text-orange-600">
+                <div className={cn(
+                  'flex items-center justify-between p-4 rounded-xl',
+                  'bg-gradient-to-r from-yellow-50 to-yellow-100 border border-yellow-200'
+                )}>
+                  <span className={cn(textClasses.weight('medium'), 'text-yellow-800')}>
+                    Reduced Rate 1
+                  </span>
+                  <span className={cn(
+                    textClasses.size('lg'),
+                    textClasses.weight('bold'),
+                    'text-yellow-600'
+                  )}>
                     {vatRates[selectedJurisdiction].reduced1}%
                   </span>
                 </div>
-                <div className="flex items-center justify-between p-3 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl border border-gray-200">
-                  <span className="font-medium">Reduced Rate 2</span>
-                  <span className="text-lg font-medium text-green-600">
+                <div className={cn(
+                  'flex items-center justify-between p-4 rounded-xl',
+                  'bg-gradient-to-r from-green-50 to-green-100 border border-green-200'
+                )}>
+                  <span className={cn(textClasses.weight('medium'), 'text-green-800')}>
+                    Reduced Rate 2
+                  </span>
+                  <span className={cn(
+                    textClasses.size('lg'),
+                    textClasses.weight('bold'),
+                    'text-green-600'
+                  )}>
                     {vatRates[selectedJurisdiction].reduced2}%
                   </span>
                 </div>
                 {selectedJurisdiction === 'LU' && (
-                  <div className="flex items-center justify-between p-3 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl border border-gray-200">
-                    <span className="font-medium">Super Reduced</span>
-                    <span className="text-lg font-medium text-blue-600">
+                  <div className={cn(
+                    'flex items-center justify-between p-4 rounded-xl',
+                    'bg-gradient-to-r from-brand-primary/10 to-brand-accent/20 border border-brand-primary/30'
+                  )}>
+                    <span className={cn(textClasses.weight('medium'), 'text-brand-primary-dark')}>
+                      Super Reduced
+                    </span>
+                    <span className={cn(
+                      textClasses.size('lg'),
+                      textClasses.weight('bold'),
+                      'text-brand-primary'
+                    )}>
                       {vatRates[selectedJurisdiction].super_reduced}%
                     </span>
                   </div>
@@ -282,23 +396,62 @@ export default function TaxOptimizationDashboard() {
               </div>
             </div>
             <div>
-              <h3 className="font-medium text-gray-900 mb-3">Service Examples</h3>
-              <div className="space-y-3 text-sm">
-                <div className="p-4 bg-gradient-to-r from-red-50 to-red-100 border border-red-200 rounded-xl">
-                  <div className="font-medium text-red-800">Standard ({vatRates[selectedJurisdiction].standard}%)</div>
-                  <div className="text-red-600 text-sm">
+              <h3 className={cn(
+                textClasses.weight('semibold'),
+                semantic.text.secondary,
+                'mb-4'
+              )}>
+                Service Examples
+              </h3>
+              <div className="space-y-4">
+                <div className={cn(
+                  'p-4 rounded-xl',
+                  'bg-gradient-to-r from-red-50 to-red-100 border border-red-200'
+                )}>
+                  <div className={cn(
+                    textClasses.weight('semibold'),
+                    'text-red-800 mb-2'
+                  )}>
+                    Standard ({vatRates[selectedJurisdiction].standard}%)
+                  </div>
+                  <div className={cn(
+                    textClasses.size('sm'),
+                    'text-red-600'
+                  )}>
                     {vatRates[selectedJurisdiction].examples.standard.join(', ')}
                   </div>
                 </div>
-                <div className="p-4 bg-gradient-to-r from-orange-50 to-orange-100 border border-orange-200 rounded-xl">
-                  <div className="font-medium text-orange-800">Reduced 1 ({vatRates[selectedJurisdiction].reduced1}%)</div>
-                  <div className="text-orange-600 text-sm">
+                <div className={cn(
+                  'p-4 rounded-xl',
+                  'bg-gradient-to-r from-yellow-50 to-yellow-100 border border-yellow-200'
+                )}>
+                  <div className={cn(
+                    textClasses.weight('semibold'),
+                    'text-yellow-800 mb-2'
+                  )}>
+                    Reduced 1 ({vatRates[selectedJurisdiction].reduced1}%)
+                  </div>
+                  <div className={cn(
+                    textClasses.size('sm'),
+                    'text-yellow-600'
+                  )}>
                     {vatRates[selectedJurisdiction].examples.reduced1.join(', ')}
                   </div>
                 </div>
-                <div className="p-4 bg-gradient-to-r from-green-50 to-green-100 border border-green-200 rounded-xl">
-                  <div className="font-medium text-green-800">Reduced 2 ({vatRates[selectedJurisdiction].reduced2}%)</div>
-                  <div className="text-green-600 text-sm">
+                <div className={cn(
+                  'p-4 rounded-xl',
+                  'bg-gradient-to-r from-green-50 to-green-100 border border-green-200'
+                )}>
+                  <div className={cn(
+                    textClasses.weight('semibold'),
+                    'text-green-800 mb-2'
+                  )}>
+                    Reduced 2 ({vatRates[selectedJurisdiction].reduced2}%)
+                  </div>
+                  <div className={cn(
+                    textClasses.size('sm'),
+                    'text-green-600'
+                  )}>
                     {vatRates[selectedJurisdiction].examples.reduced2.join(', ')}
                   </div>
                 </div>
@@ -309,52 +462,79 @@ export default function TaxOptimizationDashboard() {
       )}
 
       {/* Tax Strategies */}
-      <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6">
-        <h2 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
-          <TrendingUp className="h-5 w-5 text-purple-600" />
+      <div className={cardClasses('elevated', 'p-6')}>
+        <h2 className={cn(
+          textClasses.size('lg'),
+          textClasses.weight('semibold'),
+          semantic.text.primary,
+          'mb-6 flex items-center gap-3'
+        )}>
+          <TrendingUp className="h-5 w-5 text-brand-primary" />
           Available Tax Strategies
         </h2>
-        <div className="grid gap-4">
+        <div className="grid gap-6">
           {currentStrategies.map((strategy) => (
             <div
               key={strategy.id}
-              className={`border-2 rounded-2xl p-4 cursor-pointer transition-all shadow-sm hover:shadow-md ${
+              className={cn(
+                'border-2 rounded-2xl p-5 cursor-pointer transition-all duration-200',
                 selectedStrategy?.id === strategy.id
-                  ? 'border-purple-500 bg-gradient-to-r from-purple-50 to-blue-50'
-                  : 'border-gray-200 hover:border-gray-300'
-              }`}
+                  ? 'border-brand-primary bg-gradient-to-r from-brand-primary/5 to-brand-accent/10 shadow-brand'
+                  : 'border-gray-200 hover:border-brand-primary/30 hover:shadow-md'
+              )}
               onClick={() => setSelectedStrategy(strategy)}
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <h3 className="font-medium text-gray-900">{strategy.name}</h3>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                  <div className="flex items-center gap-3 mb-3">
+                    <h3 className={cn(
+                      textClasses.weight('semibold'),
+                      selectedStrategy?.id === strategy.id ? 'text-brand-primary' : semantic.text.primary
+                    )}>
+                      {strategy.name}
+                    </h3>
+                    <span className={
                       strategy.complexity === 'low' 
-                        ? 'bg-green-100 text-green-800'
+                        ? badgeClasses('success')
                         : strategy.complexity === 'medium'
-                        ? 'bg-yellow-100 text-yellow-800'
-                        : 'bg-red-100 text-red-800'
-                    }`}>
+                        ? badgeClasses('warning')
+                        : badgeClasses('error')
+                    }>
                       {strategy.complexity} complexity
                     </span>
-                    <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
+                    <span className={badgeClasses('neutral')}>
                       {strategy.jurisdiction}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-600 mb-3">{strategy.description}</p>
-                  <div className="flex items-center gap-4 text-sm">
-                    <div className="flex items-center gap-1 text-green-600">
+                  <p className={cn(
+                    textClasses.size('sm'),
+                    selectedStrategy?.id === strategy.id ? 'text-brand-primary-dark' : semantic.text.muted,
+                    'mb-4'
+                  )}>
+                    {strategy.description}
+                  </p>
+                  <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-2 text-green-600">
                       <Euro className="h-4 w-4" />
-                      <span className="font-medium">€{strategy.estimatedSavings.toLocaleString()}/year</span>
+                      <span className={cn(
+                        textClasses.size('sm'),
+                        textClasses.weight('semibold')
+                      )}>
+                        €{strategy.estimatedSavings.toLocaleString()}/year
+                      </span>
                     </div>
-                    <div className="flex items-center gap-1 text-blue-600">
+                    <div className="flex items-center gap-2 text-brand-primary">
                       <FileText className="h-4 w-4" />
-                      <span>{strategy.timeframe}</span>
+                      <span className={textClasses.size('sm')}>
+                        {strategy.timeframe}
+                      </span>
                     </div>
                   </div>
                 </div>
-                <ArrowRight className="h-5 w-5 text-gray-400 mt-2" />
+                <ArrowRight className={cn(
+                  'h-5 w-5 mt-2 transition-colors',
+                  selectedStrategy?.id === strategy.id ? 'text-brand-primary' : 'text-gray-400'
+                )} />
               </div>
             </div>
           ))}
@@ -363,44 +543,94 @@ export default function TaxOptimizationDashboard() {
 
       {/* Strategy Details */}
       {selectedStrategy && (
-        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6">
-          <h2 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
-            <Info className="h-5 w-5 text-purple-600" />
+        <div className={cardClasses('elevated', 'p-6')}>
+          <h2 className={cn(
+            textClasses.size('lg'),
+            textClasses.weight('semibold'),
+            semantic.text.primary,
+            'mb-6 flex items-center gap-3'
+          )}>
+            <Info className="h-5 w-5 text-brand-primary" />
             Strategy Details: {selectedStrategy.name}
           </h2>
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid md:grid-cols-2 gap-8">
             <div>
-              <h3 className="font-medium text-gray-900 mb-3">Requirements</h3>
-              <div className="space-y-2">
+              <h3 className={cn(
+                textClasses.weight('semibold'),
+                semantic.text.secondary,
+                'mb-4'
+              )}>
+                Requirements
+              </h3>
+              <div className="space-y-3">
                 {selectedStrategy.requirements.map((requirement, index) => (
-                  <div key={index} className="flex items-start gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
-                    <span className="text-sm text-gray-700">{requirement}</span>
+                  <div key={index} className="flex items-start gap-3">
+                    <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                    <span className={cn(
+                      textClasses.size('sm'),
+                      semantic.text.primary
+                    )}>
+                      {requirement}
+                    </span>
                   </div>
                 ))}
               </div>
             </div>
             <div>
-              <h3 className="font-medium text-gray-900 mb-3">Implementation Timeline</h3>
-              <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-2xl p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <BarChart3 className="h-4 w-4 text-purple-600" />
-                  <span className="font-medium text-purple-800">Expected Timeline</span>
+              <h3 className={cn(
+                textClasses.weight('semibold'),
+                semantic.text.secondary,
+                'mb-4'
+              )}>
+                Implementation Timeline
+              </h3>
+              <div className={cn(
+                'bg-gradient-to-r from-brand-primary/5 to-brand-accent/10',
+                'border border-brand-primary/20 rounded-2xl p-6'
+              )}>
+                <div className="flex items-center gap-3 mb-3">
+                  <BarChart3 className="h-5 w-5 text-brand-primary" />
+                  <span className={cn(
+                    textClasses.weight('semibold'),
+                    'text-brand-primary-dark'
+                  )}>
+                    Expected Timeline
+                  </span>
                 </div>
-                <div className="text-2xl font-medium text-purple-900 mb-1">{selectedStrategy.timeframe}</div>
-                <div className="text-sm text-purple-700">
+                <div className={cn(
+                  textClasses.size('2xl'),
+                  textClasses.weight('bold'),
+                  'text-brand-primary mb-2'
+                )}>
+                  {selectedStrategy.timeframe}
+                </div>
+                <div className={cn(
+                  textClasses.size('sm'),
+                  'text-brand-primary-dark'
+                )}>
                   Estimated annual savings: €{selectedStrategy.estimatedSavings.toLocaleString()}
                 </div>
               </div>
             </div>
           </div>
           
-          <div className="mt-6 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-2xl">
-            <div className="flex items-start gap-2">
-              <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5" />
+          <div className={cn(
+            'mt-8 p-5 rounded-2xl',
+            'bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200'
+          )}>
+            <div className="flex items-start gap-4">
+              <AlertCircle className="h-6 w-6 text-yellow-600 mt-0.5 flex-shrink-0" />
               <div>
-                <div className="font-medium text-yellow-800">Professional Consultation Recommended</div>
-                <div className="text-sm text-yellow-700 mt-1">
+                <div className={cn(
+                  textClasses.weight('semibold'),
+                  'text-yellow-900 mb-2'
+                )}>
+                  Professional Consultation Recommended
+                </div>
+                <div className={cn(
+                  textClasses.size('sm'),
+                  'text-yellow-800 leading-relaxed'
+                )}>
                   This strategy involves complex tax regulations. Consider consulting with a qualified tax professional 
                   in {selectedStrategy.jurisdiction === 'BE' ? 'Belgium' : selectedStrategy.jurisdiction === 'LU' ? 'Luxembourg' : 'your target jurisdiction'} 
                   before implementation.
@@ -412,45 +642,43 @@ export default function TaxOptimizationDashboard() {
       )}
 
       {/* Dr. Sigmund Tax Therapy Section */}
-      <div className="mt-12 bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
-        <div className="flex items-start gap-6">
-          <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
-            <Calculator className="h-8 w-8 text-white" />
-          </div>
-          <div className="flex-1">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Dr. Sigmund's Tax Therapy Corner</h2>
-            <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-2xl p-6">
-              <h3 className="font-medium text-purple-900 mb-3">Tax Anxiety Relief Tips</h3>
-              <ul className="space-y-2 text-sm text-purple-800">
-                <li className="flex items-start gap-2">
-                  <span className="text-purple-600 mt-1">•</span>
-                  <span>Remember: tax optimization is about making informed, legal choices to minimize your burden</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-purple-600 mt-1">•</span>
-                  <span>Start with simple strategies (expense optimization) before considering complex structures</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-purple-600 mt-1">•</span>
-                  <span>Always consult with a qualified tax professional for high-complexity strategies</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-purple-600 mt-1">•</span>
-                  <span>Focus on long-term financial health, not just immediate tax savings</span>
-                </li>
-              </ul>
-            </div>
-          </div>
+      <DrSigmundAdviceCard
+        variant="business"
+        title="Tax Therapy Corner"
+        badgeText="Stress Relief"
+        mood="thinking"
+        className="mt-12"
+      >
+        <div>
+          <h3 className="font-medium text-emerald-900 mb-3">Tax Anxiety Relief Tips</h3>
+          <ul className="space-y-2 text-sm text-emerald-800">
+            <li className="flex items-start gap-2">
+              <span className="text-emerald-600 mt-1">•</span>
+              <span>Remember: tax optimization is about making informed, legal choices to minimize your burden</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-emerald-600 mt-1">•</span>
+              <span>Start with simple strategies (expense optimization) before considering complex structures</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-emerald-600 mt-1">•</span>
+              <span>Always consult with a qualified tax professional for high-complexity strategies</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-emerald-600 mt-1">•</span>
+              <span>Focus on long-term financial health, not just immediate tax savings</span>
+            </li>
+          </ul>
         </div>
-      </div>
+      </DrSigmundAdviceCard>
 
       {/* Disclaimer */}
-      <div className="mt-8 bg-yellow-50 border border-yellow-200 rounded-2xl p-6">
+      <div className={cn(cardClasses('default'), 'mt-8 bg-amber-50 border-amber-200 p-6')}>
         <div className="flex items-start gap-3">
-          <AlertCircle className="h-6 w-6 text-yellow-600 flex-shrink-0 mt-1" />
+          <AlertCircle className="h-6 w-6 text-amber-600 flex-shrink-0 mt-1" />
           <div>
-            <h3 className="font-medium text-yellow-900 mb-2">Important Disclaimer</h3>
-            <p className="text-sm text-yellow-800 leading-relaxed">
+            <h3 className={cn(textClasses.weight('medium'), 'text-amber-900 mb-2')}>Important Disclaimer</h3>
+            <p className={cn(textClasses.size('sm'), 'text-amber-800 leading-relaxed')}>
               This tool provides general information and estimates for educational purposes only. Tax laws are complex and change frequently. 
               Always consult with qualified tax professionals in Belgium, Luxembourg, or your target jurisdiction before implementing any tax strategy. 
               Spend's Analysis and Dr. Sigmund Spend do not provide professional tax advice.

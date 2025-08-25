@@ -2,6 +2,15 @@
 
 import React, { useState, useEffect } from 'react'
 import { 
+  cn,
+  buttonClasses, 
+  cardClasses, 
+  badgeClasses, 
+  textClasses, 
+  gradientClasses 
+} from '../lib/design-utils'
+import DrSigmundAdviceCard from './DrSigmundAdviceCard'
+import { 
   AlertTriangle, 
   TrendingUp, 
   TrendingDown, 
@@ -175,7 +184,6 @@ export default function InvoiceRiskDashboard() {
   const [viewMode, setViewMode] = useState<'overview' | 'clients' | 'invoices' | 'predictions'>('overview')
   const [filterRisk, setFilterRisk] = useState<'all' | 'low' | 'medium' | 'high'>('all')
   const [searchTerm, setSearchTerm] = useState('')
-  const [showDrAdviceDetails, setShowDrAdviceDetails] = useState(false)
 
   // Calculate overall portfolio metrics
   const totalOutstanding = mockClients.reduce((sum, client) => sum + client.totalOutstanding, 0)
@@ -195,7 +203,7 @@ export default function InvoiceRiskDashboard() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'paid': return 'text-green-600 bg-green-100'
-      case 'pending': return 'text-blue-600 bg-blue-100'
+      case 'pending': return 'text-cyan-600 bg-cyan-100'
       case 'overdue': return 'text-red-600 bg-red-100'
       case 'disputed': return 'text-orange-600 bg-orange-100'
       default: return 'text-gray-600 bg-gray-100'
@@ -210,221 +218,191 @@ export default function InvoiceRiskDashboard() {
   })
 
   const DrSigmundAdvice = () => (
-    <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200 overflow-hidden">
-      {/* Main Banner */}
-      <div className="p-4 flex items-center space-x-4">
-        <DrSigmundSpendAvatar 
-          size="sm"
-          mood="analytical"
-          message=""
-          showMessage={false}
-          animated={true}
-        />
-        <div className="flex-1">
-          <div className="flex items-center space-x-2 mb-1">
-            <span className="text-sm font-semibold text-blue-800">Dr. Sigmund Spend</span>
-            <span className="text-xs text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">Risk Advisory</span>
+    <DrSigmundAdviceCard
+      variant="risk"
+      title="Risk Advisory"
+      badgeText="Risk Advisory"
+      expandableContent={
+        <div className="space-y-6">
+          {/* Risk Analysis Header */}
+          <div className="flex items-center space-x-3 mb-4">
+            <div className="w-8 h-8 bg-cyan-100 rounded-lg flex items-center justify-center">
+              <AlertTriangle className="w-4 h-4 text-cyan-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900">Detailed Risk Analysis & Recommendations</h3>
           </div>
-          <p className="text-sm text-gray-700">
-            I notice you have <span className="font-medium text-red-600">€15,600 at risk</span> with high-risk clients. 
-            Consider implementing payment plans or requiring deposits for new work.
-          </p>
-        </div>
-        <button 
-          onClick={() => setShowDrAdviceDetails(!showDrAdviceDetails)}
-          className="text-blue-600 hover:text-blue-800 text-sm font-medium px-3 py-1 hover:bg-blue-100 rounded transition-colors flex items-center space-x-1"
-        >
-          <span>{showDrAdviceDetails ? 'Hide Details' : 'View Details'}</span>
-          <svg 
-            className={`w-4 h-4 transition-transform ${showDrAdviceDetails ? 'rotate-180' : ''}`}
-            fill="none" 
-            stroke="currentColor" 
-            viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
-        </button>
-      </div>
 
-      {/* Expanded Details */}
-      {showDrAdviceDetails && (
-        <div className="border-t border-blue-200 bg-white p-6">
-          <div className="space-y-6">
-            {/* Risk Analysis Header */}
-            <div className="flex items-center space-x-3 mb-4">
-              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                <AlertTriangle className="w-4 h-4 text-blue-600" />
+          {/* Risk Breakdown */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <div className="flex items-center space-x-2 mb-2">
+                <AlertCircle className="w-4 h-4 text-red-600" />
+                <h4 className="font-medium text-red-900">Critical Risk</h4>
               </div>
-              <h3 className="text-lg font-semibold text-gray-900">Detailed Risk Analysis & Recommendations</h3>
+              <p className="text-sm text-red-800 mb-2">
+                <span className="font-semibold">Retail Express S.à r.l.</span> has €9,800 overdue (66 days)
+              </p>
+              <p className="text-xs text-red-600">Immediate action required</p>
             </div>
 
-            {/* Risk Breakdown */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                <div className="flex items-center space-x-2 mb-2">
-                  <AlertCircle className="w-4 h-4 text-red-600" />
-                  <h4 className="font-medium text-red-900">Critical Risk</h4>
-                </div>
-                <p className="text-sm text-red-800 mb-2">
-                  <span className="font-semibold">Retail Express S.à r.l.</span> has €9,800 overdue (66 days)
-                </p>
-                <p className="text-xs text-red-600">Immediate action required</p>
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <div className="flex items-center space-x-2 mb-2">
+                <Clock className="w-4 h-4 text-yellow-600" />
+                <h4 className="font-medium text-yellow-900">Medium Risk</h4>
               </div>
-
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                <div className="flex items-center space-x-2 mb-2">
-                  <Clock className="w-4 h-4 text-yellow-600" />
-                  <h4 className="font-medium text-yellow-900">Medium Risk</h4>
-                </div>
-                <p className="text-sm text-yellow-800 mb-2">
-                  <span className="font-semibold">Creative Studio SPRL</span> averages 45-day payments
-                </p>
-                <p className="text-xs text-yellow-600">Monitor closely</p>
-              </div>
-
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <div className="flex items-center space-x-2 mb-2">
-                  <CheckCircle className="w-4 h-4 text-green-600" />
-                  <h4 className="font-medium text-green-900">Performing Well</h4>
-                </div>
-                <p className="text-sm text-green-800 mb-2">
-                  <span className="font-semibold">TechFlow Solutions</span> & <span className="font-semibold">EuroLogistics</span>
-                </p>
-                <p className="text-xs text-green-600">Reliable payment history</p>
-              </div>
+              <p className="text-sm text-yellow-800 mb-2">
+                <span className="font-semibold">Creative Studio SPRL</span> averages 45-day payments
+              </p>
+              <p className="text-xs text-yellow-600">Monitor closely</p>
             </div>
 
-            {/* Therapeutic Recommendations */}
-            <div className="space-y-4">
-              <h4 className="font-medium text-gray-900 flex items-center space-x-2">
-                <Heart className="w-4 h-4 text-purple-600" />
-                <span>Financial Therapy Insights</span>
-              </h4>
-              
-              <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                <h5 className="font-medium text-purple-900 mb-2">Emotional Patterns I've Noticed:</h5>
-                <ul className="text-sm text-purple-800 space-y-1 ml-4">
-                  <li>• You tend to avoid confronting late-paying clients (avoidance pattern)</li>
-                  <li>• There's anxiety around demanding payment from "relationship" clients</li>
-                  <li>• You're prioritizing client comfort over your financial health</li>
-                </ul>
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <div className="flex items-center space-x-2 mb-2">
+                <CheckCircle className="w-4 h-4 text-green-600" />
+                <h4 className="font-medium text-green-900">Performing Well</h4>
               </div>
+              <p className="text-sm text-green-800 mb-2">
+                <span className="font-semibold">TechFlow Solutions</span> & <span className="font-semibold">EuroLogistics</span>
+              </p>
+              <p className="text-xs text-green-600">Reliable payment history</p>
+            </div>
+          </div>
 
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h5 className="font-medium text-blue-900 mb-2">Immediate Action Steps:</h5>
-                <div className="space-y-3">
-                  <div className="flex items-start space-x-3">
-                    <span className="bg-blue-600 text-white text-xs font-semibold px-2 py-1 rounded-full">1</span>
-                    <div>
-                      <p className="text-sm font-medium text-blue-900">Address Critical Risk</p>
-                      <p className="text-xs text-blue-700">Call Retail Express today. Set up payment plan if needed.</p>
-                    </div>
+          {/* Therapeutic Recommendations */}
+          <div className="space-y-4">
+            <h4 className="font-medium text-gray-900 flex items-center space-x-2">
+              <Heart className="w-4 h-4 text-violet-600" />
+              <span>Financial Therapy Insights</span>
+            </h4>
+            
+            <div className="bg-violet-50 border border-violet-200 rounded-lg p-4">
+              <h5 className="font-medium text-violet-900 mb-2">Emotional Patterns I've Noticed:</h5>
+              <ul className="text-sm text-violet-800 space-y-1 ml-4">
+                <li>• You tend to avoid confronting late-paying clients (avoidance pattern)</li>
+                <li>• There's anxiety around demanding payment from "relationship" clients</li>
+                <li>• You're prioritizing client comfort over your financial health</li>
+              </ul>
+            </div>
+
+            <div className="bg-cyan-50 border border-cyan-200 rounded-lg p-4">
+              <h5 className="font-medium text-cyan-900 mb-2">Immediate Action Steps:</h5>
+              <div className="space-y-3">
+                <div className="flex items-start space-x-3">
+                  <span className="bg-cyan-600 text-white text-xs font-semibold px-2 py-1 rounded-full">1</span>
+                  <div>
+                    <p className="text-sm font-medium text-cyan-900">Address Critical Risk</p>
+                    <p className="text-xs text-cyan-700">Call Retail Express today. Set up payment plan if needed.</p>
                   </div>
-                  <div className="flex items-start space-x-3">
-                    <span className="bg-blue-600 text-white text-xs font-semibold px-2 py-1 rounded-full">2</span>
-                    <div>
-                      <p className="text-sm font-medium text-blue-900">Implement Payment Terms</p>
-                      <p className="text-xs text-blue-700">Require 50% deposits for new projects over €5,000.</p>
-                    </div>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <span className="bg-cyan-600 text-white text-xs font-semibold px-2 py-1 rounded-full">2</span>
+                  <div>
+                    <p className="text-sm font-medium text-cyan-900">Implement Payment Terms</p>
+                    <p className="text-xs text-cyan-700">Require 50% deposits for new projects over €5,000.</p>
                   </div>
-                  <div className="flex items-start space-x-3">
-                    <span className="bg-blue-600 text-white text-xs font-semibold px-2 py-1 rounded-full">3</span>
-                    <div>
-                      <p className="text-sm font-medium text-blue-900">Weekly Check-ins</p>
-                      <p className="text-xs text-blue-700">Schedule follow-ups every Tuesday at 10 AM.</p>
-                    </div>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <span className="bg-cyan-600 text-white text-xs font-semibold px-2 py-1 rounded-full">3</span>
+                  <div>
+                    <p className="text-sm font-medium text-cyan-900">Weekly Check-ins</p>
+                    <p className="text-xs text-cyan-700">Schedule follow-ups every Tuesday at 10 AM.</p>
                   </div>
                 </div>
               </div>
-
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <h5 className="font-medium text-green-900 mb-2">Long-term Health Strategies:</h5>
-                <ul className="text-sm text-green-800 space-y-1 ml-4">
-                  <li>• Set credit limits based on risk scores (already implemented!)</li>
-                  <li>• Create standard payment reminder templates to reduce emotional labor</li>
-                  <li>• Celebrate on-time payments - acknowledge good behavior</li>
-                  <li>• Practice saying "payment is due" without apology</li>
-                </ul>
-              </div>
             </div>
 
-            {/* Quick Actions */}
-            <div className="border-t border-gray-200 pt-4">
-              <h4 className="font-medium text-gray-900 mb-3">Quick Actions</h4>
-              <div className="flex flex-wrap gap-2">
-                <button className="bg-red-600 text-white px-3 py-1.5 rounded text-sm hover:bg-red-700 transition-colors">
-                  Call Retail Express
-                </button>
-                <button className="bg-yellow-600 text-white px-3 py-1.5 rounded text-sm hover:bg-yellow-700 transition-colors">
-                  Email Payment Reminders
-                </button>
-                <button className="bg-brand-gradient text-white px-3 py-1.5 rounded text-sm transition-all duration-300 shadow-sm hover:shadow-lg transform hover:scale-105">
-                  Update Payment Terms
-                </button>
-                <button className="bg-green-600 text-white px-3 py-1.5 rounded text-sm hover:bg-green-700 transition-colors">
-                  Schedule Follow-ups
-                </button>
-              </div>
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <h5 className="font-medium text-green-900 mb-2">Long-term Health Strategies:</h5>
+              <ul className="text-sm text-green-800 space-y-1 ml-4">
+                <li>• Set credit limits based on risk scores (already implemented!)</li>
+                <li>• Create standard payment reminder templates to reduce emotional labor</li>
+                <li>• Celebrate on-time payments - acknowledge good behavior</li>
+                <li>• Practice saying "payment is due" without apology</li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Quick Actions */}
+          <div className="border-t border-gray-200 pt-4">
+            <h4 className="font-medium text-gray-900 mb-3">Quick Actions</h4>
+            <div className="flex flex-wrap gap-2">
+              <button className="bg-red-600 text-white px-3 py-1.5 rounded text-sm hover:bg-red-700 transition-colors">
+                Call Retail Express
+              </button>
+              <button className="bg-yellow-600 text-white px-3 py-1.5 rounded text-sm hover:bg-yellow-700 transition-colors">
+                Email Payment Reminders
+              </button>
+              <button className={buttonClasses('gradient', 'sm')}>
+                Update Payment Terms
+              </button>
+              <button className="bg-green-600 text-white px-3 py-1.5 rounded text-sm hover:bg-green-700 transition-colors">
+                Schedule Follow-ups
+              </button>
             </div>
           </div>
         </div>
-      )}
-    </div>
+      }
+    >
+      <p>
+        I notice you have <span className="font-medium text-red-600">€15,600 at risk</span> with high-risk clients. 
+        Consider implementing payment plans or requiring deposits for new work.
+      </p>
+    </DrSigmundAdviceCard>
   )
 
   const OverviewView = () => (
     <div className="space-y-6">
       {/* Portfolio Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Total Outstanding</p>
-              <p className="text-2xl font-bold text-gray-900">€{totalOutstanding.toLocaleString()}</p>
-              <p className="text-xs text-gray-500 mt-1">Across {mockClients.length} clients</p>
-            </div>
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-              <DollarSign className="w-6 h-6 text-blue-600" />
-            </div>
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <DollarSign className="w-4 h-4 text-cyan-600" />
+            <h4 className="text-sm font-medium text-gray-700">Total Outstanding</h4>
+          </div>
+          <div className="text-xl font-bold text-gray-900 mb-1">
+            €{totalOutstanding.toLocaleString()}
+          </div>
+          <div className="text-xs text-gray-600">
+            Across {mockClients.length} clients
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Overdue Amount</p>
-              <p className="text-2xl font-bold text-red-600">€{totalOverdue.toLocaleString()}</p>
-              <p className="text-xs text-gray-500 mt-1">{Math.round((totalOverdue/totalOutstanding)*100)}% of total</p>
-            </div>
-            <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
-              <AlertTriangle className="w-6 h-6 text-red-600" />
-            </div>
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <AlertTriangle className="w-4 h-4 text-red-600" />
+            <h4 className="text-sm font-medium text-gray-700">Overdue Amount</h4>
+          </div>
+          <div className="text-xl font-bold text-red-600 mb-1">
+            €{totalOverdue.toLocaleString()}
+          </div>
+          <div className="text-xs text-gray-600">
+            {Math.round((totalOverdue/totalOutstanding)*100)}% of total
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Average Risk Score</p>
-              <p className="text-2xl font-bold text-gray-900">{averageRiskScore}</p>
-              <p className="text-xs text-green-600 mt-1">↗ +3 from last month</p>
-            </div>
-            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-              <Target className="w-6 h-6 text-purple-600" />
-            </div>
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Target className="w-4 h-4 text-violet-600" />
+            <h4 className="text-sm font-medium text-gray-700">Average Risk Score</h4>
+          </div>
+          <div className="text-xl font-bold text-gray-900 mb-1">
+            {averageRiskScore}
+          </div>
+          <div className="text-xs text-emerald-600">
+            ↗ +3 from last month
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Clients at Risk</p>
-              <p className="text-2xl font-bold text-orange-600">{clientsAtRisk}</p>
-              <p className="text-xs text-gray-500 mt-1">Require attention</p>
-            </div>
-            <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-              <Users className="w-6 h-6 text-orange-600" />
-            </div>
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Users className="w-4 h-4 text-amber-600" />
+            <h4 className="text-sm font-medium text-gray-700">Clients at Risk</h4>
+          </div>
+          <div className="text-xl font-bold text-amber-600 mb-1">
+            {clientsAtRisk}
+          </div>
+          <div className="text-xs text-gray-600">
+            Require attention
           </div>
         </div>
       </div>
@@ -503,7 +481,7 @@ export default function InvoiceRiskDashboard() {
                 <span className="font-medium text-gray-900">85%</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
-                <div className="bg-blue-500 h-2 rounded-full" style={{ width: '85%' }}></div>
+                <div className="bg-cyan-500 h-2 rounded-full" style={{ width: '85%' }}></div>
               </div>
             </div>
           </div>
@@ -511,7 +489,7 @@ export default function InvoiceRiskDashboard() {
       </div>
 
       {/* Payment Timeline Visualization */}
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+      <div className={cardClasses('default', 'p-6')}>
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Upcoming Payment Timeline</h3>
         <div className="space-y-4">
           {/* Timeline bars showing upcoming payments */}
@@ -547,7 +525,7 @@ export default function InvoiceRiskDashboard() {
       </div>
 
       {/* Recent Activity */}
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+      <div className={cardClasses('default', 'p-6')}>
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity & Alerts</h3>
         <div className="space-y-3">
           <div className="flex items-start space-x-3 p-3 bg-red-50 rounded-lg border border-red-200">
@@ -605,43 +583,43 @@ export default function InvoiceRiskDashboard() {
       <div className="space-y-6">
         {/* Invoice Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-white rounded-lg p-4 border border-gray-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Total Invoices</p>
-                <p className="text-2xl font-bold text-gray-900">{mockInvoices.length}</p>
-              </div>
-              <FileText className="w-8 h-8 text-blue-600" />
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <FileText className="w-4 h-4 text-cyan-600" />
+              <h4 className="text-sm font-medium text-gray-700">Total Invoices</h4>
+            </div>
+            <div className="text-xl font-bold text-gray-900 mb-1">
+              {mockInvoices.length}
             </div>
           </div>
           
-          <div className="bg-white rounded-lg p-4 border border-gray-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Pending</p>
-                <p className="text-2xl font-bold text-blue-600">{mockInvoices.filter(i => i.status === 'pending').length}</p>
-              </div>
-              <Clock className="w-8 h-8 text-blue-600" />
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Clock className="w-4 h-4 text-cyan-600" />
+              <h4 className="text-sm font-medium text-gray-700">Pending</h4>
+            </div>
+            <div className="text-xl font-bold text-cyan-600 mb-1">
+              {mockInvoices.filter(i => i.status === 'pending').length}
             </div>
           </div>
           
-          <div className="bg-white rounded-lg p-4 border border-gray-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Overdue</p>
-                <p className="text-2xl font-bold text-red-600">{mockInvoices.filter(i => i.status === 'overdue').length}</p>
-              </div>
-              <AlertTriangle className="w-8 h-8 text-red-600" />
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <AlertTriangle className="w-4 h-4 text-red-600" />
+              <h4 className="text-sm font-medium text-gray-700">Overdue</h4>
+            </div>
+            <div className="text-xl font-bold text-red-600 mb-1">
+              {mockInvoices.filter(i => i.status === 'overdue').length}
             </div>
           </div>
           
-          <div className="bg-white rounded-lg p-4 border border-gray-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Total Value</p>
-                <p className="text-2xl font-bold text-gray-900">€{mockInvoices.reduce((sum, i) => sum + i.amount, 0).toLocaleString()}</p>
-              </div>
-              <DollarSign className="w-8 h-8 text-green-600" />
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <DollarSign className="w-4 h-4 text-emerald-600" />
+              <h4 className="text-sm font-medium text-gray-700">Total Value</h4>
+            </div>
+            <div className="text-xl font-bold text-gray-900 mb-1">
+              €{mockInvoices.reduce((sum, i) => sum + i.amount, 0).toLocaleString()}
             </div>
           </div>
         </div>
@@ -655,14 +633,14 @@ export default function InvoiceRiskDashboard() {
               placeholder="Search invoices..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
             />
           </div>
           <div className="flex gap-2">
             <select
               value={invoiceFilter}
               onChange={(e) => setInvoiceFilter(e.target.value as any)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
             >
               <option value="all">All Status</option>
               <option value="pending">Pending</option>
@@ -673,7 +651,7 @@ export default function InvoiceRiskDashboard() {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as any)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
             >
               <option value="dueDate">Sort by Due Date</option>
               <option value="amount">Sort by Amount</option>
@@ -684,7 +662,7 @@ export default function InvoiceRiskDashboard() {
         </div>
 
         {/* Invoices Table */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className={cn(cardClasses('default'), 'overflow-hidden')}>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50">
@@ -744,10 +722,10 @@ export default function InvoiceRiskDashboard() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex space-x-2">
-                        <button className="text-blue-600 hover:text-blue-900">
+                        <button className="text-cyan-600 hover:text-cyan-900">
                           <Eye className="w-4 h-4" />
                         </button>
-                        <button className="text-green-600 hover:text-green-900">
+                        <button className="text-emerald-600 hover:text-emerald-900">
                           <Send className="w-4 h-4" />
                         </button>
                         <button className="text-gray-400 hover:text-gray-600">
@@ -763,22 +741,22 @@ export default function InvoiceRiskDashboard() {
         </div>
 
         {/* Invoice Actions */}
-        <div className="bg-white rounded-lg p-6 border border-gray-200">
+        <div className={cardClasses('default', 'p-6')}>
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Bulk Actions</h3>
           <div className="flex flex-wrap gap-3">
-                            <button className="bg-brand-gradient text-white px-4 py-2 rounded-lg transition-all duration-300 shadow-sm hover:shadow-lg transform hover:scale-105 flex items-center space-x-2">
+            <button className={cn(buttonClasses('gradient', 'base'), 'flex items-center space-x-2')}>
               <Send className="w-4 h-4" />
               <span>Send Reminders</span>
             </button>
-            <button className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2">
+            <button className={cn(buttonClasses('primary', 'base'), 'flex items-center space-x-2 bg-emerald-600 hover:bg-emerald-700 text-white')}>
               <CheckCircle className="w-4 h-4" />
               <span>Mark as Paid</span>
             </button>
-            <button className="bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 transition-colors flex items-center space-x-2">
+            <button className={cn(buttonClasses('secondary', 'base'), 'flex items-center space-x-2 bg-amber-600 hover:bg-amber-700 text-white')}>
               <Edit className="w-4 h-4" />
               <span>Update Terms</span>
             </button>
-            <button className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors flex items-center space-x-2">
+            <button className={cn(buttonClasses('secondary', 'base'), 'flex items-center space-x-2')}>
               <Download className="w-4 h-4" />
               <span>Export Report</span>
             </button>
@@ -799,14 +777,14 @@ export default function InvoiceRiskDashboard() {
             placeholder="Search clients..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
           />
         </div>
         <div className="flex gap-2">
           <select
             value={filterRisk}
             onChange={(e) => setFilterRisk(e.target.value as any)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
           >
             <option value="all">All Risk Levels</option>
             <option value="low">Low Risk</option>
@@ -817,7 +795,7 @@ export default function InvoiceRiskDashboard() {
       </div>
 
       {/* Clients Table */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div className={cn(cardClasses('default'), 'overflow-hidden')}>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50">
@@ -835,8 +813,8 @@ export default function InvoiceRiskDashboard() {
                 <tr key={client.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
-                      <div className="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                        <span className="text-sm font-semibold text-blue-600">
+                      <div className="flex-shrink-0 w-10 h-10 bg-cyan-100 rounded-lg flex items-center justify-center">
+                        <span className="text-sm font-semibold text-cyan-600">
                           {client.name.split(' ').map(n => n[0]).join('').substring(0, 2)}
                         </span>
                       </div>
@@ -872,7 +850,7 @@ export default function InvoiceRiskDashboard() {
                     <div className="flex space-x-2">
                       <button 
                         onClick={() => setSelectedClient(client.id)}
-                        className="text-blue-600 hover:text-blue-900"
+                        className="text-cyan-600 hover:text-cyan-900"
                       >
                         <Eye className="w-4 h-4" />
                       </button>
@@ -947,7 +925,7 @@ export default function InvoiceRiskDashboard() {
     return (
       <div className="space-y-6">
         {/* Prediction Controls */}
-        <div className="bg-white rounded-lg p-6 border border-gray-200">
+        <div className={cardClasses('default', 'p-6')}>
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">AI Payment Predictions</h3>
@@ -957,7 +935,7 @@ export default function InvoiceRiskDashboard() {
               <select
                 value={predictionTimeframe}
                 onChange={(e) => setPredictionTimeframe(e.target.value as any)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
               >
                 <option value="30">Next 30 Days</option>
                 <option value="60">Next 60 Days</option>
@@ -966,7 +944,7 @@ export default function InvoiceRiskDashboard() {
               <select
                 value={modelType}
                 onChange={(e) => setModelType(e.target.value as any)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
               >
                 <option value="ensemble">Ensemble Model</option>
                 <option value="neural">Neural Network</option>
@@ -978,68 +956,68 @@ export default function InvoiceRiskDashboard() {
 
         {/* Prediction Summary */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Expected Revenue</p>
-                <p className="text-2xl font-bold text-green-600">€{currentPrediction.totalExpected.toLocaleString()}</p>
-                <p className="text-xs text-gray-500 mt-1">{currentPrediction.totalInvoices} invoices</p>
-              </div>
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                <TrendingUp className="w-6 h-6 text-green-600" />
-              </div>
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <TrendingUp className="w-4 h-4 text-emerald-600" />
+              <h4 className="text-sm font-medium text-gray-700">Expected Revenue</h4>
+            </div>
+            <div className="text-xl font-bold text-emerald-600 mb-1">
+              €{currentPrediction.totalExpected.toLocaleString()}
+            </div>
+            <div className="text-xs text-gray-600">
+              {currentPrediction.totalInvoices} invoices
             </div>
           </div>
 
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">On-Time Payments</p>
-                <p className="text-2xl font-bold text-blue-600">{currentPrediction.onTimePayments}</p>
-                <p className="text-xs text-gray-500 mt-1">{Math.round((currentPrediction.onTimePayments/currentPrediction.totalInvoices)*100)}% expected</p>
-              </div>
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <CheckCircle className="w-6 h-6 text-blue-600" />
-              </div>
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <CheckCircle className="w-4 h-4 text-cyan-600" />
+              <h4 className="text-sm font-medium text-gray-700">On-Time Payments</h4>
+            </div>
+            <div className="text-xl font-bold text-cyan-600 mb-1">
+              {currentPrediction.onTimePayments}
+            </div>
+            <div className="text-xs text-gray-600">
+              {Math.round((currentPrediction.onTimePayments/currentPrediction.totalInvoices)*100)}% expected
             </div>
           </div>
 
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Late Payments</p>
-                <p className="text-2xl font-bold text-red-600">{currentPrediction.latePayments}</p>
-                <p className="text-xs text-gray-500 mt-1">{Math.round((currentPrediction.latePayments/currentPrediction.totalInvoices)*100)}% risk</p>
-              </div>
-              <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
-                <AlertTriangle className="w-6 h-6 text-red-600" />
-              </div>
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <AlertTriangle className="w-4 h-4 text-red-600" />
+              <h4 className="text-sm font-medium text-gray-700">Late Payments</h4>
+            </div>
+            <div className="text-xl font-bold text-red-600 mb-1">
+              {currentPrediction.latePayments}
+            </div>
+            <div className="text-xs text-gray-600">
+              {Math.round((currentPrediction.latePayments/currentPrediction.totalInvoices)*100)}% risk
             </div>
           </div>
 
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Model Confidence</p>
-                <p className="text-2xl font-bold text-purple-600">{currentPrediction.confidenceScore}%</p>
-                <p className="text-xs text-gray-500 mt-1">{modelType} model</p>
-              </div>
-              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                <Target className="w-6 h-6 text-purple-600" />
-              </div>
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Target className="w-4 h-4 text-violet-600" />
+              <h4 className="text-sm font-medium text-gray-700">Model Confidence</h4>
+            </div>
+            <div className="text-xl font-bold text-violet-600 mb-1">
+              {currentPrediction.confidenceScore}%
+            </div>
+            <div className="text-xs text-gray-600">
+              {modelType} model
             </div>
           </div>
         </div>
 
         {/* Cash Flow Timeline Prediction */}
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+        <div className={cardClasses('default', 'p-6')}>
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Predicted Cash Flow Timeline</h3>
           <div className="space-y-4">
             {currentPrediction.cashFlowPrediction.map((period, index) => (
               <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                 <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <span className="text-blue-600 font-semibold">{index + 1}</span>
+                  <div className="w-12 h-12 bg-cyan-100 rounded-lg flex items-center justify-center">
+                    <span className="text-cyan-600 font-semibold">{index + 1}</span>
                   </div>
                   <div>
                     <h4 className="font-medium text-gray-900">{period.week}</h4>
@@ -1086,7 +1064,7 @@ export default function InvoiceRiskDashboard() {
                 <span className="text-sm text-gray-600">Precision</span>
                 <div className="flex items-center space-x-2">
                   <div className="w-20 bg-gray-200 rounded-full h-2">
-                    <div className="bg-blue-500 h-2 rounded-full" style={{ width: '91%' }}></div>
+                    <div className="bg-cyan-500 h-2 rounded-full" style={{ width: '91%' }}></div>
                   </div>
                   <span className="text-sm font-medium text-gray-900">91%</span>
                 </div>
@@ -1106,7 +1084,7 @@ export default function InvoiceRiskDashboard() {
                 <p className="text-xs text-gray-500 mb-2">Model Features:</p>
                 <div className="flex flex-wrap gap-1">
                   {['Payment History', 'Client Risk Score', 'Invoice Amount', 'Industry Trends', 'Economic Indicators'].map((feature, index) => (
-                    <span key={index} className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
+                    <span key={index} className="text-xs bg-cyan-100 text-cyan-700 px-2 py-1 rounded-full">
                       {feature}
                     </span>
                   ))}
@@ -1116,7 +1094,7 @@ export default function InvoiceRiskDashboard() {
           </div>
 
           {/* Risk Factors */}
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+          <div className={cardClasses('default', 'p-6')}>
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Identified Risk Factors</h3>
             <div className="space-y-3">
               {currentPrediction.riskFactors.map((factor, index) => (
@@ -1152,61 +1130,71 @@ export default function InvoiceRiskDashboard() {
         </div>
 
         {/* Dr. Sigmund AI Insights */}
-        <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-6 border border-purple-200">
-          <div className="flex items-start space-x-4">
-            <DrSigmundSpendAvatar size="sm" mood="analytical" />
-            <div className="flex-1">
-              <div className="flex items-center space-x-2 mb-2">
-                <h3 className="text-lg font-semibold text-purple-900">AI Payment Psychology Insights</h3>
-                <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full">Predictive Analysis</span>
-              </div>
-              <div className="space-y-3 text-sm text-purple-800">
-                <p>
-                  Based on payment behavior patterns, I predict Retail Express is experiencing cash flow stress. 
-                  Their delayed payments correlate with month-end cycles, suggesting they're managing limited liquidity.
-                </p>
-                <p>
-                  <strong>Therapeutic Approach:</strong> Rather than aggressive collection, consider offering a structured 
-                  payment plan. This maintains the relationship while securing payment commitment.
-                </p>
-                <div className="bg-white/60 rounded-lg p-3 mt-3">
-                  <p className="font-medium text-purple-900 mb-1">Predicted Client Emotions:</p>
-                  <div className="flex flex-wrap gap-2">
-                    <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full">Retail Express: Stressed</span>
-                    <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">TechFlow: Confident</span>
-                    <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full">Creative Studio: Uncertain</span>
-                  </div>
-                </div>
+        <DrSigmundAdviceCard
+          variant="insights"
+          title="AI Payment Psychology Insights"
+          badgeText="Predictive Analysis"
+        >
+          <div className="space-y-3">
+            <p>
+              Based on payment behavior patterns, I predict Retail Express is experiencing cash flow stress. 
+              Their delayed payments correlate with month-end cycles, suggesting they're managing limited liquidity.
+            </p>
+            <p>
+              <strong>Therapeutic Approach:</strong> Rather than aggressive collection, consider offering a structured 
+              payment plan. This maintains the relationship while securing payment commitment.
+            </p>
+            <div className="bg-white/60 rounded-lg p-3 mt-3">
+              <p className="font-medium mb-1">Predicted Client Emotions:</p>
+              <div className="flex flex-wrap gap-2">
+                <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full">Retail Express: Stressed</span>
+                <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">TechFlow: Confident</span>
+                <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full">Creative Studio: Uncertain</span>
               </div>
             </div>
           </div>
-        </div>
+        </DrSigmundAdviceCard>
       </div>
     )
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Invoice & Client Risk Management</h1>
-          <p className="text-gray-600 mt-1">Monitor client payment patterns, predict risks, and optimize cash flow</p>
-        </div>
-        <div className="flex space-x-3">
-                          <button className="px-4 py-2 bg-brand-gradient text-white rounded-lg transition-all duration-300 shadow-sm hover:shadow-lg transform hover:scale-105 flex items-center space-x-2">
-            <Send className="w-4 h-4" />
-            <span>Send Reminders</span>
-          </button>
-          <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center space-x-2">
-            <Download className="w-4 h-4" />
-            <span>Export Report</span>
-          </button>
+    <div className="space-y-6">
+      {/* Gradient Hero Header */}
+      <div className={cn(
+        gradientClasses('hero'),
+        cardClasses('elevated'),
+        'p-6 text-white'
+      )}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
+              <AlertTriangle className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h2 className={cn(textClasses.size('2xl'), textClasses.weight('bold'), 'text-white')}>
+                Invoice & Client Risk Management
+              </h2>
+              <p className="text-white/80 mt-1">Monitor client payment patterns, predict risks, and optimize cash flow</p>
+            </div>
+          </div>
+          <div className="flex space-x-3">
+            <button className={cn(buttonClasses('ghost', 'sm'), 'flex items-center space-x-2 border border-white/20 bg-white/10 text-white hover:bg-white/20')}>
+              <Send className="w-4 h-4" />
+              <span>Send Reminders</span>
+            </button>
+            <button className={cn(buttonClasses('ghost', 'sm'), 'flex items-center space-x-2 border border-white/20 bg-white/10 text-white hover:bg-white/20')}>
+              <Download className="w-4 h-4" />
+              <span>Export Report</span>
+            </button>
+          </div>
         </div>
       </div>
 
+      <div className="max-w-7xl mx-auto space-y-6">
+
       {/* Navigation */}
-      <div className="flex space-x-1 mb-6 bg-gray-100 p-1 rounded-lg w-fit">
+      <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg w-fit">
         {[
           { id: 'overview', label: 'Overview', icon: BarChart3 },
           { id: 'clients', label: 'Clients', icon: Users },
@@ -1218,7 +1206,7 @@ export default function InvoiceRiskDashboard() {
             onClick={() => setViewMode(tab.id as any)}
             className={`px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center space-x-2 ${
               viewMode === tab.id
-                ? 'bg-white text-blue-600 shadow-sm'
+                ? 'bg-white text-brand-primary shadow-sm'
                 : 'text-gray-600 hover:text-gray-900'
             }`}
           >
@@ -1258,8 +1246,8 @@ export default function InvoiceRiskDashboard() {
                     {/* Client Header */}
                     <div className="flex items-start justify-between">
                       <div className="flex items-center space-x-4">
-                        <div className="w-16 h-16 bg-blue-100 rounded-xl flex items-center justify-center">
-                          <span className="text-xl font-bold text-blue-600">
+                        <div className="w-16 h-16 bg-cyan-100 rounded-xl flex items-center justify-center">
+                          <span className="text-xl font-bold text-cyan-600">
                             {client.name.split(' ').map(n => n[0]).join('').substring(0, 2)}
                           </span>
                         </div>
@@ -1320,7 +1308,7 @@ export default function InvoiceRiskDashboard() {
                         {client.paymentHistory.map((days, index) => (
                           <div key={index} className="flex-1 flex flex-col items-center">
                             <div 
-                              className="w-full bg-blue-500 rounded-t"
+                              className="w-full bg-cyan-500 rounded-t"
                               style={{ height: `${(days / 100) * 100}%` }}
                             ></div>
                             <span className="text-xs text-gray-500 mt-1">{days}d</span>
@@ -1335,6 +1323,7 @@ export default function InvoiceRiskDashboard() {
           </div>
         </div>
       )}
+      </div>
     </div>
   )
 }

@@ -21,6 +21,7 @@ import {
   Clock,
   TrendingDown
 } from 'lucide-react'
+import DrSigmundAdviceCard from './DrSigmundAdviceCard'
 
 interface InvestmentOption {
   id: string
@@ -471,26 +472,29 @@ export default function TreasuryInvestmentDashboard() {
       )}
 
       {/* Dr. Sigmund's Investment Guidance */}
-      <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-2xl p-6">
-        <h2 className="text-lg font-medium text-purple-900 mb-4 flex items-center gap-2">
-          <Briefcase className="h-5 w-5 text-purple-600" />
-          Dr. Sigmund's Investment Therapy
-        </h2>
-        <div className="space-y-4 text-sm text-purple-800">
-          <div className="bg-white rounded-xl p-4 border border-purple-200">
-            <h3 className="font-medium text-purple-900 mb-2">💭 Investment Psychology</h3>
-            <p>Remember, investing surplus cash should reduce financial anxiety, not create it. Start with your emergency fund, then gradually explore investments that match your comfort level.</p>
+      <DrSigmundAdviceCard
+        variant="insights"
+        title="Investment Therapy"
+        badgeText="Psychology Guide"
+        mood="analytical"
+        expandableContent={
+          <div className="space-y-3">
+            <div className="bg-white rounded-xl p-4 border border-violet-200">
+              <h3 className="font-medium text-violet-900 mb-2">🎯 Personalized Recommendations</h3>
+              <p className="text-sm text-violet-700">Based on your {riskTolerance} risk profile, focus on {riskTolerance === 'conservative' ? 'capital preservation and steady income' : riskTolerance === 'moderate' ? 'balanced growth with managed risk' : 'long-term growth potential with higher volatility tolerance'}.</p>
+            </div>
+            <div className="bg-white rounded-xl p-4 border border-violet-200">
+              <h3 className="font-medium text-violet-900 mb-2">⚖️ Balance & Diversification</h3>
+              <p className="text-sm text-violet-700">Don't put all surplus cash into one investment. Consider a mix of instruments to spread risk while maintaining some liquidity for unexpected opportunities or needs.</p>
+            </div>
           </div>
-          <div className="bg-white rounded-xl p-4 border border-purple-200">
-            <h3 className="font-medium text-purple-900 mb-2">🎯 Personalized Recommendations</h3>
-            <p>Based on your {riskTolerance} risk profile, focus on {riskTolerance === 'conservative' ? 'capital preservation and steady income' : riskTolerance === 'moderate' ? 'balanced growth with managed risk' : 'long-term growth potential with higher volatility tolerance'}.</p>
-          </div>
-          <div className="bg-white rounded-xl p-4 border border-purple-200">
-            <h3 className="font-medium text-purple-900 mb-2">⚖️ Balance & Diversification</h3>
-            <p>Don't put all surplus cash into one investment. Consider a mix of instruments to spread risk while maintaining some liquidity for unexpected opportunities or needs.</p>
-          </div>
+        }
+      >
+        <div>
+          <h3 className="font-medium text-violet-900 mb-2">💭 Investment Psychology</h3>
+          <p className="text-sm text-violet-800">Remember, investing surplus cash should reduce financial anxiety, not create it. Start with your emergency fund, then gradually explore investments that match your comfort level.</p>
         </div>
-      </div>
+      </DrSigmundAdviceCard>
     </div>
   )
 }

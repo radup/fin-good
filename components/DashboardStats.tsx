@@ -2,6 +2,7 @@
 
 import { DollarSign, TrendingUp, TrendingDown, FileText, CheckCircle, Target, ArrowRight } from 'lucide-react'
 import DrSigmundSpendAvatar from './DrSigmundSpendAvatar'
+import DrSigmundAdviceCard from './DrSigmundAdviceCard'
 
 interface DashboardStatsProps {
   summary?: {
@@ -176,25 +177,19 @@ export function DashboardStats({ summary, isLoading }: DashboardStatsProps) {
       </div>
 
       {/* Dr. Sigmund's Therapeutic Perspective */}
-      <div className="bg-gradient-to-br from-violet-50 to-violet-100 rounded-2xl shadow-xl border border-violet-200 p-4">
-        <div className="flex items-center gap-3 mb-3">
-          <DrSigmundSpendAvatar 
-            size="sm" 
-            showMessage={false}
-            animated={false}
-            className="flex-shrink-0"
-          />
-          <div>
-            <h3 className="text-base font-semibold text-violet-800">Dr. Sigmund's Therapeutic Perspective</h3>
-          </div>
-        </div>
-        <p className="text-sm text-violet-700 leading-relaxed">
+      <DrSigmundAdviceCard
+        variant="insights"
+        title="Therapeutic Perspective"
+        badgeText="Financial Health"
+        mood="encouraging"
+      >
+        <p>
           Excellent financial health! Your positive net income of ${netIncome.toLocaleString()} shows you're making smart financial choices. 
           The {categorizationRate.toFixed(0)}% categorization rate indicates good financial awareness. 
           Remember, even positive financial situations can create stress - take it step by step and monitor your emotional well-being 
           throughout your financial journey. Consider this a moment to celebrate your financial discipline!
         </p>
-      </div>
+      </DrSigmundAdviceCard>
     </div>
   )
 }

@@ -34,6 +34,11 @@ import {
   Legend
 } from 'recharts'
 import { forecastingAPI } from '@/lib/api'
+import { 
+  cardClasses, buttonClasses, badgeClasses, 
+  cn, gradientClasses, textClasses, semantic,
+  inputClasses
+} from '../lib/design-utils'
 import type { 
   ForecastRequest, 
   ForecastResponse, 
@@ -346,6 +351,7 @@ export function ForecastingDashboard({ className = '' }: ForecastingDashboardPro
   const [selectedModels, setSelectedModels] = useState<string[]>(['prophet', 'arima', 'neuralprophet', 'simple_trend'])
   const [forecastResult, setForecastResult] = useState<ForecastResponse | null>(null)
   const [multiModelResult, setMultiModelResult] = useState<MultiModelForecastResponse | null>(null)
+  const [forecastError, setForecastError] = useState<string | null>(null)
 
   const queryClient = useQueryClient()
 
@@ -403,8 +409,25 @@ export function ForecastingDashboard({ className = '' }: ForecastingDashboardPro
         setIsGenerating(false)
       }, 0)
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('Forecast generation failed:', error)
+      
+      // Extract error message from API response with better fallback handling
+      let errorMessage = 'An unexpected error occurred while generating the forecast'
+      
+      if (error?.response?.data?.detail) {
+        errorMessage = error.response.data.detail
+      } else if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message
+      } else if (error?.message) {
+        errorMessage = error.message
+      } else if (error?.response?.status === 400) {
+        errorMessage = 'Invalid request parameters. Please check your configuration.'
+      } else if (error?.response?.status >= 500) {
+        errorMessage = 'Server error. Please try again later.'
+      }
+      
+      setForecastError(errorMessage)
       setTimeout(() => {
         setIsGenerating(false)
       }, 0)
@@ -425,8 +448,25 @@ export function ForecastingDashboard({ className = '' }: ForecastingDashboardPro
         setIsGenerating(false)
       }, 0)
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('Multi-model forecast generation failed:', error)
+      
+      // Extract error message from API response with better fallback handling
+      let errorMessage = 'An unexpected error occurred while generating the multi-model forecast'
+      
+      if (error?.response?.data?.detail) {
+        errorMessage = error.response.data.detail
+      } else if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message
+      } else if (error?.message) {
+        errorMessage = error.message
+      } else if (error?.response?.status === 400) {
+        errorMessage = 'Invalid request parameters. Please check your model selection and configuration.'
+      } else if (error?.response?.status >= 500) {
+        errorMessage = 'Server error. Please try again later.'
+      }
+      
+      setForecastError(errorMessage)
       setTimeout(() => {
         setIsGenerating(false)
       }, 0)
@@ -454,6 +494,7 @@ export function ForecastingDashboard({ className = '' }: ForecastingDashboardPro
     setIsGenerating(true)
     setForecastResult(null) // Clear previous results
     setMultiModelResult(null) // Clear previous multi-model results
+    setForecastError(null) // Clear previous errors
     
     if (isMultiModelMode) {
       const request: MultiModelForecastRequest = {
@@ -595,61 +636,81 @@ export function ForecastingDashboard({ className = '' }: ForecastingDashboardPro
   }
 
   return (
-    <div className={`space-y-6 ${className}`}>
+    <div className={cn('space-y-6', className)}>
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <TrendingUp className="w-8 h-8 text-blue-600" />
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">Cash Flow Forecasting</h2>
-            <p className="text-gray-600">ML-powered predictions with confidence intervals</p>
+      <div className={cn(
+        gradientClasses('hero'),
+        cardClasses('elevated'),
+        'p-6 text-white'
+      )}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
+              <TrendingUp className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h2 className={cn(textClasses.size('2xl'), textClasses.weight('bold'), 'text-white')}>
+                Cash Flow Forecasting
+              </h2>
+              <p className="text-white/80">
+                AI-powered predictions with multi-model ensemble intelligence
+              </p>
+            </div>
           </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setIsMultiModelMode(!isMultiModelMode)}
-            className={`flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors ${
-              isMultiModelMode 
-                ? 'bg-purple-100 text-purple-700 border border-purple-200' 
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            {isMultiModelMode ? <Brain className="w-4 h-4" /> : <Zap className="w-4 h-4" />}
-            {isMultiModelMode ? 'Multi-Model' : 'Single Model'}
-          </button>
-          <button
-            onClick={handleRefresh}
-            className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 disabled:opacity-50"
-            disabled={isGenerating}
-          >
-            <RefreshCw className="w-4 h-4" />
-            Refresh
-          </button>
-          <button
-            onClick={() => setShowConfidenceIntervals(!showConfidenceIntervals)}
-            className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-900"
-          >
-            {showConfidenceIntervals ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-            {showConfidenceIntervals ? 'Hide' : 'Show'} Confidence
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsMultiModelMode(!isMultiModelMode)}
+              className={cn(
+                buttonClasses(isMultiModelMode ? 'primary' : 'ghost', 'sm'),
+                'text-white border-white/30 hover:bg-white/20'
+              )}
+            >
+              {isMultiModelMode ? <Brain className="w-4 h-4" /> : <Zap className="w-4 h-4" />}
+              {isMultiModelMode ? 'Multi-Model' : 'Single Model'}
+            </button>
+            <button
+              onClick={handleRefresh}
+              className={cn(
+                buttonClasses('ghost', 'sm'),
+                'text-white hover:bg-white/20',
+                isGenerating ? 'opacity-50' : ''
+              )}
+              disabled={isGenerating}
+            >
+              <RefreshCw className="w-4 h-4" />
+              Refresh
+            </button>
+            <button
+              onClick={() => setShowConfidenceIntervals(!showConfidenceIntervals)}
+              className={cn(
+                buttonClasses('ghost', 'sm'),
+                'text-white hover:bg-white/20'
+              )}
+            >
+              {showConfidenceIntervals ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              {showConfidenceIntervals ? 'Hide' : 'Show'} Confidence
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Forecast Configuration */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Forecast Configuration</h3>
+      <div className={cardClasses('elevated', 'p-6')}>
+        <h3 className={cn(textClasses.size('lg'), textClasses.weight('semibold'), semantic.text.primary, 'mb-6')}>
+          Forecast Configuration
+        </h3>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Forecast Type */}
           <div>
-            <label htmlFor="forecast-type" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="forecast-type" className={cn(textClasses.size('sm'), textClasses.weight('medium'), semantic.text.secondary, 'block mb-2')}>
               Forecast Type
             </label>
             <select
               id="forecast-type"
               value={selectedForecastType}
               onChange={(e) => setSelectedForecastType(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={inputClasses('default')}
             >
               {Array.isArray(forecastTypes) ? forecastTypes.map((type) => (
                 <option key={type.value} value={type.value}>
@@ -667,14 +728,14 @@ export function ForecastingDashboard({ className = '' }: ForecastingDashboardPro
 
           {/* Horizon */}
           <div>
-            <label htmlFor="forecast-horizon" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="forecast-horizon" className={cn(textClasses.size('sm'), textClasses.weight('medium'), semantic.text.secondary, 'block mb-2')}>
               Forecast Horizon
             </label>
             <select
               id="forecast-horizon"
               value={selectedHorizon}
               onChange={(e) => setSelectedHorizon(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={inputClasses('default')}
             >
               {Array.isArray(horizons) ? horizons.map((horizon) => (
                 <option key={horizon.value} value={horizon.value}>
@@ -695,7 +756,7 @@ export function ForecastingDashboard({ className = '' }: ForecastingDashboardPro
           {/* Custom Days */}
           {selectedHorizon === 'custom' && (
             <div>
-              <label htmlFor="custom-days" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="custom-days" className={cn(textClasses.size('sm'), textClasses.weight('medium'), semantic.text.secondary, 'block mb-2')}>
                 Custom Days
               </label>
               <input
@@ -705,14 +766,14 @@ export function ForecastingDashboard({ className = '' }: ForecastingDashboardPro
                 onChange={(e) => setCustomDays(parseInt(e.target.value) || 30)}
                 min="1"
                 max="365"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={inputClasses('default')}
               />
             </div>
           )}
 
           {/* Category Filter */}
           <div>
-            <label htmlFor="category-filter" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="category-filter" className={cn(textClasses.size('sm'), textClasses.weight('medium'), semantic.text.secondary, 'block mb-2')}>
               Category Filter (Optional)
             </label>
             <input
@@ -721,15 +782,15 @@ export function ForecastingDashboard({ className = '' }: ForecastingDashboardPro
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
               placeholder="e.g., Food, Transport"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={inputClasses('default')}
             />
           </div>
         </div>
 
         {/* Confidence Level */}
-        <div className="mt-4">
-          <label htmlFor="confidence-level" className="block text-sm font-medium text-gray-700 mb-2">
-            Confidence Level: {Math.round(confidenceLevel * 100)}%
+        <div className="mt-6">
+          <label htmlFor="confidence-level" className={cn(textClasses.size('sm'), textClasses.weight('medium'), semantic.text.secondary, 'block mb-3')}>
+            Confidence Level: <span className="text-brand-primary font-semibold">{Math.round(confidenceLevel * 100)}%</span>
           </label>
           <input
             id="confidence-level"
@@ -739,7 +800,7 @@ export function ForecastingDashboard({ className = '' }: ForecastingDashboardPro
             step="0.01"
             value={confidenceLevel}
             onChange={(e) => setConfidenceLevel(parseFloat(e.target.value))}
-            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-brand-primary"
           />
           <div className="flex justify-between text-xs text-gray-500 mt-1">
             <span>50%</span>
@@ -792,7 +853,11 @@ export function ForecastingDashboard({ className = '' }: ForecastingDashboardPro
           <button
             onClick={handleGenerateForecast}
             disabled={isGenerating || (isMultiModelMode && selectedModels.length === 0)}
-                            className="flex items-center gap-2 px-6 py-3 bg-brand-gradient text-white rounded-md transition-all duration-300 shadow-sm hover:shadow-lg transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+            className={cn(
+              buttonClasses('gradient', 'lg'),
+              'w-full sm:w-auto',
+              (isGenerating || (isMultiModelMode && selectedModels.length === 0)) ? 'opacity-50 cursor-not-allowed' : ''
+            )}
           >
             {isGenerating ? (
               <>
@@ -807,30 +872,93 @@ export function ForecastingDashboard({ className = '' }: ForecastingDashboardPro
             )}
           </button>
           {isMultiModelMode && selectedModels.length === 0 && (
-            <p className="text-sm text-red-500 mt-2">
+            <p className={cn(textClasses.size('sm'), 'text-red-500 mt-3')}>
               Please select at least one model to generate forecasts.
             </p>
           )}
         </div>
       </div>
 
+      {/* Error Display */}
+      {forecastError && (
+        <div className={cn(cardClasses('default'), 'p-6 bg-red-50 border-red-200')}>
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <h4 className={cn(textClasses.weight('medium'), 'text-red-800 mb-2')}>
+                Forecast Generation Failed
+              </h4>
+              <p className={cn(textClasses.size('sm'), 'text-red-700 mb-4')}>
+                {forecastError || 'An unknown error occurred. Please try again.'}
+              </p>
+              
+              {forecastError && forecastError.toLowerCase().includes('insufficient historical data') && (
+                <div className={cn(textClasses.size('sm'), 'text-red-600 mb-4')}>
+                  <p className={cn(textClasses.weight('medium'), 'mb-2')}>
+                    Suggestions to resolve this issue:
+                  </p>
+                  <ul className="list-disc list-inside space-y-1 ml-2">
+                    <li>Upload more transaction data (recommended: 3+ months)</li>
+                    <li>Try a shorter forecast horizon (7 or 30 days)</li>
+                    <li>Use single-model mode instead of multi-model</li>
+                    <li>Remove category filters to include more data</li>
+                  </ul>
+                </div>
+              )}
+              
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setForecastError(null)}
+                  className={cn(
+                    buttonClasses('secondary', 'sm'),
+                    'text-red-700 border-red-300 hover:bg-red-100'
+                  )}
+                >
+                  Dismiss
+                </button>
+                
+                {forecastError && forecastError.toLowerCase().includes('insufficient historical data') && (
+                  <button
+                    onClick={() => setIsMultiModelMode(false)}
+                    className={cn(
+                      buttonClasses('primary', 'sm'),
+                      'bg-red-600 hover:bg-red-700 border-red-600'
+                    )}
+                  >
+                    Try Single Model
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Multi-Model Forecast Results */}
       {multiModelResult && (
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Multi-Model Forecast Results</h3>
-            <div className="flex items-center gap-4 text-sm">
-              <div className="flex items-center gap-1">
-                <CheckCircle className="w-4 h-4 text-purple-500" />
-                <span>Ensemble Accuracy: {Math.round((multiModelResult.ensemble_accuracy || 0) * 100)}%</span>
+        <div className={cardClasses('elevated', 'p-6')}>
+          <div className="flex items-center justify-between mb-6">
+            <h3 className={cn(textClasses.size('lg'), textClasses.weight('semibold'), semantic.text.primary)}>
+              Multi-Model Forecast Results
+            </h3>
+            <div className="flex flex-wrap items-center gap-4 text-sm">
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-brand-accent" />
+                <span className={semantic.text.secondary}>
+                  Ensemble Accuracy: <span className="text-brand-primary font-semibold">{Math.round((multiModelResult.ensemble_accuracy || 0) * 100)}%</span>
+                </span>
               </div>
-              <div className="flex items-center gap-1">
-                <Brain className="w-4 h-4 text-blue-500" />
-                <span>Best Model: {multiModelResult.best_model}</span>
+              <div className="flex items-center gap-2">
+                <Brain className="w-4 h-4 text-brand-primary" />
+                <span className={semantic.text.secondary}>
+                  Best Model: <span className="text-brand-primary font-semibold">{multiModelResult.best_model}</span>
+                </span>
               </div>
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-2">
                 <Target className="w-4 h-4 text-green-500" />
-                <span>Models: {multiModelResult.model_results.length}</span>
+                <span className={semantic.text.secondary}>
+                  Models: <span className="text-brand-primary font-semibold">{multiModelResult.model_results.length}</span>
+                </span>
               </div>
             </div>
           </div>
@@ -842,37 +970,47 @@ export function ForecastingDashboard({ className = '' }: ForecastingDashboardPro
           />
 
           {/* Model Performance Comparison */}
-          <div className="mt-6">
-            <h4 className="text-md font-semibold text-gray-900 mb-3">Model Performance Comparison</h4>
+          <div className="mt-8">
+            <h4 className={cn(textClasses.size('base'), textClasses.weight('semibold'), semantic.text.primary, 'mb-4')}>
+              Model Performance Comparison
+            </h4>
             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4">
               {multiModelResult.model_results.map((model) => (
-                <div key={model.model_name} className="bg-gray-50 p-4 rounded-lg border">
-                  <div className="flex items-center justify-between mb-2">
-                    <h5 className="font-medium text-gray-900">{model.model_name}</h5>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      model.model_name === multiModelResult.best_model 
-                        ? 'bg-green-100 text-green-700' 
-                        : 'bg-gray-100 text-gray-600'
-                    }`}>
+                <div key={model.model_name} className={cardClasses('interactive', 'p-4')}>
+                  <div className="flex items-center justify-between mb-3">
+                    <h5 className={cn(textClasses.weight('medium'), semantic.text.primary)}>
+                      {model.model_name}
+                    </h5>
+                    <span className={cn(
+                      badgeClasses(model.model_name === multiModelResult.best_model ? 'success' : 'neutral')
+                    )}>
                       {model.model_name === multiModelResult.best_model ? 'Best' : 'Good'}
                     </span>
                   </div>
-                  <div className="space-y-1 text-sm">
+                  <div className={cn('space-y-2', textClasses.size('sm'))}>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Accuracy:</span>
-                      <span className="font-medium">{Math.round(model.accuracy * 100)}%</span>
+                      <span className={semantic.text.muted}>Accuracy:</span>
+                      <span className={cn(textClasses.weight('semibold'), 'text-brand-primary')}>
+                        {Math.round(model.accuracy * 100)}%
+                      </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">MAE:</span>
-                      <span className="font-medium">${model.mae.toFixed(2)}</span>
+                      <span className={semantic.text.muted}>MAE:</span>
+                      <span className={cn(textClasses.weight('semibold'), semantic.text.primary)}>
+                        ${model.mae.toFixed(2)}
+                      </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Pattern:</span>
-                      <span className="font-medium capitalize">{model.seasonal_pattern}</span>
+                      <span className={semantic.text.muted}>Pattern:</span>
+                      <span className={cn(textClasses.weight('medium'), semantic.text.secondary, 'capitalize')}>
+                        {model.seasonal_pattern}
+                      </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Trend:</span>
-                      <span className="font-medium capitalize">{model.trend_direction}</span>
+                      <span className={semantic.text.muted}>Trend:</span>
+                      <span className={cn(textClasses.weight('medium'), semantic.text.secondary, 'capitalize')}>
+                        {model.trend_direction}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -1006,82 +1144,6 @@ export function ForecastingDashboard({ className = '' }: ForecastingDashboardPro
         </div>
       )}
 
-      {/* Error Display */}
-      {(generateForecastMutation.error || generateMultiModelForecastMutation.error) && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-          <div className="flex items-start gap-3">
-            <AlertTriangle className="w-6 h-6 text-red-500 mt-1 flex-shrink-0" />
-            <div className="flex-1">
-              {(() => {
-                const error = generateForecastMutation.error
-                
-                // Extract error message from Axios error response
-                let errorMessage = ''
-                if (error && typeof error === 'object' && 'response' in error) {
-                  const axiosError = error as any
-                  if (axiosError.response?.data?.detail) {
-                    errorMessage = axiosError.response.data.detail
-                  } else if (axiosError.message) {
-                    errorMessage = axiosError.message
-                  } else {
-                    errorMessage = String(error)
-                  }
-                } else if (error instanceof Error) {
-                  errorMessage = error.message
-                } else {
-                  errorMessage = String(error)
-                }
-
-                const isInsufficientDataError = 
-                  errorMessage.includes('Insufficient historical data') ||
-                  errorMessage.includes('insufficient data') ||
-                  errorMessage.includes('Need at least') ||
-                  errorMessage.includes('not enough data')
-
-                if (isInsufficientDataError) {
-                  return (
-                    <>
-                      <h3 className="font-semibold text-red-900 text-lg mb-2">
-                        Insufficient Historical Data
-                      </h3>
-                      <p className="text-red-700 mb-4">
-                        Your account doesn't have enough transaction history to generate reliable forecasts. 
-                        Our ML models require at least 30 days of transaction data to provide accurate predictions.
-                      </p>
-                      <div className="bg-red-100 border border-red-200 rounded-lg p-4 mb-4">
-                        <h4 className="font-medium text-red-800 mb-2">What you can do:</h4>
-                        <ul className="text-red-700 space-y-1 list-disc list-inside">
-                          <li>Upload more transaction data from your bank or accounting software</li>
-                          <li>Wait for more transactions to accumulate over time (recommended: 30+ days)</li>
-                          <li>Import historical data from previous months or years</li>
-                        </ul>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-red-600">
-                        <Clock className="w-4 h-4" />
-                        <span>Try again once you have at least 30 days of transaction history</span>
-                      </div>
-                    </>
-                  )
-                } else {
-                  return (
-                    <>
-                      <h3 className="font-semibold text-red-900 text-lg mb-2">
-                        Forecast Generation Failed
-                      </h3>
-                      <p className="text-red-700 mb-2">
-                        {errorMessage || 'An unexpected error occurred while generating the forecast.'}
-                      </p>
-                      <div className="text-sm text-red-600">
-                        Please try again or contact support if the problem persists.
-                      </div>
-                    </>
-                  )
-                }
-              })()}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

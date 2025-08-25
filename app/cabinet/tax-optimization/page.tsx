@@ -1,14 +1,14 @@
 'use client'
 
 import TaxOptimizationDashboard from '../../../components/TaxOptimizationDashboard'
-
 import CabinetPageLayout from '../../../components/CabinetPageLayout'
+import { cardClasses } from '../../../lib/design-utils'
 
 export default function TaxOptimizationPage() {
   return (
-    <CabinetPageLayout title="Tax Optimization" description="Multi-jurisdiction tax planning">
-      <div className="space-y-4">
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+    <CabinetPageLayout title="Tax Optimization" description="Multi-jurisdiction tax planning & strategies">
+      <div className="space-y-6">
+        <div className={cardClasses('default', 'p-6')}>
           <TaxOptimizationDashboard />
         </div>
       </div>

@@ -12,7 +12,7 @@ import {
   ClassNameBuilder,
   ComponentVariantBuilder
 } from '../types/design-system'
-import { components } from './design-system'
+import { components, semantic } from './design-system'
 
 /**
  * Combines multiple class names, filtering out falsy values
@@ -281,3 +281,98 @@ export const validateDesignToken = <T extends string>(
 ): T => {
   return allowedValues.includes(value) ? value : defaultValue
 }
+
+/**
+ * Dr. Sigmund Advice Card styling utility
+ * Creates consistent styling for Dr. Sigmund advice containers
+ */
+export const drSigmundAdviceClasses = (
+  variant: 'default' | 'risk' | 'insights' | 'ml' | 'business' = 'default',
+  className?: string
+) => {
+  const variantStyles = {
+    default: 'bg-gradient-to-r from-cyan-50 to-violet-50 border-cyan-200',
+    risk: 'bg-gradient-to-r from-cyan-50 to-violet-50 border-cyan-200',
+    insights: 'bg-gradient-to-r from-violet-50 to-cyan-50 border-violet-200',
+    ml: 'bg-gradient-to-r from-violet-50 to-cyan-50 border-violet-200',
+    business: 'bg-gradient-to-r from-emerald-50 to-cyan-50 border-emerald-200'
+  }
+  
+  return cn(
+    'rounded-xl p-6 border overflow-hidden',
+    variantStyles[variant],
+    className
+  )
+}
+
+/**
+ * Dr. Sigmund Header styling utility
+ * For the header section with avatar, title, and badge
+ */
+export const drSigmundHeaderClasses = (
+  variant: 'default' | 'risk' | 'insights' | 'ml' | 'business' = 'default'
+) => {
+  const textColors = {
+    default: 'text-cyan-900',
+    risk: 'text-cyan-900',
+    insights: 'text-violet-900', 
+    ml: 'text-violet-900',
+    business: 'text-emerald-900'
+  }
+  
+  const badgeColors = {
+    default: 'bg-cyan-100 text-cyan-700',
+    risk: 'bg-cyan-100 text-cyan-700',
+    insights: 'bg-violet-100 text-violet-700',
+    ml: 'bg-violet-100 text-violet-700',
+    business: 'bg-emerald-100 text-emerald-700'
+  }
+  
+  return {
+    title: cn('text-lg font-semibold', textColors[variant]),
+    badge: cn('text-xs px-2 py-1 rounded-full', badgeColors[variant]),
+    content: cn('space-y-3 text-sm', textColors[variant].replace('900', '800'))
+  }
+}
+
+/**
+ * Dr. Sigmund Toggle Button styling utility
+ */
+export const drSigmundToggleClasses = (
+  variant: 'default' | 'risk' | 'insights' | 'ml' | 'business' = 'default'
+) => {
+  const colors = {
+    default: 'text-cyan-600 hover:text-cyan-800 hover:bg-cyan-100',
+    risk: 'text-cyan-600 hover:text-cyan-800 hover:bg-cyan-100',
+    insights: 'text-violet-600 hover:text-violet-800 hover:bg-violet-100',
+    ml: 'text-violet-600 hover:text-violet-800 hover:bg-violet-100',
+    business: 'text-emerald-600 hover:text-emerald-800 hover:bg-emerald-100'
+  }
+  
+  return cn(
+    'text-sm font-medium px-3 py-1 rounded transition-colors flex items-center space-x-1',
+    colors[variant]
+  )
+}
+
+/**
+ * Dr. Sigmund Expandable Border styling utility
+ */
+export const drSigmundExpandableBorderClasses = (
+  variant: 'default' | 'risk' | 'insights' | 'ml' | 'business' = 'default'
+) => {
+  const borderColors = {
+    default: 'border-cyan-200',
+    risk: 'border-cyan-200',
+    insights: 'border-violet-200',
+    ml: 'border-violet-200',
+    business: 'border-emerald-200'
+  }
+  
+  return cn('border-t bg-white p-6', borderColors[variant])
+}
+
+/**
+ * Semantic color tokens export
+ */
+export { semantic }

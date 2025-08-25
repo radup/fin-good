@@ -29,6 +29,7 @@ import {
   Heart
 } from 'lucide-react'
 import DrSigmundSpendAvatar from './DrSigmundSpendAvatar'
+import DrSigmundAdviceCard from './DrSigmundAdviceCard'
 
 interface ScenarioInput {
   id: string
@@ -563,21 +564,15 @@ export default function ScenarioSimulationEngine() {
           </div>
 
           {/* Dr. Sigmund's Advice */}
-          <div className="mt-6 bg-gradient-to-r from-violet-50 to-violet-100 border border-violet-200 rounded-2xl p-6">
-            <div className="flex items-start gap-4">
-              <DrSigmundSpendAvatar
-                size="sm"
-                mood={simulationResults.cashFlowImpact >= 0 ? "encouraging" : "reassuring"}
-                showMessage={false}
-                animated={true}
-                variant="professional"
-              />
-              <div>
-                <h3 className="font-medium text-violet-800 mb-2">Dr. Sigmund's Therapeutic Perspective</h3>
-                <p className="text-sm text-violet-700 leading-relaxed">{simulationResults.drSigmundAdvice}</p>
-              </div>
-            </div>
-          </div>
+          <DrSigmundAdviceCard
+            variant="insights"
+            title="Therapeutic Perspective"
+            badgeText="Scenario Analysis"
+            mood={simulationResults.cashFlowImpact >= 0 ? "encouraging" : "reassuring"}
+            className="mt-6"
+          >
+            <p>{simulationResults.drSigmundAdvice}</p>
+          </DrSigmundAdviceCard>
         </div>
       )}
 
@@ -603,43 +598,38 @@ export default function ScenarioSimulationEngine() {
       )}
 
       {expandedSection === 'therapy' && (
-        <div className="mt-6 bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
-          <div className="flex items-start gap-6">
-            <DrSigmundSpendAvatar
-              size="md"
-              mood="supportive"
-              showMessage={false}
-              animated={true}
-              variant="professional"
-            />
-            <div className="flex-1">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Financial Decision Therapy</h2>
-              <div className="bg-gradient-to-r from-brand-primary-lightest to-brand-primary-lighter border border-brand-primary-light rounded-2xl p-6">
-                <h3 className="font-medium text-brand-primary-dark mb-3">Dr. Sigmund's Decision-Making Framework</h3>
-                <div className="grid md:grid-cols-2 gap-4 text-sm text-brand-primary-dark">
-                  <div>
-                    <h4 className="font-medium mb-2">🧠 Emotional Intelligence</h4>
-                    <ul className="space-y-1 text-brand-primary">
-                      <li>• Acknowledge financial anxiety as normal</li>
-                      <li>• Use data to reduce uncertainty</li>
-                      <li>• Focus on what you can control</li>
-                      <li>• Celebrate small wins and progress</li>
-                    </ul>
-                  </div>
-                  <div>
-                    <h4 className="font-medium mb-2">📊 Analytical Process</h4>
-                    <ul className="space-y-1 text-brand-primary">
-                      <li>• Start with conservative assumptions</li>
-                      <li>• Test multiple scenarios</li>
-                      <li>• Consider best/worst/likely cases</li>
-                      <li>• Plan for unexpected outcomes</li>
-                    </ul>
-                  </div>
-                </div>
+        <DrSigmundAdviceCard
+          variant="business"
+          title="Financial Decision Therapy"
+          badgeText="Therapy Guide"
+          mood="supportive"
+          className="mt-6"
+          expandableContent={
+            <div className="grid md:grid-cols-2 gap-4 text-sm text-emerald-800">
+              <div>
+                <h4 className="font-medium mb-2">🧠 Emotional Intelligence</h4>
+                <ul className="space-y-1 text-emerald-700">
+                  <li>• Acknowledge financial anxiety as normal</li>
+                  <li>• Use data to reduce uncertainty</li>
+                  <li>• Focus on what you can control</li>
+                  <li>• Celebrate small wins and progress</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-medium mb-2">📊 Analytical Process</h4>
+                <ul className="space-y-1 text-emerald-700">
+                  <li>• Start with conservative assumptions</li>
+                  <li>• Test multiple scenarios</li>
+                  <li>• Consider best/worst/likely cases</li>
+                  <li>• Plan for unexpected outcomes</li>
+                </ul>
               </div>
             </div>
-          </div>
-        </div>
+          }
+          defaultExpanded={true}
+        >
+          <p>Use this framework to make confident financial decisions while managing emotional stress.</p>
+        </DrSigmundAdviceCard>
       )}
 
       {/* Disclaimer - Always shown after simulation */}
